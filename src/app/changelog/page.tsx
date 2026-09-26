@@ -10,6 +10,13 @@ const changes = [
     summary: "Repository task tracking now closes the matching issue when a task pull request closes, including work closed without merging.",
   },
   {
+    issue: 6,
+    title:
+      "Add pending requests, privacy lists, unfollow history and relationship timeline",
+    summary:
+      "Review sent requests with dated age filters, inspect private connection lists, explore your own recently-unfollowed records, and group relationship dates by year or month. A new Wrapped card shares aggregate following dates. Missing optional lists are distinguished from empty lists, and all archive analysis stays local.",
+  },
+  {
     issue: 4,
     title:
       "Validate current Instagram exports and support large archives safely",

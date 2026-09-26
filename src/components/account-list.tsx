@@ -2,17 +2,26 @@
 import { useMemo, useState } from "react";
 import type { Account } from "@/lib/instagram/types";
 import { download } from "@/lib/download";
+import { requestAge } from "@/lib/analysis/insights";
 export function AccountList({
   accounts,
   selectable = false,
   selectionScope = accounts,
+  dateLabel = "",
+  ageReference,
+  initialSort = "az",
+  countLabel = "accounts",
 }: {
   accounts: Account[];
   selectable?: boolean;
   selectionScope?: Account[];
+  dateLabel?: string;
+  ageReference?: string;
+  initialSort?: "az" | "oldest" | "newest";
+  countLabel?: "accounts" | "records";
 }) {
   const [query, setQuery] = useState(""),
-    [sort, setSort] = useState("az"),
+    [sort, setSort] = useState(initialSort),
     [page, setPage] = useState(0),
     [onlySelected, setOnlySelected] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -79,13 +88,17 @@ export function AccountList({
           aria-label="Sort accounts"
           value={sort}
           onChange={(event) => {
-            setSort(event.target.value);
+            setSort(event.target.value as typeof sort);
             setPage(0);
           }}
         >
           <option value="az">Username A–Z</option>
-          <option value="newest">Recently followed</option>
-          <option value="oldest">Oldest follows</option>
+          <option value="newest">
+            {dateLabel ? "Newest recorded date" : "Recently followed"}
+          </option>
+          <option value="oldest">
+            {dateLabel ? "Oldest recorded date" : "Oldest follows"}
+          </option>
         </select>
       </div>
       {selectable && (
@@ -138,7 +151,7 @@ export function AccountList({
         </div>
       )}
       <p className="list-caption">
-        {filtered.length.toLocaleString("en-US")} accounts{" "}
+        {filtered.length.toLocaleString("en-US")} {countLabel}{" "}
         {selectable && "· Review manually on Instagram"}
       </p>
       {!filtered.length ? (
@@ -148,7 +161,7 @@ export function AccountList({
       ) : (
         <ul className="accounts">
           {visible.map((a) => (
-            <li key={a.username}>
+            <li key={`${a.username}:${a.timestamp ?? "unknown"}`}>
               {selectable && (
                 <input
                   type="checkbox"
@@ -163,6 +176,7 @@ export function AccountList({
               <div>
                 <strong>@{a.username}</strong>
                 <small>
+                  {dateLabel && `${dateLabel}: `}
                   {a.timestamp
                     ? new Date(a.timestamp * 1000).toLocaleDateString("en-US", {
                         dateStyle: "medium",
@@ -170,6 +184,15 @@ export function AccountList({
                       })
                     : "Date unavailable"}
                 </small>
+                {ageReference !== undefined && (
+                  <small>
+                    {requestAge(a.timestamp, ageReference) === null
+                      ? a.timestamp === undefined
+                        ? "Age unavailable"
+                        : "Age unavailable for this reference date"
+                      : `${requestAge(a.timestamp, ageReference)} days since recorded request`}
+                  </small>
+                )}
               </div>
               <a
                 href={a.href}

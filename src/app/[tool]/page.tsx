@@ -74,6 +74,8 @@ export default async function ToolPage({
             <p>
               Choose Followers and Following with the All time date range in
               Instagram’s Accounts Center. JSON is recommended.{" "}
+              Include the relevant optional connection categories for requests,
+              privacy lists and your own unfollow history.{" "}
               <Link href="/how-to-download-instagram-followers-data/">
                 Read the export guide →
               </Link>

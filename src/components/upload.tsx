@@ -64,6 +64,10 @@ export function Upload({
         <br className="desktop-break" /> Followers and Following JSON / HTML
         files.
       </p>
+      <p>
+        Include optional connection categories in the same ZIP or selection to
+        explore requests, privacy lists and your unfollow history.
+      </p>
       <input
         ref={input}
         type="file"

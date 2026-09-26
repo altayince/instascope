@@ -23,7 +23,8 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
 - InstaCleaner: manual review, selection across filters, profile links and selected CSV export. No automatic account actions.
 - Snapshot comparison: explicitly load newer and older exports; show added/missing followers, following and mutuals without causal claims.
 - Wrapped: aggregate-only 1080 × 1920 PNG download and native sharing where supported.
-- Seven dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
+- Optional export insights: pending-request ages and manual CSV review, private connection lists, your own recently-unfollowed records, year/month relationship dates and a following-date Wrapped card.
+- Dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
 - Independent public-photo viewer UI and optional rate-limited Worker. Public upstream access is best-effort; default deployment leaves lookup off.
 - Event-name-only analytics interface and optional Worker collector. Remote analytics is off unless configured.
 

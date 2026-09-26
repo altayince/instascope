@@ -75,3 +75,17 @@ export function deduplicate(accounts: Account[]): Account[] {
   }
   return [...unique.values()];
 }
+
+// History records are events: repeated exports of one event collapse, distinct dates survive.
+export function deduplicateEvents(accounts: Account[]): Account[] {
+  const events = new Map<string, Account>();
+  for (const entry of accounts) {
+    const normalized = account(entry.username, entry.timestamp);
+    if (normalized)
+      events.set(
+        `${normalized.username}:${normalized.timestamp ?? "unknown"}`,
+        normalized,
+      );
+  }
+  return [...events.values()];
+}

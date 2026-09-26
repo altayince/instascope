@@ -3,6 +3,7 @@ import { findAll, textContent } from "domutils";
 import { account } from "./normalize";
 import type { Account, ParsedPart, Relationship } from "./types";
 import { ImportError } from "./errors";
+import { connectionFormats, connectionKinds } from "./connections";
 
 export { ImportError } from "./errors";
 export function detectKind(path: string): Relationship | undefined {
@@ -10,17 +11,42 @@ export function detectKind(path: string): Relationship | undefined {
     path.replaceAll("\\", "/").split("/").pop()?.toLowerCase() ?? "";
   if (/^followers(?:_\d+)?\.(json|html?)$/.test(filename)) return "followers";
   if (/^following(?:_\d+)?\.(json|html?)$/.test(filename)) return "following";
+  return connectionKinds.find((kind) =>
+    new RegExp(
+      `^${connectionFormats[kind].filename}(?:_\\d+)?\\.(json|html?)$`,
+    ).test(filename),
+  );
 }
 function record(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
-function parseEntries(value: unknown): Account[] {
+function parseEntries(value: unknown, allowLabels = false): Account[] {
   if (!Array.isArray(value))
     throw new ImportError(
       "The relationship list has an unsupported structure. Request a fresh JSON export from Instagram.",
     );
   const result: Account[] = [];
   for (const row of value) {
+    if (allowLabels && record(row) && Array.isArray(row.label_values)) {
+      const fields = row.label_values.filter(record);
+      // A display name can look like a username. Never infer identity from Name.
+      const url = fields.find((field) => field.label === "URL")?.value;
+      const username = fields.find(
+        (field) => field.label === "Username",
+      )?.value;
+      // Explicit Username is authoritative: exported profile URLs can be stale.
+      const entry =
+        account(username, row.timestamp) ??
+        (typeof url === "string" && /^https?:\/\//i.test(url)
+          ? account(url, row.timestamp)
+          : null);
+      if (!entry)
+        throw new ImportError(
+          "A connection record has no supported Instagram username. Request a fresh JSON export.",
+        );
+      result.push(entry);
+      continue;
+    }
     if (!record(row) || !Array.isArray(row.string_list_data))
       throw new ImportError(
         "A relationship record is malformed. Request a fresh export; incomplete results would be misleading.",
@@ -55,6 +81,15 @@ export function parseJson(text: string, kind?: Relationship): ParsedPart[] {
   }
   if (record(data)) {
     const parts: ParsedPart[] = [];
+    if (kind && kind !== "followers" && kind !== "following") {
+      for (const key of connectionFormats[kind].keys) {
+        if (key in data)
+          return [{ kind, accounts: parseEntries(data[key], true) }];
+      }
+      throw new ImportError(
+        "This optional connection list has an unsupported structure. Request a fresh JSON export.",
+      );
+    }
     for (const relation of ["followers", "following"] as const) {
       const key = `relationships_${relation}`;
       if (key in data)
@@ -63,7 +98,15 @@ export function parseJson(text: string, kind?: Relationship): ParsedPart[] {
     if (parts.length) return parts;
   }
   if (kind && Array.isArray(data))
-    return [{ kind, accounts: parseEntries(data) }];
+    return [
+      {
+        kind,
+        accounts: parseEntries(
+          data,
+          kind !== "followers" && kind !== "following",
+        ),
+      },
+    ];
   throw new ImportError(
     "No supported Followers or Following list was found. Keep the original filenames or upload the complete export ZIP.",
   );
@@ -71,7 +114,7 @@ export function parseJson(text: string, kind?: Relationship): ParsedPart[] {
 export function parseHtml(text: string, kind?: Relationship): ParsedPart[] {
   if (!kind)
     throw new ImportError(
-      "Keep the original followers.html or following.html filenames so we can identify each list.",
+      "Keep the original Instagram list filenames so we can identify each list.",
     );
   // A pure text parser: no DOM insertion, resource loading, or script execution.
   const document = parseDocument(text);
@@ -88,7 +131,11 @@ export function parseHtml(text: string, kind?: Relationship): ParsedPart[] {
     const content = textContent(document).toLowerCase();
     // Accept explicit empty exports only; an arbitrary empty document is not valid data.
     if (
-      !content.includes(kind) ||
+      !content.includes(
+        kind === "followers" || kind === "following"
+          ? kind
+          : connectionFormats[kind].filename.replaceAll("_", " "),
+      ) ||
       !/no (?:data|followers|following)|no accounts|0 accounts/.test(content)
     ) {
       throw new ImportError(
