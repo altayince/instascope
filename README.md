@@ -1,0 +1,63 @@
+# InstaScope
+
+Privacy-first Instagram export analysis. No Instagram login, database, or archive upload.
+
+## Run locally
+
+Use Node.js 24 LTS and npm:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://localhost:3000. On this Windows workspace, a checksum-verified portable Node is available under `.tools` (ignored by Git):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
+```
+
+## Available tools
+
+- Followers, following, mutuals, not-following-back, and fans with search, sorting and 50-row pagination.
+- InstaCleaner: manual review, selection across filters, profile links and selected CSV export. No automatic account actions.
+- Snapshot comparison: explicitly load newer and older exports; show added/missing followers, following and mutuals without causal claims.
+- Wrapped: aggregate-only 1080 × 1920 PNG download and native sharing where supported.
+- Seven dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
+- Independent public-photo viewer UI and optional rate-limited Worker. Public upstream access is best-effort; default deployment leaves lookup off.
+- Event-name-only analytics interface and optional Worker collector. Remote analytics is off unless configured.
+
+## Test and build
+
+```sh
+npm run check
+npx playwright install chromium
+npm run test:e2e
+npm run preview
+```
+
+`check` runs typecheck, ESLint, Vitest and the static production build. Playwright tests the production `out/` output on desktop Chromium and a mobile viewport. On this workspace, set `PLAYWRIGHT_BROWSERS_PATH` to `<repo>/.tools/browsers` to reuse the downloaded browser. Do not confuse mobile emulation with testing a physical iPhone or Android device.
+
+All committed fixtures are synthetic. Never commit real Instagram exports. See [archive support](docs/archive-support.md) and [validation](docs/validation.md).
+
+## Architecture
+
+```text
+File selection → Web Worker → ZIP/JSON/HTML adapter → normalized Dataset
+                                                       ↓
+                                  pure analysis → dashboard / Cleaner / Wrapped
+                                                       ↓
+                                               snapshot comparison
+```
+
+Raw data lives in React context memory only, shared across client navigation. Reloading or clearing discards it. HTML parsing uses a text parser, never DOM insertion. ZIP entries are filtered before inflation; media is ignored. Import limits and worker timeouts bound resource use. External profile retrieval is isolated in `workers/`; it cannot receive archive data.
+
+The workspace was empty at inspection; no prototype source was available to preserve. The referenced prototype URL could not be retrieved. This is a fresh Next.js/TypeScript implementation based on [the supplied specification](docs/PRODUCT_SPEC.md), using ordinary CSS instead of an extra utility framework because the design does not need it.
+
+## Deployment
+
+The build produces `out/`, suitable for static hosting. Configure a real origin before launch and review the separate service options in [deployment](docs/deployment.md). No hosting or domain has been purchased or deployed. Until `NEXT_PUBLIC_SITE_URL` is set, builds deliberately emit `noindex` and disallow crawling.
+
+## Repository workflow
+
+Follow [WORKFLOW.md](WORKFLOW.md): assigned issue → INS task branch → tested PR → checked merge. [Remote protection details](docs/github-setup.md).

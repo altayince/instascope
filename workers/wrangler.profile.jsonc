@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "instascope-public-photo",
+  "main": "profile-picture.ts",
+  "compatibility_date": "2026-09-26",
+  "workers_dev": false,
+  "vars": { "ENABLE_PUBLIC_LOOKUP": "false" },
+  "ratelimits": [
+    {
+      "name": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 },
+    },
+  ],
+  "observability": { "enabled": false },
+}
