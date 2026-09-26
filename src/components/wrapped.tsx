@@ -3,26 +3,40 @@ import { useState } from "react";
 import type { Analysis, compareSnapshots } from "@/lib/analysis/relationships";
 import { download } from "@/lib/download";
 import { track } from "@/lib/analytics";
+import type { Dataset } from "@/lib/instagram/types";
+import { timelineCardStats } from "@/lib/analysis/insights";
 type Comparison = ReturnType<typeof compareSnapshots> | null;
 export function Wrapped({
   analysis,
   comparison,
+  dataset,
 }: {
   analysis: Analysis;
   comparison: Comparison;
+  dataset: Dataset;
 }) {
   const [message, setMessage] = useState("");
-  const stats = [
-    ["Followers", analysis.followers.length],
-    ["Following", analysis.following.length],
-    ["Mutuals", analysis.mutuals.length],
-    ["Not following back", analysis.notFollowingBack.length],
-    ["Fans · you don’t follow back", analysis.fans.length],
-    [
-      "Follower / following ratio",
-      analysis.ratio === null ? "—" : analysis.ratio.toFixed(2),
-    ],
-  ] as const;
+  const [card, setCard] = useState<"circle" | "timeline">("circle");
+  const isTimeline = card === "timeline";
+  const stats = isTimeline
+    ? timelineCardStats(dataset)
+    : ([
+        ["Followers", analysis.followers.length],
+        ["Following", analysis.following.length],
+        ["Mutuals", analysis.mutuals.length],
+        ["Not following back", analysis.notFollowingBack.length],
+        ["Fans · you don’t follow back", analysis.fans.length],
+        [
+          "Follower / following ratio",
+          analysis.ratio === null ? "—" : analysis.ratio.toFixed(2),
+        ],
+      ] as const);
+  const title = isTimeline
+    ? ["My follows.", "Through time."]
+    : ["My circle.", "In perspective."];
+  const caption = isTimeline
+    ? "Dates of follows present in this export; not net growth."
+    : "From my uploaded Instagram export";
   async function imageBlob(): Promise<Blob> {
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -39,8 +53,8 @@ export function Wrapped({
     ctx.font = "32px Arial";
     ctx.fillText("MY INSTAGRAM SNAPSHOT", 88, 150);
     ctx.font = "bold 112px Arial";
-    ctx.fillText("My circle.", 80, 310);
-    ctx.fillText("In perspective.", 80, 440);
+    ctx.fillText(title[0], 80, 310);
+    ctx.fillText(title[1], 80, 440);
     stats.forEach(([label, value], i) => {
       const x = 85 + (i % 2) * 505,
         y = 690 + Math.floor(i / 2) * 300;
@@ -56,7 +70,7 @@ export function Wrapped({
       ctx.font = "27px Arial";
       ctx.fillText(label, x, y + 55, 440);
     });
-    if (comparison) {
+    if (comparison && !isTimeline) {
       ctx.font = "32px Arial";
       ctx.fillText(
         `Between snapshots: ${comparison.followerDelta >= 0 ? "+" : ""}${comparison.followerDelta} followers`,
@@ -66,7 +80,7 @@ export function Wrapped({
     }
     ctx.font = "30px Arial";
     ctx.fillStyle = "#faf8f0";
-    ctx.fillText("From my uploaded Instagram export", 85, 1720);
+    ctx.fillText(caption, 85, 1720, 910);
     ctx.font = "bold 38px Arial";
     ctx.fillText("◎ Made with InstaScope", 85, 1810);
     return new Promise((resolve, reject) =>
@@ -86,9 +100,13 @@ export function Wrapped({
   async function exportCard(share: boolean) {
     try {
       const blob = await imageBlob(),
-        file = new File([blob], "instascope-wrapped.png", {
-          type: "image/png",
-        });
+        file = new File(
+          [blob],
+          isTimeline ? "instascope-timeline.png" : "instascope-wrapped.png",
+          {
+            type: "image/png",
+          },
+        );
       if (share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "My Instagram Wrapped" });
         track("wrapped_shared");
@@ -112,9 +130,9 @@ export function Wrapped({
       <div className="wrapped-card">
         <span className="eyebrow">MY INSTAGRAM SNAPSHOT</span>
         <h2>
-          My circle.
+          {title[0]}
           <br />
-          <em>In perspective.</em>
+          <em>{title[1]}</em>
         </h2>
         <div className="wrapped-stats">
           {stats.map(([label, value]) => (
@@ -128,15 +146,42 @@ export function Wrapped({
             </div>
           ))}
         </div>
-        {comparison && (
+        {comparison && !isTimeline && (
           <p>
             Between snapshots: {comparison.followerDelta >= 0 ? "+" : ""}
             {comparison.followerDelta} followers
           </p>
         )}
+        {isTimeline && (
+          <p>{caption} Ties for top year show the earliest year.</p>
+        )}
         <small>◎ Made with InstaScope</small>
       </div>
       <div className="wrapped-actions">
+        <div
+          className="category-tabs"
+          role="group"
+          aria-label="Wrapped card style"
+        >
+          <button
+            aria-pressed={!isTimeline}
+            onClick={() => {
+              setCard("circle");
+              setMessage("");
+            }}
+          >
+            My circle
+          </button>
+          <button
+            aria-pressed={isTimeline}
+            onClick={() => {
+              setCard("timeline");
+              setMessage("");
+            }}
+          >
+            My following dates
+          </button>
+        </div>
         <span className="eyebrow">MADE TO SHARE</span>
         <h2>
           A story worth

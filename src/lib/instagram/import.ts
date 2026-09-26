@@ -1,9 +1,15 @@
 import { strFromU8 } from "fflate";
-import { deduplicate } from "./normalize";
+import { deduplicate, deduplicateEvents } from "./normalize";
+import { connectionKinds, missingConnection } from "./connections";
 import { detectKind, ImportError, parseHtml, parseJson } from "./parsers";
 import { extractZip, extractZipBlob, type ImportBudget } from "./zip";
 import { LIMITS, validateSelection } from "./limits";
-import type { Dataset, ParsedPart } from "./types";
+import type {
+  ConnectionKind,
+  ConnectionList,
+  Dataset,
+  ParsedPart,
+} from "./types";
 
 export { LIMITS } from "./limits";
 export type InputFile = { name: string; bytes: Uint8Array };
@@ -29,7 +35,38 @@ function reservePlain(size: number, budget: ImportBudget) {
 }
 
 function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
-  const parts = inputs.flatMap(parseText);
+  const parts: ParsedPart[] = [];
+  const connections = Object.fromEntries(
+    connectionKinds.map((kind) => [kind, missingConnection()]),
+  ) as Record<ConnectionKind, ConnectionList>;
+  for (const input of inputs) {
+    const kind = detectKind(input.name);
+    if (!kind || kind === "followers" || kind === "following") {
+      parts.push(...parseText(input));
+      continue;
+    }
+    if (connections[kind].status === "unsupported") continue;
+    try {
+      const accounts = parseText(input).flatMap((part) => part.accounts);
+      const combined = [...connections[kind].accounts, ...accounts];
+      connections[kind] = {
+        status: "available",
+        accounts:
+          kind === "recentlyUnfollowed"
+            ? deduplicateEvents(combined)
+            : deduplicate(combined),
+      };
+    } catch (error) {
+      if (!(error instanceof ImportError)) throw error;
+      // Never show a partially parsed optional list as complete or as zero.
+      connections[kind] = {
+        status: "unsupported",
+        accounts: [],
+        message:
+          "This list could not be read completely. Request a fresh JSON export including this category. Your core relationship lists are still available.",
+      };
+    }
+  }
   for (const kind of ["followers", "following"] as const) {
     if (!parts.some((part) => part.kind === kind))
       throw new ImportError(
@@ -37,6 +74,7 @@ function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
       );
   }
   return {
+    connections,
     followers: deduplicate(
       parts
         .filter((part) => part.kind === "followers")
@@ -52,6 +90,12 @@ function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
       sourceFormat,
       warnings: [
         "Results reflect the lists in this export. Use an All time export for complete relationships.",
+        ...connectionKinds
+          .filter((kind) => connections[kind].status === "unsupported")
+          .map(
+            (kind) =>
+              `Optional list ${kind} could not be read completely; its results are unavailable.`,
+          ),
         ...(inputs.some((file) => /\.html?$/i.test(file.name))
           ? [
               "HTML timestamps are not interpreted; date sorting is available for JSON exports.",

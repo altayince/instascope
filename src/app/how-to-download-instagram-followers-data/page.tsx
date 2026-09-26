@@ -51,6 +51,15 @@ export default function Guide() {
       </Link>
       <h2>Something missing?</h2>
       <p>
+        For pending requests, connection privacy and your own unfollow history,
+        include the corresponding connection categories offered in your export:
+        sent follow requests, close friends, blocked and restricted profiles,
+        story visibility, and recently-unfollowed profiles. Upload these files
+        together with Followers and Following, or choose the complete ZIP.
+        Unavailable categories stay marked as missing; they are never assumed to
+        be empty. JSON is recommended for request ages and the date timeline.
+      </p>
+      <p>
         If InstaScope reports a missing list, check that both Followers and
         Following were included. Date-limited exports can leave out older
         relationships and produce misleading results. Empty lists are accepted

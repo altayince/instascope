@@ -2,6 +2,50 @@ export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "http://localhost:3000";
 export const tools = {
+  "pending-follow-requests": {
+    name: "Pending requests",
+    title: "The requests still on your list.",
+    description:
+      "Review sent follow requests in your Instagram export, calculate their age, and make a manual review list.",
+    mode: "pending",
+    category: "followers",
+    question: "Does this check whether requests are still pending?",
+    answer:
+      "No. It reads the export's pending requests list. Age is measured against a date you choose; Instagram may have changed since the export.",
+  },
+  "connection-privacy": {
+    name: "Connection privacy",
+    title: "Your boundaries, in one place.",
+    description:
+      "Review close friends, blocked accounts, restricted accounts and the accounts your story is hidden from. Everything stays in your browser.",
+    mode: "privacy",
+    category: "followers",
+    question: "Will this change my privacy settings?",
+    answer:
+      "No. These are lists recorded in your export. Open profiles to review them yourself. Missing categories are shown as unavailable, and private lists are excluded from Wrapped.",
+  },
+  "unfollow-history": {
+    name: "Your unfollow history",
+    title: "The accounts you moved on from.",
+    description:
+      "Explore your own recently-unfollowed records and their dates from your Instagram export.",
+    mode: "history",
+    category: "followers",
+    question: "Is this a list of people who unfollowed me?",
+    answer:
+      "No. It is the export's record of accounts you recently unfollowed. The list may cover a limited period and does not prove the current relationship state.",
+  },
+  "relationship-timeline": {
+    name: "Relationship timeline",
+    title: "A little history in your circle.",
+    description:
+      "Explore recorded follower and following dates by year or month, then discover the relationships behind each period.",
+    mode: "timeline",
+    category: "followers",
+    question: "Does this show my follower count over time?",
+    answer:
+      "No. It groups dates for relationships present in this export. Missing dates and relationships that ended are not reconstructed. Compare two snapshots for changes in totals.",
+  },
   "followers-analyzer": {
     name: "Followers analyzer",
     title: "Your circle, a little clearer.",
@@ -66,7 +110,7 @@ export const tools = {
     category: "followers",
     question: "What will be on my share card?",
     answer:
-      "Only aggregate counts, a ratio, and InstaScope branding. Snapshot growth appears only after you compare two exports. No individual account names are included.",
+      "Choose a circle summary or a following-date story. Cards contain aggregate counts and dates only; no usernames or private connection lists. Snapshot growth appears only after comparing two exports.",
   },
   "profile-picture-viewer": {
     name: "Profile picture viewer",
