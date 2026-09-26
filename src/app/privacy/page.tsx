@@ -24,9 +24,12 @@ export default function Privacy() {
       </p>
       <h2>You choose what to share.</h2>
       <p>
-        Wrapped images contain aggregate statistics, not individual usernames.
-        Cleaner CSV files contain the accounts you select; keep them private
-        unless you choose to share them. Opening a profile takes you to
+        Wrapped images contain aggregate relationship statistics and dates, not
+        individual usernames. Pending requests, close friends, blocked or
+        restricted accounts, story visibility lists and your unfollow history
+        stay local and are excluded from Wrapped images. Cleaner and
+        request-review CSV files contain the accounts you select; keep them
+        private unless you choose to share them. Opening a profile takes you to
         Instagram, which has its own privacy practices.
       </p>
       <h2>Product events, without your social graph.</h2>

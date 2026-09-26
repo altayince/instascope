@@ -5,6 +5,12 @@ import { useData } from "./data-provider";
 import { Upload } from "./upload";
 import { AccountList } from "./account-list";
 import { Wrapped } from "./wrapped";
+import {
+  PendingRequests,
+  PrivacyLists,
+  UnfollowHistory,
+} from "./connection-insights";
+import { RelationshipTimeline } from "./relationship-timeline";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
@@ -99,6 +105,30 @@ export function Workspace({
               Overview
             </Link>
             <Link
+              href="/pending-follow-requests/"
+              aria-current={mode === "pending" ? "page" : undefined}
+            >
+              Pending requests
+            </Link>
+            <Link
+              href="/connection-privacy/"
+              aria-current={mode === "privacy" ? "page" : undefined}
+            >
+              Connection privacy
+            </Link>
+            <Link
+              href="/unfollow-history/"
+              aria-current={mode === "history" ? "page" : undefined}
+            >
+              Your unfollow history
+            </Link>
+            <Link
+              href="/relationship-timeline/"
+              aria-current={mode === "timeline" ? "page" : undefined}
+            >
+              Relationship timeline
+            </Link>
+            <Link
               href="/instagram-cleaner/"
               aria-current={mode === "cleaner" ? "page" : undefined}
             >
@@ -175,8 +205,20 @@ export function Workspace({
                 </>
               )}
             </>
+          ) : mode === "pending" ? (
+            <PendingRequests dataset={dataset} />
+          ) : mode === "privacy" ? (
+            <PrivacyLists dataset={dataset} />
+          ) : mode === "history" ? (
+            <UnfollowHistory dataset={dataset} />
+          ) : mode === "timeline" ? (
+            <RelationshipTimeline dataset={dataset} />
           ) : mode === "wrapped" ? (
-            <Wrapped analysis={analysis} comparison={comparison} />
+            <Wrapped
+              analysis={analysis}
+              comparison={comparison}
+              dataset={dataset}
+            />
           ) : (
             <>
               <div className="stats-grid">
