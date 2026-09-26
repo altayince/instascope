@@ -1,7 +1,8 @@
 name: Close Linked Issue
 
 on:
-  pull_request:
+  pull_request_target:
+    branches: [main]
     types:
       - closed
 
@@ -10,14 +11,18 @@ permissions:
   pull-requests: read
 
 jobs:
-  close-issue-on-merge:
-    if: github.event.pull_request.merged == true
+  close-issue-on-pr-close:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Close linked issue from branch number
         uses: actions/github-script@v7
         with:
           script: |
+            // Metadata only. Never check out or execute code from the PR head.
+            const pr = context.payload.pull_request;
+            if (context.payload.action !== 'closed' || pr.base.ref !== 'main' ||
+                pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
             const branch = context.payload.pull_request.head.ref;
             const match = branch.match(/^(feature|bugfix)\/INS-(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
@@ -38,11 +43,13 @@ jobs:
                 core.setFailed('Branch ticket must reference an issue, not a pull request.');
                 return;
               }
+              if (issue.state === 'closed') return;
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
                 state: "closed",
+                state_reason: pr.merged ? "completed" : "not_planned",
               });
             } catch (error) {
               core.setFailed(`Could not close issue #${issueNumber}: ${error.message}`);

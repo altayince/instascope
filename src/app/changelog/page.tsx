@@ -5,6 +5,11 @@ export const metadata: Metadata = {
 };
 const changes = [
   {
+    issue: 8,
+    title: "Close matching INS issue whenever its task PR is closed",
+    summary: "Repository task tracking now closes the matching issue when a task pull request closes, including work closed without merging.",
+  },
+  {
     issue: 4,
     title:
       "Validate current Instagram exports and support large archives safely",
