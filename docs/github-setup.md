@@ -12,6 +12,6 @@
 - Local `.githooks/pre-push` installed. Git's per-command safe.directory is used in this sandbox because the workspace and Git directory have different Windows owners; no broad global trust exception was added.
 - `INS_PROJECT_TOKEN` configured from the existing authorized GitHub CLI credential as an encrypted Actions secret. Value never written to disk or committed. Rotate when that authorization changes.
 - Ownership validation checks BOTH issue and PR assignee/Project membership and executes no checked-out code.
-- The merge-only linked-issue closer retains the GLA/MUZ behavior. Unmerged PR closure leaves the issue open.
+- The owner's updated policy closes the matching INS issue on any closed task PR: completed after merge, not planned if closed unmerged. The trusted base-branch workflow reads metadata only and ignores forks.
 
 The local GitHub connector returned no repositories; GitHub CLI was used with the user's existing authorized account.
