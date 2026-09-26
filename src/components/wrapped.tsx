@@ -201,7 +201,7 @@ export function Wrapped({
           className="button secondary"
           onClick={() => void exportCard(true)}
         >
-          Share my card ↗
+          Share my card
         </button>
         <p role="status">{message}</p>
       </div>

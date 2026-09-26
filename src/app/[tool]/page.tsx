@@ -89,7 +89,7 @@ export default async function ToolPage({
           .filter(([slug]) => slug !== tool)
           .map(([slug, value]) => (
             <Link key={slug} href={`/${slug}/`}>
-              {value.name} ↗
+              {value.name} 
             </Link>
           ))}
       </nav>

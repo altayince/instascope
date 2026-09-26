@@ -201,7 +201,7 @@ export function AccountList({
                 referrerPolicy="no-referrer"
                 aria-label={`Open ${a.username} on Instagram`}
               >
-                View profile ↗
+                View profile
               </a>
             </li>
           ))}

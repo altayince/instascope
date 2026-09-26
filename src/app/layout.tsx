@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { siteUrl } from "@/lib/site";
+import { siteUrl, isIndexable } from "@/lib/site";
+import { ToolNavigation } from "@/components/tool-navigation";
 import { DataProvider } from "@/components/data-provider";
 import "./globals.css";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   },
   description:
     "Understand your Instagram connections with a private, browser-based export analyzer. No Instagram login required.",
-  robots: { index: !!process.env.NEXT_PUBLIC_SITE_URL, follow: true },
+  robots: { index: isIndexable, follow: isIndexable },
   openGraph: {
     type: "website",
     siteName: "InstaScope",
@@ -39,9 +40,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <nav aria-label="Main navigation">
               <Link href="/followers-analyzer/">Analyzer</Link>
               <Link href="/instagram-cleaner/">InstaCleaner</Link>
-              <Link href="/instagram-wrapped/">
-                Wrapped <span aria-hidden="true">↗</span>
-              </Link>
+              <Link href="/instagram-wrapped/">Wrapped</Link>
+              <ToolNavigation />
             </nav>
             <span className="header-note">
               <i /> Your data stays yours

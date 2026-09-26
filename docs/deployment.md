@@ -4,6 +4,8 @@ Production is now live at https://instascope.me (owner-confirmed 2026-09-27). Th
 
 ## Static application
 
+For the official release, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run check`). The production build command explicitly sets the origin and enables indexing. Publish the resulting `out/` directory. Canonicals always point to the official origin; unconfigured builds remain noindex. Preview deployments must use ordinary `npm run build` with `NEXT_PUBLIC_PREVIEW=true`, not the production build command. Keep the preview flag scoped to the preview environment.
+
 1. Use Node 24; run `npm ci`.
 2. Set `NEXT_PUBLIC_SITE_URL` to the actual HTTPS origin (without a trailing slash).
 3. Run `npm run check` and `npm run test:e2e` after installing Chromium.

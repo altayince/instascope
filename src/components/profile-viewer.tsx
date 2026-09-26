@@ -85,7 +85,7 @@ export function ProfileViewer() {
             required
           />
           <button className="button primary" disabled={busy}>
-            {busy ? "Looking…" : "View public photo ↗"}
+            {busy ? "Looking…" : "View public photo "}
           </button>
         </div>
         <p>
@@ -106,7 +106,7 @@ export function ProfileViewer() {
           rel="noopener noreferrer"
           referrerPolicy="no-referrer"
         >
-          Open @{username} on Instagram ↗
+          Open @{username} on Instagram
         </a>
       )}
       {image && (

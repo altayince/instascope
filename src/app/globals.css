@@ -149,6 +149,34 @@ small {
   gap: 32px;
   font-size: 13px;
 }
+.tool-menu {
+  position: relative;
+}
+.tool-menu summary {
+  cursor: pointer;
+  padding: 10px 0;
+  white-space: nowrap;
+}
+.tool-menu-links {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  width: min(290px, 85vw);
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px #263b301a;
+}
+.tool-menu-links a {
+  display: block;
+  padding: 12px;
+  border-radius: 6px;
+}
+.tool-menu-links a:hover {
+  background: var(--lime);
+}
 .site-header nav a:hover,
 .text-link:hover {
   text-decoration: underline;

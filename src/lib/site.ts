@@ -1,6 +1,10 @@
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "http://localhost:3000";
+import { productionOrigin, indexableDeployment } from "./site-config";
+// Canonicals always identify the official site; indexing remains opt-in per build.
+export const siteUrl = productionOrigin;
+export const isIndexable = indexableDeployment(
+  process.env.NEXT_PUBLIC_SITE_URL,
+  process.env.NEXT_PUBLIC_PREVIEW,
+);
 export const tools = {
   "pending-follow-requests": {
     name: "Pending requests",
@@ -126,3 +130,12 @@ export const tools = {
 } as const;
 export type ToolSlug = keyof typeof tools;
 export type Mode = (typeof tools)[ToolSlug]["mode"];
+export const primaryTools: ToolSlug[] = [
+  "followers-analyzer",
+  "not-following-back",
+  "following-analyzer",
+  "instagram-cleaner",
+  "snapshot-comparison",
+  "instagram-wrapped",
+  "profile-picture-viewer",
+];

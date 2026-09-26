@@ -181,7 +181,7 @@ test("timeline filters real export dates and exports an aggregate-only story wit
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await goToTool(page, "My Wrapped ↗");
+  await goToTool(page, "My Wrapped");
   await page
     .getByRole("button", { name: "My following dates", exact: true })
     .click();
