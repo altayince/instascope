@@ -33,7 +33,7 @@ Example aggregate query: `SELECT blob1 AS event, SUM(double1) AS total FROM inst
 
 ## Public launch gates
 
-- Recent real-export verification is outstanding (see archive-support.md).
+- INS-4 verified one current real JSON export locally. Real HTML and a second historical export remain outstanding (see archive-support.md).
 - Test physical mobile devices and Safari; Chromium mobile emulation is not sufficient for universal support.
 - Set domain, canonical URL, and verify robots now allows crawling.
 - Verify the domain in Google Search Console, submit `/sitemap.xml`, and inspect tool pages.

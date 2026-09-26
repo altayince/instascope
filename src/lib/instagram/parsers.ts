@@ -2,8 +2,9 @@ import { parseDocument } from "htmlparser2";
 import { findAll, textContent } from "domutils";
 import { account } from "./normalize";
 import type { Account, ParsedPart, Relationship } from "./types";
+import { ImportError } from "./errors";
 
-export class ImportError extends Error {}
+export { ImportError } from "./errors";
 export function detectKind(path: string): Relationship | undefined {
   const filename =
     path.replaceAll("\\", "/").split("/").pop()?.toLowerCase() ?? "";

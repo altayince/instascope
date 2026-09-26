@@ -50,7 +50,7 @@ File selection → Web Worker → ZIP/JSON/HTML adapter → normalized Dataset
                                                snapshot comparison
 ```
 
-Raw data lives in React context memory only, shared across client navigation. Reloading or clearing discards it. HTML parsing uses a text parser, never DOM insertion. ZIP entries are filtered before inflation; media is ignored. Import limits and worker timeouts bound resource use. External profile retrieval is isolated in `workers/`; it cannot receive archive data.
+Raw data lives in React context memory only, shared across client navigation. Reloading or clearing discards it. HTML parsing uses a text parser, never DOM insertion. ZIPs up to 2 GB are read selectively in a worker: only the index and relevant entries are read, and media is ignored. Relationship files retain a 20 MB per-file / 60 MB combined limit and CRC32 integrity checks. Import limits and worker timeouts bound resource use. External profile retrieval is isolated in `workers/`; it cannot receive archive data.
 
 The workspace was empty at inspection; no prototype source was available to preserve. The referenced prototype URL could not be retrieved. This is a fresh Next.js/TypeScript implementation based on [the supplied specification](docs/PRODUCT_SPEC.md), using ordinary CSS instead of an extra utility framework because the design does not need it.
 
