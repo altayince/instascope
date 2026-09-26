@@ -1,5 +1,7 @@
 # Deployment and launch
 
+Production is now live at https://instascope.me (owner-confirmed 2026-09-27). The initial live audit found localhost canonical URLs and noindex metadata; do not submit for indexing until M1/M2 production configuration is verified. `node scripts/smoke-production.mjs` checks public HTTP responses without any user data.
+
 ## Static application
 
 1. Use Node 24; run `npm ci`.
@@ -10,6 +12,8 @@
 6. Verify current hosting quotas/prices before enabling infrastructure. No cost or free-tier assumption is encoded in the application.
 
 Next supports [static exports](https://nextjs.org/docs/app/guides/static-exports). This application needs no application server for archive analysis. Its CSP permits Next's generated inline scripts; do not claim a strict nonce-based CSP. Do not add third-party scripts with access to the export workspace.
+
+Always use `npm run build`, including on Windows. It normalizes wrongly nested Next RSC segment paths in the static output so browser prefetch URLs resolve on ordinary static hosts; it does not change payload content. A collision with different content fails the build. Correctly emitted Linux exports are unchanged.
 
 ## Optional public-photo Worker
 

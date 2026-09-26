@@ -5,9 +5,16 @@ export const metadata: Metadata = {
 };
 const changes = [
   {
+    issue: 9,
+    title: "M0: Validate production baseline and record V2 roadmap",
+    summary:
+      "All public routes now have desktop and mobile checks for missing assets and runtime errors. Static exports built on Windows include corrected navigation payload paths.",
+  },
+  {
     issue: 8,
     title: "Close matching INS issue whenever its task PR is closed",
-    summary: "Repository task tracking now closes the matching issue when a task pull request closes, including work closed without merging.",
+    summary:
+      "Repository task tracking now closes the matching issue when a task pull request closes, including work closed without merging.",
   },
   {
     issue: 6,
