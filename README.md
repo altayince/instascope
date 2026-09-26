@@ -57,7 +57,7 @@ The workspace was empty at inspection; no prototype source was available to pres
 
 ## Deployment
 
-The build produces `out/`, suitable for static hosting. Configure a real origin before launch and review the separate service options in [deployment](docs/deployment.md). No hosting or domain has been purchased or deployed. Until `NEXT_PUBLIC_SITE_URL` is set, builds deliberately emit `noindex` and disallow crawling.
+The build produces `out/`, suitable for static hosting. Production is https://instascope.me. See [deployment](docs/deployment.md) for configuration and [roadmap progress](docs/roadmap-progress.md) for the current audit. Unconfigured builds deliberately emit `noindex` and disallow crawling.
 
 ## Repository workflow
 
