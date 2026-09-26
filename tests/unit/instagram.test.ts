@@ -162,6 +162,19 @@ describe("archive adapters", () => {
       ]),
     ).toThrow(/incomplete/);
   });
+  it("applies the expansion limit across the entire multi-file upload", () => {
+    const paddedList = strToU8("[]" + " ".repeat(16 * 1024 * 1024));
+    const zip = zipSync({
+      "followers.json": paddedList,
+      "following.json": paddedList,
+    });
+    expect(() =>
+      importDataset([
+        { name: "part-one.zip", bytes: zip },
+        { name: "part-two.zip", bytes: zip },
+      ]),
+    ).toThrow(/safety limit/);
+  });
 });
 describe("relationship math", () => {
   it("calculates both directions, mutuals, and ratio", () => {

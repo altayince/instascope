@@ -4,6 +4,7 @@
 - Private Project: https://github.com/users/altayince/projects/3 (`INS`)
 - Implementation issue: #1, assigned to `altayince`, in INS.
 - Branch: `feature/INS-1-privacy-first-mvp`, created from updated `main`.
+- Implementation PR: https://github.com/altayince/instascope/pull/2, assigned to `altayince` and added to INS.
 - Only the initial empty bootstrap commit was pushed directly to main.
 - Required checks: `quality`, `browser-tests`, `validate-branch`, `validate-ownership`.
 - Main protection was applied and read back successfully: admins enforced, strict/up-to-date checks, required PR, zero mandatory approving reviews, linear history, conversation resolution, no force-push or deletion.

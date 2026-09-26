@@ -21,7 +21,10 @@ function parseText(name: string, bytes: Uint8Array): ParsedPart[] {
     ? parseJson(text, detectKind(name))
     : parseHtml(text, detectKind(name));
 }
-export function parseZip(bytes: Uint8Array): ParsedPart[] {
+export function parseZip(
+  bytes: Uint8Array,
+  budget = { expanded: 0 },
+): ParsedPart[] {
   // The end-of-central-directory record is mandatory in a complete, single-volume ZIP.
   // ZIP64 and multipart archives are deliberately unsupported in this bounded MVP.
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -50,8 +53,7 @@ export function parseZip(bytes: Uint8Array): ParsedPart[] {
     );
   }
   const parts: ParsedPart[] = [];
-  let expanded = 0,
-    entries = 0;
+  let entries = 0;
   let failure: Error | undefined;
   let completed = 0,
     relevant = 0;
@@ -77,8 +79,8 @@ export function parseZip(bytes: Uint8Array): ParsedPart[] {
         return;
       }
       size += chunk.length;
-      expanded += chunk.length;
-      if (size > LIMITS.entry || expanded > LIMITS.expanded) {
+      budget.expanded += chunk.length;
+      if (size > LIMITS.entry || budget.expanded > LIMITS.expanded) {
         file.terminate();
         failure = new ImportError(
           "This ZIP expands beyond the safety limit. Export only Followers and Following.",
@@ -136,14 +138,20 @@ export function importDataset(files: InputFile[]): Dataset {
       "Upload up to 100 MB and 200 files. Request only Followers and Following to reduce the size.",
     );
   const parts: ParsedPart[] = [];
+  const budget = { expanded: 0 };
   for (const file of files) {
     if (/\.zip$/i.test(file.name)) {
       if (file.bytes[0] !== 80 || file.bytes[1] !== 75)
         throw new ImportError("This file is not a valid ZIP archive.");
-      parts.push(...parseZip(file.bytes));
-    } else if (/\.(json|html?)$/i.test(file.name))
+      parts.push(...parseZip(file.bytes, budget));
+    } else if (/\.(json|html?)$/i.test(file.name)) {
+      budget.expanded += file.bytes.length;
+      if (budget.expanded > LIMITS.expanded)
+        throw new ImportError(
+          "The selected relationship files exceed the 60 MB safety limit. Export only Followers and Following.",
+        );
       parts.push(...parseText(file.name, file.bytes));
-    else
+    } else
       throw new ImportError(
         "Unsupported file type. Choose an Instagram ZIP, JSON, or HTML export.",
       );
