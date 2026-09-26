@@ -1,6 +1,34 @@
-{"relationships_following":[
-  {"title":"alice", "string_list_data":[{"href":"https://www.instagram.com/alice/","timestamp":1609459200}]},
-  {"title":"bob", "string_list_data":[{"href":"https://www.instagram.com/bob/","timestamp":1640995200}]},
-  {"title":"one.way", "string_list_data":[{"href":"https://www.instagram.com/one.way/","timestamp":1704067200}]},
-  {"title":"old.friend", "string_list_data":[{"href":"https://www.instagram.com/old.friend/","timestamp":1500000000}]}
-]}
+{
+  "relationships_following": [
+    {
+      "title": "alice",
+      "string_list_data": [
+        { "href": "https://www.instagram.com/alice/", "timestamp": 1609459200 }
+      ]
+    },
+    {
+      "title": "bob",
+      "string_list_data": [
+        { "href": "https://www.instagram.com/bob/", "timestamp": 1640995200 }
+      ]
+    },
+    {
+      "title": "one.way",
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/one.way/",
+          "timestamp": 1704067200
+        }
+      ]
+    },
+    {
+      "title": "old.friend",
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/old.friend/",
+          "timestamp": 1500000000
+        }
+      ]
+    }
+  ]
+}

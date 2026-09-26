@@ -10,7 +10,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "preview": "node scripts/serve.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
@@ -31,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.6",
+    "prettier": "^3.9.9",
     "sharp": "^0.35.4",
     "typescript": "^6.0.3",
     "vitest": "^5.0.2"
