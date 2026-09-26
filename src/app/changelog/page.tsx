@@ -5,6 +5,13 @@ export const metadata: Metadata = {
 };
 const changes = [
   {
+    issue: 4,
+    title:
+      "Validate current Instagram exports and support large archives safely",
+    summary:
+      "Large media-rich ZIP exports now load through selective local reads. Relationship files retain strict size limits and gain CRC integrity checks. Current JSON export counts and account membership were verified against a real export locally.",
+  },
+  {
     issue: 1,
     title: "Build privacy-first InstaScope MVP and INS repository workflow",
     summary:

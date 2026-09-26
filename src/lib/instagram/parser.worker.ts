@@ -1,8 +1,8 @@
-import { importDataset, type InputFile } from "./import";
+import { importFiles, type NamedBlob } from "./import";
 import { ImportError } from "./parsers";
-self.onmessage = (event: MessageEvent<InputFile[]>) => {
+self.onmessage = async (event: MessageEvent<NamedBlob[]>) => {
   try {
-    self.postMessage({ dataset: importDataset(event.data) });
+    self.postMessage({ dataset: await importFiles(event.data) });
   } catch (error) {
     self.postMessage({
       error:

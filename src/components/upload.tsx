@@ -82,7 +82,9 @@ export function Upload({
         {busy ? "Processing in your browser…" : label}
         <span aria-hidden="true">↗</span>
       </button>
-      <small>ZIP, JSON or HTML · up to 100 MB · All time export</small>
+      <small>
+        ZIP up to 2 GB · JSON / HTML up to 20 MB per file · All time export
+      </small>
       {busy && (
         <p role="status">
           Reading locally. Large archives can take a few seconds.

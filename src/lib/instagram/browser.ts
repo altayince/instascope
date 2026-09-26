@@ -1,19 +1,7 @@
 import type { Dataset } from "./types";
-import { LIMITS } from "./import";
+import { validateSelection } from "./limits";
 export async function readExport(files: File[]): Promise<Dataset> {
-  if (
-    files.length > LIMITS.files ||
-    files.reduce((sum, file) => sum + file.size, 0) > LIMITS.upload
-  )
-    throw new Error(
-      "Upload up to 100 MB and 200 files. Export only Followers and Following.",
-    );
-  const inputs = await Promise.all(
-    files.map(async (file) => ({
-      name: file.name,
-      bytes: new Uint8Array(await file.arrayBuffer()),
-    })),
-  );
+  validateSelection(files);
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("./parser.worker.ts", import.meta.url));
     const timer = setTimeout(() => {
@@ -41,9 +29,6 @@ export async function readExport(files: File[]): Promise<Dataset> {
         ),
       );
     };
-    worker.postMessage(
-      inputs,
-      inputs.map((input) => input.bytes.buffer),
-    );
+    worker.postMessage(files);
   });
 }

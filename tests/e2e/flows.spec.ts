@@ -1,10 +1,35 @@
 import { test, expect } from "@playwright/test";
 import { strToU8, zipSync } from "fflate";
 import { readFileSync } from "node:fs";
+import { writeLargeExport } from "../helpers/large-export";
 const files = [
   "tests/fixtures/followers_1.json",
   "tests/fixtures/following.json",
 ];
+
+test("large media-rich ZIP imports locally without transferring file bytes on the main thread", async ({
+  page,
+}, testInfo) => {
+  const path = testInfo.outputPath("large-synthetic-export.zip");
+  writeLargeExport(path);
+  await page.addInitScript(() => {
+    File.prototype.arrayBuffer = async function () {
+      throw new Error("Whole file read on the UI thread");
+    };
+  });
+  const posts: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") posts.push(request.url());
+  });
+  await page.goto("/followers-analyzer/");
+  await page
+    .getByLabel("Upload Instagram export", { exact: true })
+    .setInputFiles(path);
+  await expect(page.getByRole("button", { name: /Followers 1/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Following 1/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Mutuals 1/ })).toBeVisible();
+  expect(posts).toEqual([]);
+});
 test("upload ZIP, correct relationships, search, and no network upload", async ({
   page,
 }) => {
