@@ -1,13 +1,17 @@
 # Deployment and launch
 
-Production is now live at https://instascope.me (owner-confirmed 2026-09-27). The initial live audit found localhost canonical URLs and noindex metadata; do not submit for indexing until M1/M2 production configuration is verified. `node scripts/smoke-production.mjs` checks public HTTP responses without any user data.
+Production is live at https://instascope.me (owner-confirmed 2026-09-27). The latest audit found correct production canonicals but `noindex, nofollow`, a site-wide robots disallow and an empty sitemap. Do not submit for indexing until the corrected build is deployed and the live metadata, robots and sitemap pass verification. `node scripts/smoke-production.mjs` checks public HTTP responses without any user data.
 
 ## Static application
 
-For the official release, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run check`). The production build command explicitly sets the origin and enables indexing. Publish the resulting `out/` directory. Canonicals always point to the official origin; unconfigured builds remain noindex. Preview deployments must use ordinary `npm run build` with `NEXT_PUBLIC_PREVIEW=true`, not the production build command. Keep the preview flag scoped to the preview environment.
+On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRANCH=main` or `WORKERS_CI_BRANCH=main` and generates an indexable `out/` automatically. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing branch value fails closed. `NEXT_PUBLIC_PREVIEW=true` always disables indexing. For a manual production release outside Cloudflare, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
+
+The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep preview build commands on `npm run build` and set `NEXT_PUBLIC_PREVIEW=true` for non-Cloudflare preview systems. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
+
+The live HTTP endpoint currently returns `200` rather than redirecting to HTTPS. Enable Cloudflare's [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) in the zone's SSL/TLS → Edge Certificates settings, then check that `http://instascope.me/` redirects to `https://instascope.me/`. The HTTPS canonical already identifies the preferred page; the edge redirect still needs the zone setting. Review any production `*.pages.dev` or `*.workers.dev` alias in Cloudflare and redirect it to the primary domain or block indexing there, because the same static production HTML cannot distinguish hostnames at request time.
 
 1. Use Node 24; run `npm ci`.
-2. Set `NEXT_PUBLIC_SITE_URL` to the actual HTTPS origin (without a trailing slash).
+2. Confirm that the Cloudflare production branch is `main`, or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` for a manual production build.
 3. Run `npm run check` and `npm run test:e2e` after installing Chromium.
 4. Publish `out/` to a static host such as Cloudflare Pages. `public/_headers` supplies security headers for hosts supporting that format; configure equivalent headers elsewhere.
 5. Confirm direct visits to every tool route, worker script loading, favicon, social image, sitemap and mobile uploads on the final domain.

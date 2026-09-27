@@ -57,7 +57,7 @@ The workspace was empty at inspection; no prototype source was available to pres
 
 ## Deployment
 
-The build produces `out/`, suitable for static hosting. Production is https://instascope.me. See [deployment](docs/deployment.md) for configuration and [roadmap progress](docs/roadmap-progress.md) for the current audit. Unconfigured builds deliberately emit `noindex` and disallow crawling.
+The build produces `out/`, suitable for static hosting. Production is https://instascope.me. Cloudflare builds of `main` generate indexable output; preview branches and unconfigured local builds deliberately emit `noindex` and disallow crawling. See [deployment](docs/deployment.md) for configuration and [roadmap progress](docs/roadmap-progress.md) for the current audit.
 
 ## Repository workflow
 

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 27,
+    title: "Prepare production for Google indexing",
+    summary:
+      "The production build now recognizes Cloudflare's main branch automatically. Preview branches stay excluded even when they inherit the production URL setting.",
+  },
+  {
     issue: 24,
     title: "M7: Improve Instagram export guide",
     summary:

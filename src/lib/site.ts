@@ -1,9 +1,15 @@
 import { productionOrigin, indexableDeployment } from "./site-config";
-// Canonicals always identify the official site; indexing remains opt-in per build.
+// Canonicals identify the official site; only production build contexts index.
 export const siteUrl = productionOrigin;
 export const isIndexable = indexableDeployment(
   process.env.NEXT_PUBLIC_SITE_URL,
   process.env.NEXT_PUBLIC_PREVIEW,
+  {
+    pages: process.env.CF_PAGES,
+    pagesBranch: process.env.CF_PAGES_BRANCH,
+    workers: process.env.WORKERS_CI,
+    workersBranch: process.env.WORKERS_CI_BRANCH,
+  },
 );
 export const tools = {
   "pending-follow-requests": {

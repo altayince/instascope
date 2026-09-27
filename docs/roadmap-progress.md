@@ -18,6 +18,9 @@ Production: https://instascope.me. The supplied [V2 roadmap](PRODUCTION_ROADMAP_
 - [ ] M13 — Saved-snapshot history
 - [ ] M14 — Event-only analytics
 - [ ] M15 — Indexing readiness
+
+INS-27 is a focused Google-readiness correction ahead of the remaining roadmap. The live 2026-09-27 audit found correct production canonicals but `noindex, nofollow`, a site-wide robots disallow and an empty sitemap. The production build must be deployed and re-audited before Search Console submission; other milestones remain paused by owner request.
+
 - [ ] M16 — Trust pages
 - [ ] M17 — Final audit
 
