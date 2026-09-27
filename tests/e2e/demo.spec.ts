@@ -1,6 +1,29 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
+test("homepage preview leads to a working demo and all primary tools", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByLabel("Fictional demo result preview")).toContainText(
+    "1,284",
+  );
+  await expect(page.locator(".feature-grid a")).toHaveCount(7);
+  await expect(page.locator(".feature-grid")).toContainText(
+    "Public profile tool",
+  );
+  await page.getByRole("button", { name: "Try the demo", exact: true }).click();
+  await expect(page.locator(".demo-notice")).toBeVisible();
+  await page
+    .locator(".feature-grid")
+    .getByRole("link", { name: /Following analyzer/ })
+    .click();
+  await expect(
+    page.getByRole("button", { name: /Following 932/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".demo-notice")).toBeVisible();
+});
+
 test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG without an archive", async ({
   page,
 }) => {

@@ -489,6 +489,45 @@ small {
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
+.result-preview {
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #eef2e7;
+  box-shadow: 0 20px 60px #263b300c;
+}
+.result-preview h2 {
+  margin: 25px 0;
+  font-size: 36px;
+}
+.preview-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 12px;
+}
+.preview-counts strong {
+  display: block;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.preview-counts span {
+  font-size: 12px;
+}
+.result-preview p {
+  font-size: 12px;
+  margin: 24px 0 14px;
+}
+.result-preview a {
+  font-size: 12px;
+  text-decoration: underline;
+}
+.tool-kind {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
 .feature-card {
   padding: 30px;
   border: 1px solid var(--line);

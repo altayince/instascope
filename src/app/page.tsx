@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Workspace } from "@/components/workspace";
-import { tools } from "@/lib/site";
+import { tools, type ToolSlug } from "@/lib/site";
+import { demoSnapshots } from "@/lib/demo";
+import { analyze } from "@/lib/analysis/relationships";
+import { DemoButton } from "@/components/demo-button";
 import { pageMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/structured-data";
 export const metadata: Metadata = pageMetadata(
@@ -10,6 +13,16 @@ export const metadata: Metadata = pageMetadata(
   "/",
 );
 export default function Home() {
+  const preview = analyze(demoSnapshots().newer);
+  const acquisitionTools: ToolSlug[] = [
+    "not-following-back",
+    "followers-analyzer",
+    "profile-picture-viewer",
+    "instagram-cleaner",
+    "snapshot-comparison",
+    "instagram-wrapped",
+    "following-analyzer",
+  ];
   return (
     <main id="main">
       <StructuredData
@@ -31,14 +44,15 @@ export default function Home() {
             <em>Actually useful.</em>
           </h1>
           <p>
-            Find your mutuals. Spot the one-way follows.
-            <br />
-            Get to know your circle — without handing over your password.
+            Analyze your Instagram followers, mutuals and one-way follows. Free,
+            without your Instagram password. Your export is processed locally in
+            your browser.
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#tool">
-              Explore my connections
+              Upload Instagram export
             </a>
+            <DemoButton />
             <Link
               className="text-link"
               href="/how-to-download-instagram-followers-data/"
@@ -52,33 +66,31 @@ export default function Home() {
             <span>✓ Completely free</span>
           </div>
         </div>
-        <div
-          className="hero-art"
-          aria-label="Illustration of a connected social circle"
+        <aside
+          className="result-preview"
+          aria-label="Fictional demo result preview"
         >
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="orbit orbit-three" />
-          <span className="orbit-dot dot-one">✳</span>
-
-          <span className="orbit-dot dot-three">♡</span>
-          <div className="circle-center">
-            ◎<span>your circle</span>
+          <span className="pill">Demo data · Fictional example</span>
+          <h2>A clearer circle.</h2>
+          <div className="preview-counts">
+            {[
+              ["Followers", preview.followers.length],
+              ["Following", preview.following.length],
+              ["Mutuals", preview.mutuals.length],
+              ["Not following back", preview.notFollowingBack.length],
+            ].map(([label, count]) => (
+              <div key={label}>
+                <strong>{count.toLocaleString("en-US")}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
           </div>
-          <div className="floating-note note-one">
-            <span>↔</span>
-            <div>
-              Better together<small>Find your mutuals</small>
-            </div>
-          </div>
-          <div className="floating-note note-two">
-            <span>✦</span>
-            <div>
-              A little clarity<small>A lot less guessing</small>
-            </div>
-          </div>
-          <span className="art-caption">CONNECT THE DOTS.</span>
-        </div>
+          <p>
+            These sample numbers are not your account. Try the demo to explore
+            the lists behind them.
+          </p>
+          <Link href="/not-following-back/">Explore one-way connections</Link>
+        </aside>
       </section>
       <section className="intro-line">
         <span className="eyebrow">A LITTLE SOCIAL DETECTIVE WORK</span>
@@ -97,40 +109,23 @@ export default function Home() {
       <section className="features">
         <div className="section-heading">
           <span className="eyebrow">ONE EXPORT. A FEW GOOD DISCOVERIES.</span>
-          <h2>There’s more to your circle.</h2>
+          <h2>All Instagram tools.</h2>
         </div>
         <div className="feature-grid">
-          {[
-            [
-              "not-following-back",
-              "",
-              "Who’s on the other side?",
-              "Make sense of one-way follows, without the guesswork.",
-            ],
-            [
-              "instagram-cleaner",
-              "✳",
-              "Make space in your feed.",
-              "A thoughtful shortlist. A fresh start. Always your decision.",
-            ],
-            [
-              "instagram-wrapped",
-              "✦",
-              "Your numbers. Your story.",
-              "Turn your connections into something worth sharing.",
-            ],
-          ].map(([slug, icon, title, copy]) => (
+          {acquisitionTools.map((slug) => (
             <Link
               key={slug}
               href={`/${slug}/`}
               className={`feature-card ${slug}`}
             >
-              {icon && <span className="feature-icon">{icon}</span>}
-              <h3>{title}</h3>
-              <p>{copy}</p>
-              <span className="feature-link">
-                {tools[slug as keyof typeof tools].name} →
+              <span className="tool-kind">
+                {slug === "profile-picture-viewer"
+                  ? "Public profile tool"
+                  : "Uses your Instagram export"}
               </span>
+              <h3>{tools[slug].name}</h3>
+              <p>{tools[slug].description}</p>
+              <span className="feature-link">Open {tools[slug].name}</span>
             </Link>
           ))}
         </div>

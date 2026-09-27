@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 19,
+    title: "M5: Improve homepage acquisition and conversion",
+    summary:
+      "The homepage now shows a fictional result preview, a direct demo action and all seven main tools, with clear labels for export analysis and public profile lookup.",
+  },
+  {
     issue: 17,
     title: "M4: Add interactive fictional demo mode",
     summary:
