@@ -14,9 +14,9 @@ export const isIndexable = indexableDeployment(
 export const tools = {
   "pending-follow-requests": {
     name: "Pending requests",
-    title: "The requests still on your list.",
+    title: "Review the Instagram follow requests you sent.",
     description:
-      "Review sent follow requests in your Instagram export, calculate their age, and make a manual review list.",
+      "See sent follow requests recorded in your Instagram export, with dates and ages when available. The export cannot confirm which requests are still pending today.",
     mode: "pending",
     category: "followers",
     question: "Does this check whether requests are still pending?",
@@ -36,9 +36,9 @@ export const tools = {
   },
   "unfollow-history": {
     name: "Your unfollow history",
-    title: "The accounts you moved on from.",
+    title: "Review accounts you unfollowed on Instagram.",
     description:
-      "Explore your own recently-unfollowed records and their dates from your Instagram export.",
+      "See your own recently-unfollowed records when Instagram includes them in your export. This is not a list of people who unfollowed you.",
     mode: "history",
     category: "followers",
     question: "Is this a list of people who unfollowed me?",
@@ -47,9 +47,9 @@ export const tools = {
   },
   "relationship-timeline": {
     name: "Relationship timeline",
-    title: "A little history in your circle.",
+    title: "Explore your recorded Instagram follow dates.",
     description:
-      "Explore recorded follower and following dates by year or month, then discover the relationships behind each period.",
+      "Explore dated follower and following relationships in your Instagram export by year or month. This is not a record of historical follower totals.",
     mode: "timeline",
     category: "followers",
     question: "Does this show my follower count over time?",
@@ -102,9 +102,9 @@ export const tools = {
   },
   "snapshot-comparison": {
     name: "Compare snapshots",
-    title: "Compare your Instagram followers over time.",
+    title: "Compare your Instagram followers between exports.",
     description:
-      "Put an older and a newer export side by side. Discover added and missing connections, with the context they deserve.",
+      "Compare two Instagram exports to see added and missing followers, following changes and mutuals. The files cannot tell why or exactly when a relationship changed.",
     mode: "comparison",
     category: "followers",
     question: "Can you tell exactly when someone left?",

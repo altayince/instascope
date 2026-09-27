@@ -98,13 +98,14 @@ export default async function ToolPage({
       </section>
       <nav className="related-tools" aria-label="Related tools">
         <h3>Keep exploring</h3>
-        {Object.entries(tools)
-          .filter(([slug]) => slug !== tool)
-          .map(([slug, value]) => (
-            <Link key={slug} href={`/${slug}/`}>
-              {value.name}
-            </Link>
-          ))}
+        {(
+          toolContent[tool as ToolSlug]?.related ??
+          (Object.keys(tools) as ToolSlug[]).filter((slug) => slug !== tool)
+        ).map((slug) => (
+          <Link key={slug} href={`/${slug}/`}>
+            {tools[slug].name}
+          </Link>
+        ))}
       </nav>
     </main>
   );

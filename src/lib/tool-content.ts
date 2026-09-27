@@ -2,8 +2,90 @@ import type { ToolSlug } from "./site";
 type Content = {
   seoTitle: string;
   sections: { title: string; paragraphs: string[] }[];
+  related?: ToolSlug[];
 };
 export const toolContent: Partial<Record<ToolSlug, Content>> = {
+  "pending-follow-requests": {
+    seoTitle: "See Instagram Follow Requests You Sent",
+    sections: [
+      {
+        title: "Find sent requests recorded in your export",
+        paragraphs: [
+          "InstaScope reads the sent follow requests category in your own Instagram export. Search the recorded accounts and review request dates and ages where Instagram supplies timestamps. You can sort older requests first and select accounts for a manual review list.",
+          "This is an export snapshot, not a live request check. A request recorded there may have been accepted, declined or cancelled since the export was created. Open the profile and check Instagram yourself before acting.",
+        ],
+      },
+      {
+        title: "Include the optional sent requests category",
+        paragraphs: [
+          "When you request your Instagram information, choose the All time range and JSON format if available. Include sent follow requests as well as Followers and Following. Those two relationship lists alone cannot supply pending request records.",
+          "If your export does not contain the sent requests category, InstaScope marks it unavailable rather than showing zero requests. Follow the export guide below to request a new copy with the relevant category; an older export cannot reveal later changes.",
+        ],
+      },
+      {
+        title: "Review privately, without an Instagram password",
+        paragraphs: [
+          "The archive is read locally in your browser. InstaScope does not sign in to Instagram, send your archive to a server or cancel requests for you. Dates describe the supplied records, and request age is calculated against the reference date you choose.",
+          "Relationship Review offers a separate private shortlist for accounts you want to revisit. You decide whether to change anything in Instagram after reviewing each account.",
+        ],
+      },
+    ],
+    related: ["instagram-cleaner", "relationship-timeline"],
+  },
+  "relationship-timeline": {
+    seoTitle: "Instagram Following History & Follow Dates",
+    sections: [
+      {
+        title: "See your oldest and newest recorded follows",
+        paragraphs: [
+          "The timeline groups timestamped follower and following relationships from your Instagram export by year or month. Choose a period to see the accounts behind it, or browse the oldest and newest recorded connections. The dates come from Instagram's supplied records, not from a live account lookup.",
+          "It describes relationships still present in the uploaded lists. An old follow date does not mean you have continuously followed that account, and a missing date remains undated rather than being guessed.",
+        ],
+      },
+      {
+        title: "A timeline of records, not historical totals",
+        paragraphs: [
+          "One export cannot reconstruct how many followers you had in a past month or year. Accounts no longer in its relationship lists are not recovered by grouping current records. The chart shows dated relationships in this snapshot, with undated records called out separately.",
+          "To see which accounts were added or went missing between two points, compare an older and newer export in Snapshot Comparison. Even two snapshots cannot show the exact time or reason for a change.",
+        ],
+      },
+      {
+        title: "Get useful dates from your own export",
+        paragraphs: [
+          "Request Followers and Following with the All time range; JSON is recommended because it can contain relationship timestamps. Some records may lack a usable date, especially in HTML exports. The timeline does not invent dates for them.",
+          "Your archive is analyzed locally in your browser, with no Instagram password. If a period brings an old connection to mind, Relationship Review lets you select it for your own follow-up without changing your Instagram account.",
+        ],
+      },
+    ],
+    related: ["snapshot-comparison", "instagram-cleaner", "following-analyzer"],
+  },
+  "unfollow-history": {
+    seoTitle: "Accounts You Recently Unfollowed on Instagram",
+    sections: [
+      {
+        title: "Review accounts you chose to unfollow",
+        paragraphs: [
+          "When Instagram includes recently-unfollowed records in your export, InstaScope shows the accounts you unfollowed and their recorded dates where available. Search or sort the list to revisit your own actions. A record does not tell you whether you later followed the account again.",
+          "This is your unfollow history, not a list of people who unfollowed you. It cannot identify someone else's decision from your own recently-unfollowed records.",
+        ],
+      },
+      {
+        title: "What to include in the download",
+        paragraphs: [
+          "Choose the All time range and JSON format when requesting your Instagram information, and include the optional recently-unfollowed category. Followers and Following alone do not contain your unfollow action history. Instagram may provide only a limited period of these records, even in an All time export.",
+          "If that optional category is absent, InstaScope reports it as unavailable rather than claiming you have unfollowed nobody. Use the export guide below to check the categories in a new download.",
+        ],
+      },
+      {
+        title: "A private record for manual review",
+        paragraphs: [
+          "Your archive stays in your browser; no Instagram password or connection to your account is needed. InstaScope does not restore follows or take account actions on your behalf.",
+          "Select accounts in Relationship Review if you want a private shortlist. Snapshot Comparison answers a separate question: which usernames are present or absent across two exports, without claiming who initiated a change.",
+        ],
+      },
+    ],
+    related: ["instagram-cleaner", "snapshot-comparison"],
+  },
   "not-following-back": {
     seoTitle: "Who Doesn't Follow Me Back on Instagram? — No Login",
     sections: [
@@ -124,7 +206,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
     ],
   },
   "snapshot-comparison": {
-    seoTitle: "Compare Instagram Followers Over Time",
+    seoTitle: "Compare Instagram Followers Between Exports",
     sections: [
       {
         title: "Two exports, a clear account of changes",
@@ -147,7 +229,15 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
           "The comparison runs locally alongside the analyzer. You can also include its aggregate follower delta on your circle Wrapped card; individual account names are excluded from that share image.",
         ],
       },
+      {
+        title: "Compare privately and choose what to review",
+        paragraphs: [
+          "Request Followers and Following in both exports, ideally with the All time range and JSON format. If either required list is missing, the comparison cannot safely calculate those changes. The export guide below explains how to request the right files.",
+          "Both archives are analyzed locally in your browser, without an Instagram password. You can inspect a changed account yourself or use Relationship Review for a manual shortlist; InstaScope does not take action on your Instagram account.",
+        ],
+      },
     ],
+    related: ["relationship-timeline", "instagram-cleaner"],
   },
   "instagram-wrapped": {
     seoTitle: "Instagram Wrapped — Your Follower Stats",

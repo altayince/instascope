@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 35,
+    title: "V3.4: Strengthen relationship tool landing pages",
+    summary:
+      "The pending requests, relationship timeline, own unfollow history and snapshot comparison pages now explain their export requirements, useful results and limits more clearly, with focused links to related tools.",
+  },
+  {
     issue: 33,
     title: "V3.3: Redesign InstaCleaner as Relationship Review",
     summary:
