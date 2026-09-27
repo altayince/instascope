@@ -190,48 +190,56 @@ export function Workspace({
           <div className="tool-tabs">
             <Link
               href="/followers-analyzer/"
+              scroll={false}
               aria-current={mode === "analyzer" ? "page" : undefined}
             >
               Overview
             </Link>
             <Link
               href="/pending-follow-requests/"
+              scroll={false}
               aria-current={mode === "pending" ? "page" : undefined}
             >
               Pending requests
             </Link>
             <Link
               href="/connection-privacy/"
+              scroll={false}
               aria-current={mode === "privacy" ? "page" : undefined}
             >
               Connection privacy
             </Link>
             <Link
               href="/unfollow-history/"
+              scroll={false}
               aria-current={mode === "history" ? "page" : undefined}
             >
               Your unfollow history
             </Link>
             <Link
               href="/relationship-timeline/"
+              scroll={false}
               aria-current={mode === "timeline" ? "page" : undefined}
             >
               Relationship timeline
             </Link>
             <Link
               href="/instagram-cleaner/"
+              scroll={false}
               aria-current={mode === "cleaner" ? "page" : undefined}
             >
               InstaCleaner
             </Link>
             <Link
               href="/snapshot-comparison/"
+              scroll={false}
               aria-current={mode === "comparison" ? "page" : undefined}
             >
               Compare snapshots
             </Link>
             <Link
               href="/instagram-wrapped/"
+              scroll={false}
               aria-current={mode === "wrapped" ? "page" : undefined}
             >
               My Wrapped

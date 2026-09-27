@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 41,
+    title: "Keep workspace position while switching tools on mobile",
+    summary:
+      "Workspace tabs now preserve the page position when opening another tool route, so an active review stays in view while its data remains available.",
+  },
+  {
     issue: 39,
     title: "V3.5–V3.7: Relationship stories and local snapshot return",
     summary:
