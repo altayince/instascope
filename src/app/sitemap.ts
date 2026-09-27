@@ -1,13 +1,8 @@
 import type { MetadataRoute } from "next";
-import { siteUrl, tools, isIndexable } from "@/lib/site";
+import { siteUrl, isIndexable } from "@/lib/site";
+import { publicPaths } from "@/lib/public-paths";
 export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!isIndexable) return [];
-  return [
-    "",
-    ...Object.keys(tools),
-    "privacy",
-    "how-to-download-instagram-followers-data",
-    "changelog",
-  ].map((path) => ({ url: `${siteUrl}/${path ? `${path}/` : ""}` }));
+  return publicPaths.map((path) => ({ url: `${siteUrl}${path}` }));
 }

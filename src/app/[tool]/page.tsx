@@ -8,8 +8,12 @@ import { pageMetadata, applicationData } from "@/lib/seo";
 import { Breadcrumbs, StructuredData } from "@/components/structured-data";
 import { ToolExplainer } from "@/components/tool-explainer";
 import { toolContent } from "@/lib/tool-content";
+import { articles } from "@/lib/articles";
+import { ArticlePage } from "@/components/article-page";
 export function generateStaticParams() {
-  return Object.keys(tools).map((tool) => ({ tool }));
+  return [...Object.keys(tools), ...Object.keys(articles)].map((tool) => ({
+    tool,
+  }));
 }
 export const dynamicParams = false;
 export async function generateMetadata({
@@ -19,6 +23,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tool } = await params,
     config = tools[tool as ToolSlug];
+  if (Object.hasOwn(articles, tool))
+    return pageMetadata(
+      articles[tool].title,
+      articles[tool].description,
+      `/${tool}/`,
+    );
   if (!config) return {};
   return pageMetadata(
     toolContent[tool as ToolSlug]?.seoTitle ?? config.name,
@@ -33,6 +43,8 @@ export default async function ToolPage({
 }) {
   const { tool } = await params,
     config = tools[tool as ToolSlug];
+  if (Object.hasOwn(articles, tool))
+    return <ArticlePage slug={tool} article={articles[tool]} />;
   if (!config) notFound();
   return (
     <main id="main">

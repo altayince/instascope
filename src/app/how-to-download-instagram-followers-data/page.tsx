@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { Breadcrumbs } from "@/components/structured-data";
+import { articles } from "@/lib/articles";
 export const metadata: Metadata = pageMetadata(
   "Download your Instagram followers data",
   "Choose an All time Followers and Following export for accurate local Instagram analysis.",
@@ -70,6 +71,16 @@ export default function Guide() {
         relationships and produce misleading results. Empty lists are accepted
         when the export explicitly contains them.
       </p>
+      <nav aria-label="Understanding your export">
+        <h2>Understand your export</h2>
+        <ul>
+          {Object.entries(articles).map(([slug, article]) => (
+            <li key={slug}>
+              <Link href={`/${slug}/`}>{article.title}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </main>
   );
 }

@@ -6,7 +6,7 @@ Local validation on Windows, Node 24.21.0:
 - ESLint: passed without warnings after cleanup.
 - Unit tests: 75 passed. Normalization, timestamp handling, duplicates, both relationship directions, snapshot differences, large lists, JSON/HTML/nested/split ZIP, empty/missing/malformed lists, truncated ZIP and decompression bounds; isolated profile/analytics service validation. INS-4 adds selective large-archive reading, stored/Deflate/data-descriptor compatibility, CRC32, forged metadata and resource-limit regressions.
 - Production build: passed; static `out/` generated.
-- Playwright: 38 passed across desktop and mobile Chromium. Covers ZIP upload and counts, no POST during analysis, Cleaner selection across search/filters and CSV download, old/new comparison, actual PNG signature and 1080 × 1920 dimensions, clear-data, malformed-input recovery, HTML without resource fetching, missing lists, and graceful profile-service unavailability. INS-4 tests a synthetic ZIP over 100 MB and forbids whole-file reads on the UI thread.
+- Playwright: 40 passed across desktop and mobile Chromium. Covers ZIP upload and counts, no POST during analysis, Cleaner selection across search/filters and CSV download, old/new comparison, actual PNG signature and 1080 × 1920 dimensions, clear-data, malformed-input recovery, HTML without resource fetching, missing lists, and graceful profile-service unavailability. INS-4 tests a synthetic ZIP over 100 MB and forbids whole-file reads on the UI thread.
 - Initial browser failures were ambiguous test locators (Next's live announcer also has role=alert, and the file input has button semantics). Locators were scoped; the application results and PNG export already worked.
 - npm dependency audit at installation: no known vulnerabilities reported.
 
@@ -27,3 +27,5 @@ M3 / INS-15: All seven primary landing pages have distinct intent-focused titles
 M4 / INS-17: Fictional demo counts and comparison deltas are unit-verified. Desktop/mobile tests cover demo activation without an archive, search/pagination, Cleaner selection, comparison, explicitly demo-labeled PNGs and switching to real data without carrying over fictional snapshots. No demo profile links navigate to real Instagram accounts; zero remote requests were observed.
 
 M5 / INS-19: The homepage shows an explicitly fictional result preview, a working hero demo action and all seven primary tools with export/public-profile labels. All 75 unit and 38 desktop/mobile tests pass, along with typecheck, lint and the production build.
+
+M6 / INS-22: Five original guides pass unique metadata, sitemap, internal-link and desktop/mobile layout checks. The guide-to-tool-to-demo journey works. Typecheck, lint, 75 unit tests, production build and 40 Playwright tests passed.

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 22,
+    title: "M6: Add initial organic traffic content",
+    summary:
+      "Five practical guides explain one-way follows, snapshot changes, tool privacy, archive analysis and followers JSON, with links to the relevant tools.",
+  },
+  {
     issue: 19,
     title: "M5: Improve homepage acquisition and conversion",
     summary:
