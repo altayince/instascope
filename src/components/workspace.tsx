@@ -13,7 +13,6 @@ import {
 import { RelationshipTimeline } from "./relationship-timeline";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
-import { demoSnapshots } from "@/lib/demo";
 import type { Mode } from "@/lib/site";
 export const categories = {
   followers: ["Followers", "Accounts that follow you."],
@@ -41,7 +40,7 @@ export function Workspace({
   mode?: Mode;
   initialCategory?: Category;
 }) {
-  const { dataset, older, setDataset, setOlder, clear } = useData();
+  const { dataset, older, setDataset, setOlder, clear, startDemo } = useData();
   const [category, setCategory] = useState<Category>(initialCategory);
   const [change, setChange] =
     useState<keyof typeof changeLabels>("newFollowers");
@@ -77,11 +76,7 @@ export function Workspace({
               : "Upload Instagram export"
           }
           onLoad={setDataset}
-          onDemo={() => {
-            const demo = demoSnapshots();
-            setDataset(demo.newer);
-            setOlder(demo.older);
-          }}
+          onDemo={startDemo}
         />
       )}
       {dataset && analysis && (

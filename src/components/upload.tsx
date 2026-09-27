@@ -1,11 +1,9 @@
 "use client";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
+import { useBrowserReady } from "./use-browser-ready";
 import { readExport } from "@/lib/instagram/browser";
 import { track } from "@/lib/analytics";
 import type { Dataset } from "@/lib/instagram/types";
-const subscribeReady = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 export function Upload({
   onLoad,
   label = "Upload Instagram export",
@@ -15,7 +13,7 @@ export function Upload({
   label?: string;
   onDemo?: () => void;
 }) {
-  const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
+  const ready = useBrowserReady();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);

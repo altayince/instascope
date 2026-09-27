@@ -1,12 +1,14 @@
 "use client";
 import { createContext, useContext, useState } from "react";
 import type { Dataset } from "@/lib/instagram/types";
+import { demoSnapshots } from "@/lib/demo";
 type State = {
   dataset: Dataset | null;
   older: Dataset | null;
   setDataset: (v: Dataset | null) => void;
   setOlder: (v: Dataset | null) => void;
   clear: () => void;
+  startDemo: () => void;
 };
 const Context = createContext<State | null>(null);
 export function DataProvider({ children }: { children: React.ReactNode }) {
@@ -19,6 +21,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         older,
         setDataset,
         setOlder,
+        startDemo: () => {
+          const demo = demoSnapshots();
+          setDataset(demo.newer);
+          setOlder(demo.older);
+        },
         clear: () => {
           setDataset(null);
           setOlder(null);
