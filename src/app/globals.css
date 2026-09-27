@@ -1579,6 +1579,8 @@ footer > small {
   }
   .workspace-heading h2 {
     font-size: 26px;
+    line-height: 1.2;
+    min-height: 2.4em;
   }
   .workspace-heading .text-button {
     font-size: 10px;

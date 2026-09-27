@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useData } from "./data-provider";
 import { Upload } from "./upload";
 import { AccountList } from "./account-list";
@@ -40,6 +41,9 @@ const changeLabels = {
   newMutuals: "New mutuals",
   lostMutuals: "No longer mutual",
 } as const;
+
+let pendingWorkspaceAnchor: { path: string; viewportY: number } | null = null;
+
 function optionalSummary(list: ConnectionList | undefined, label: string) {
   if (!list || list.status === "missing")
     return "Not included in this export. Add this optional category to review it.";
@@ -119,6 +123,8 @@ export function Workspace({
     clear,
     startDemo,
   } = useData();
+  const pathname = usePathname();
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState<Category>(initialCategory);
   const [change, setChange] =
     useState<keyof typeof changeLabels>("newFollowers");
@@ -130,6 +136,30 @@ export function Workspace({
     () => (dataset && older ? compareSnapshots(older, dataset) : null),
     [dataset, older],
   );
+  useLayoutEffect(() => {
+    const anchor = pendingWorkspaceAnchor;
+    if (!anchor || !tabsRef.current) return;
+    if (anchor.path !== pathname) {
+      pendingWorkspaceAnchor = null;
+      return;
+    }
+    pendingWorkspaceAnchor = null;
+    const difference = tabsRef.current.getBoundingClientRect().top - anchor.viewportY;
+    if (Math.abs(difference) < 1) return;
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, window.scrollY + difference);
+    root.style.scrollBehavior = previousBehavior;
+  }, [pathname]);
+
+  function rememberWorkspaceAnchor(path: string) {
+    if (!tabsRef.current || path === pathname) return;
+    pendingWorkspaceAnchor = {
+      path,
+      viewportY: tabsRef.current.getBoundingClientRect().top,
+    };
+  }
   useEffect(() => {
     track("landing_viewed");
     if (mode === "cleaner") track("cleaner_opened");
@@ -185,12 +215,11 @@ export function Workspace({
               Clear active data & start over
             </button>
           </div>
-          {mode === "analyzer" && <ReviewNext dataset={dataset} />}
-          {mode === "analyzer" && <SnapshotSaver />}
-          <div className="tool-tabs">
+          <div className="tool-tabs" ref={tabsRef}>
             <Link
               href="/followers-analyzer/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/followers-analyzer/")}
               aria-current={mode === "analyzer" ? "page" : undefined}
             >
               Overview
@@ -198,6 +227,7 @@ export function Workspace({
             <Link
               href="/pending-follow-requests/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/pending-follow-requests/")}
               aria-current={mode === "pending" ? "page" : undefined}
             >
               Pending requests
@@ -205,6 +235,7 @@ export function Workspace({
             <Link
               href="/connection-privacy/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/connection-privacy/")}
               aria-current={mode === "privacy" ? "page" : undefined}
             >
               Connection privacy
@@ -212,6 +243,7 @@ export function Workspace({
             <Link
               href="/unfollow-history/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/unfollow-history/")}
               aria-current={mode === "history" ? "page" : undefined}
             >
               Your unfollow history
@@ -219,6 +251,7 @@ export function Workspace({
             <Link
               href="/relationship-timeline/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/relationship-timeline/")}
               aria-current={mode === "timeline" ? "page" : undefined}
             >
               Relationship timeline
@@ -226,6 +259,7 @@ export function Workspace({
             <Link
               href="/instagram-cleaner/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/instagram-cleaner/")}
               aria-current={mode === "cleaner" ? "page" : undefined}
             >
               InstaCleaner
@@ -233,6 +267,7 @@ export function Workspace({
             <Link
               href="/snapshot-comparison/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/snapshot-comparison/")}
               aria-current={mode === "comparison" ? "page" : undefined}
             >
               Compare snapshots
@@ -240,6 +275,7 @@ export function Workspace({
             <Link
               href="/instagram-wrapped/"
               scroll={false}
+              onNavigate={() => rememberWorkspaceAnchor("/instagram-wrapped/")}
               aria-current={mode === "wrapped" ? "page" : undefined}
             >
               My Wrapped
@@ -349,6 +385,8 @@ export function Workspace({
             />
           ) : (
             <>
+              <ReviewNext dataset={dataset} />
+              <SnapshotSaver />
               <div className="stats-grid">
                 {(Object.keys(categories) as Category[]).map((key) => (
                   <button
