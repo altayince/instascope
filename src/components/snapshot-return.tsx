@@ -116,6 +116,7 @@ export function SavedComparisonChoice() {
     deleteSaved,
   } = useData();
   const [currentDate, setCurrentDate] = useState("");
+  const [sameAccountConfirmed, setSameAccountConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   if (!storageReady || !saved || !dataset || dataset.metadata.demo || older)
     return null;
@@ -129,9 +130,19 @@ export function SavedComparisonChoice() {
         Saved older candidate: <strong>{saved.exportDate}</strong> ·{" "}
         {saved.followers.length.toLocaleString("en-US")} followers /{" "}
         {saved.following.length.toLocaleString("en-US")} following. It is not
-        compared until you confirm that the current export is newer and from the
-        same account.
+        compared until you enter a newer date and confirm both exports are from
+        the same account. InstaScope cannot verify account identity for you.
       </p>
+      <label className="snapshot-account-confirmation">
+        <input
+          type="checkbox"
+          required
+          checked={sameAccountConfirmed}
+          onChange={(event) => setSameAccountConfirmed(event.target.checked)}
+        />
+        I confirm this export is from the same Instagram account as the saved
+        snapshot.
+      </label>
       <div className="snapshot-return-controls">
         <label>
           Date of current export
@@ -142,8 +153,12 @@ export function SavedComparisonChoice() {
           />
         </label>
         <button
+          disabled={!sameAccountConfirmed}
           onClick={() => {
-            const error = chooseSavedAsOlder(currentDate);
+            const error = chooseSavedAsOlder(
+              currentDate,
+              sameAccountConfirmed,
+            );
             setMessage(error ?? "Comparing with the saved older snapshot.");
           }}
         >
@@ -159,8 +174,10 @@ export function SavedComparisonChoice() {
         </button>
       </div>
       <p className="snapshot-return-help">
-        Dates are yours to verify. InstaScope does not infer chronology from
-        upload time. You can upload an older file manually instead.
+        You are responsible for confirming both snapshots belong to the same
+        Instagram account and checking their dates. InstaScope does not infer
+        chronology from upload time. You can upload an older file manually
+        instead.
       </p>
       {message && <p role="status">{message}</p>}
     </section>

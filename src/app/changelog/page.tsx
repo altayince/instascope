@@ -11,7 +11,7 @@ const changes = [
     issue: 39,
     title: "V3.5–V3.7: Relationship stories and local snapshot return",
     summary:
-      "Wrapped now offers factual circle, dated-history and two-export change stories as private portrait cards. A user can optionally save minimal relationship lists in this browser, return with a newer export and explicitly compare or delete that snapshot.",
+      "Wrapped now offers factual circle, dated-history and two-export change stories as private portrait cards. A user can optionally save minimal relationship lists in this browser, then compare a newer export only after confirming it belongs to the same account. Saved snapshots can be replaced or deleted.",
   },
   {
     issue: 37,

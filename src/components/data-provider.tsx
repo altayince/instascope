@@ -6,7 +6,7 @@ import {
   deleteSavedSnapshot,
   readSavedSnapshot,
   restoreSavedSnapshot,
-  validExportDate,
+  savedComparisonError,
   writeSavedSnapshot,
   type SavedSnapshot,
 } from "@/lib/snapshot-storage";
@@ -23,7 +23,10 @@ type State = {
   setDataset: (v: Dataset) => void;
   setOlder: (v: Dataset | null) => void;
   saveCurrent: (exportDate: string) => string | null;
-  chooseSavedAsOlder: (currentDate: string) => string | null;
+  chooseSavedAsOlder: (
+    currentDate: string,
+    sameAccountConfirmed: boolean,
+  ) => string | null;
   deleteSaved: () => string | null;
   clear: () => void;
   startDemo: () => void;
@@ -90,15 +93,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  function chooseSavedAsOlder(currentDate: string): string | null {
+  function chooseSavedAsOlder(
+    currentDate: string,
+    sameAccountConfirmed: boolean,
+  ): string | null {
     if (!dataset || !saved)
       return "Upload an export and save an older snapshot first.";
     if (dataset.metadata.demo)
       return "A fictional demo cannot be compared with your saved snapshot.";
-    if (!validExportDate(currentDate))
-      return "Enter a valid date for the current export.";
-    if (currentDate <= saved.exportDate)
-      return "The current export date must be later than the saved snapshot date.";
+    const validationError = savedComparisonError(
+      currentDate,
+      saved.exportDate,
+      sameAccountConfirmed,
+    );
+    if (validationError) return validationError;
     setPrevious(restoreSavedSnapshot(saved));
     setOlderSource("saved");
     setCurrentExportDate(currentDate);

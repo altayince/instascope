@@ -1069,6 +1069,18 @@ footer > small {
   gap: 10px;
   margin: 16px 0;
 }
+.snapshot-account-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 780px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.snapshot-account-confirmation input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
 .snapshot-return-controls label {
   display: grid;
   gap: 5px;

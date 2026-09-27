@@ -8,6 +8,7 @@ import {
   deleteSavedSnapshot,
   readSavedSnapshot,
   restoreSavedSnapshot,
+  savedComparisonError,
   validExportDate,
   writeSavedSnapshot,
 } from "../../src/lib/snapshot-storage";
@@ -37,6 +38,24 @@ const dataset: Dataset = {
 };
 
 describe("browser-local relationship snapshots", () => {
+  it("requires same-account confirmation and a valid newer date to use a saved snapshot", () => {
+    const savedDate = "2024-01-15";
+    expect(savedComparisonError("2025-01-15", savedDate, false)).toMatch(
+      /Confirm both exports/,
+    );
+    expect(savedComparisonError("", savedDate, true)).toMatch(/valid date/);
+    expect(savedComparisonError("2025-02-30", savedDate, true)).toMatch(
+      /valid date/,
+    );
+    expect(savedComparisonError(savedDate, savedDate, true)).toMatch(
+      /must be later/,
+    );
+    expect(savedComparisonError("2024-01-14", savedDate, true)).toMatch(
+      /must be later/,
+    );
+    expect(savedComparisonError("2025-01-15", savedDate, true)).toBeNull();
+  });
+
   it("stores only usernames and an owner-entered export date", () => {
     const storage = memoryStorage();
     const saved = writeSavedSnapshot(storage, dataset, "2025-01-15");

@@ -19,6 +19,20 @@ export function validExportDate(value: string) {
   );
 }
 
+export function savedComparisonError(
+  currentDate: string,
+  savedDate: string,
+  sameAccountConfirmed: boolean,
+): string | null {
+  if (!validExportDate(currentDate))
+    return "Enter a valid date for the current export.";
+  if (currentDate <= savedDate)
+    return "The current export date must be later than the saved snapshot date.";
+  if (!sameAccountConfirmed)
+    return "Confirm both exports are from the same Instagram account.";
+  return null;
+}
+
 export function createSavedSnapshot(
   dataset: Dataset,
   exportDate: string,

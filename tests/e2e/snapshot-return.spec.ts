@@ -75,18 +75,34 @@ test("saved snapshot survives reload and is compared only after explicit chronol
     name: "Compare with saved snapshot",
   });
   await expect(choice).toBeVisible();
+  const compare = choice.getByRole("button", {
+    name: "Compare with saved snapshot",
+  });
+  const sameAccount = choice.getByRole("checkbox", {
+    name: "I confirm this export is from the same Instagram account as the saved snapshot.",
+  });
+  await expect(compare).toBeDisabled();
+  await choice.getByLabel("Date of current export").fill("2025-01-15");
+  await expect(compare).toBeDisabled();
+  await expect(page.getByText(/Follower change:/)).toHaveCount(0);
+  await sameAccount.check();
+  await expect(compare).toBeEnabled();
+  await choice.getByLabel("Date of current export").fill("");
+  await compare.click();
+  await expect(choice).toContainText("Enter a valid date for the current export.");
+  await choice.getByLabel("Date of current export").fill("2024-01-14");
+  await compare.click();
+  await expect(choice).toContainText(
+    "must be later than the saved snapshot date",
+  );
   await choice.getByLabel("Date of current export").fill("2024-01-15");
-  await choice
-    .getByRole("button", { name: "Compare with saved snapshot" })
-    .click();
+  await compare.click();
   await expect(choice).toContainText(
     "must be later than the saved snapshot date",
   );
   await expect(page.getByText(/Follower change:/)).toHaveCount(0);
   await choice.getByLabel("Date of current export").fill("2025-01-15");
-  await choice
-    .getByRole("button", { name: "Compare with saved snapshot" })
-    .click();
+  await compare.click();
   await expect(page.locator(".snapshot-status")).toContainText(
     "Saved local older snapshot",
   );
@@ -142,6 +158,9 @@ test("saved copy can be replaced and a manually uploaded older file stays distin
     .locator(".tool-tabs")
     .getByRole("link", { name: "Compare snapshots" })
     .click();
+  await expect(
+    page.getByRole("region", { name: "Compare with saved snapshot" }),
+  ).toContainText("I confirm this export is from the same Instagram account");
   await upload(page, "Upload older snapshot", original);
   await expect(page.locator(".snapshot-status")).toContainText(
     "Manually uploaded older snapshot",
