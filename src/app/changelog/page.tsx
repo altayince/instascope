@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 39,
+    title: "V3.5–V3.7: Relationship stories and local snapshot return",
+    summary:
+      "Wrapped now offers factual circle, dated-history and two-export change stories as private portrait cards. A user can optionally save minimal relationship lists in this browser, return with a newer export and explicitly compare or delete that snapshot.",
+  },
+  {
     issue: 37,
     title: "Add three focused Instagram search-intent guides",
     summary:

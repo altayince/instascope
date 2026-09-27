@@ -1042,6 +1042,54 @@ footer > small {
   margin-left: 10px;
   font-size: 11px;
 }
+.snapshot-return {
+  border: 1px solid #d5ddc9;
+  border-radius: 12px;
+  background: #f2f5ec;
+  padding: 22px;
+  margin: 22px 0;
+}
+.snapshot-return h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.snapshot-return p {
+  max-width: 780px;
+  margin: 8px 0 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.snapshot-return a {
+  text-decoration: underline;
+}
+.snapshot-return-controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.snapshot-return-controls label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.snapshot-return-controls input {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid #b8c6b3;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+}
+.snapshot-return-controls button {
+  min-height: 42px;
+  font-size: 12px;
+}
+.snapshot-return .snapshot-return-help {
+  color: var(--muted);
+  font-size: 11px;
+}
 .category-tabs {
   display: flex;
   flex-wrap: wrap;

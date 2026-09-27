@@ -15,9 +15,19 @@ export default function Privacy() {
       <h2>Your archive stays in your browser.</h2>
       <p>
         ZIP, JSON and HTML files are processed on your device. The analyzer does
-        not upload them, store them on a server, or save them in browser
-        storage. Results stay in this tab’s memory. Use Clear data, reload, or
-        close the tab to discard them.
+        not upload them, store them on a server, or save the raw archive in
+        browser storage. Current results stay in this tab’s memory until you
+        clear active data, reload, or close the tab.
+      </p>
+      <h2>Saved snapshots are your choice.</h2>
+      <p>
+        If you choose “Save this snapshot for next time”, InstaScope stores only
+        follower and following usernames plus the export date you enter in this
+        browser’s site storage. It does not save the ZIP, other connection lists
+        or relationship dates. You can replace or delete the saved snapshot in
+        the workspace. Clearing browser/site data may also remove it. Nothing is
+        compared with a later export until you choose the older snapshot and
+        confirm the dates.
       </p>
       <h2>No Instagram credentials.</h2>
       <p>

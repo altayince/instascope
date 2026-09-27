@@ -113,7 +113,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "Check your circle without sharing a password",
         paragraphs: [
-          "The analyzer reads your export on your device. There is no Instagram login or archive upload to an InstaScope server. Your lists remain in tab memory until you clear them or leave the session. If you open a profile, your browser visits Instagram directly.",
+          "The analyzer reads your export on your device. There is no Instagram login or archive upload to an InstaScope server. Current results remain in tab memory until you clear them or leave the session. If you choose to save a local snapshot, only follower and following usernames persist in this browser for a later comparison. If you open a profile, your browser visits Instagram directly.",
           "Use a fresh export when you want an updated view. The results are not live follower counts, and InstaScope cannot reveal profile visitors or private content.",
         ],
       },
