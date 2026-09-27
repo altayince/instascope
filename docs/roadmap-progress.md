@@ -4,7 +4,7 @@ Production: https://instascope.me. The supplied [V2 roadmap](PRODUCTION_ROADMAP_
 
 - [x] M0 — Baseline validation (INS-9)
 - [x] M1 — Production domain, navigation and arrow cleanup (INS-12; validated build, live deployment pending)
-- [ ] M2 — Search engine readiness
+- [x] M2 — Search engine readiness (INS-13; production and preview artifacts verified, live audit pending)
 - [ ] M3 — High-intent landing pages
 - [ ] M4 — Fictional demo mode
 - [ ] M5 — Homepage acquisition and conversion

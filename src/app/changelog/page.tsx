@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "What’s new",
-  alternates: { canonical: "/changelog/" },
-};
+import { pageMetadata } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/structured-data";
+export const metadata: Metadata = pageMetadata(
+  "What’s new",
+  "Product improvements and archive compatibility updates in InstaScope, the private Instagram export analyzer.",
+  "/changelog/",
+);
 const changes = [
+  {
+    issue: 13,
+    title: "M2: Prepare search engine indexing and structured metadata",
+    summary:
+      "Public pages now have consistent social previews, unique descriptions and visible breadcrumbs with accurate structured data. Preview builds stay excluded from the sitemap.",
+  },
   {
     issue: 12,
     title: "M1: Prepare instascope.me production shell and navigation",
@@ -46,6 +55,7 @@ const changes = [
 export default function Changelog() {
   return (
     <main id="main" className="prose">
+      <Breadcrumbs name="What’s new" path="/changelog/" />
       <h1>What’s new / Neler değişti?</h1>
       {changes.map((change) => (
         <article key={change.issue}>

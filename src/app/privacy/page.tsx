@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Privacy",
-  description:
-    "How InstaScope processes your export locally and keeps account data out of analytics.",
-  alternates: { canonical: "/privacy/" },
-};
+import { pageMetadata } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/structured-data";
+export const metadata: Metadata = pageMetadata(
+  "Privacy",
+  "How InstaScope processes your export locally and keeps account data out of analytics.",
+  "/privacy/",
+);
 export default function Privacy() {
   return (
     <main id="main" className="prose">
+      <Breadcrumbs name="Privacy" path="/privacy/" />
       <span className="eyebrow">YOUR DATA STAYS YOURS</span>
       <h1>Privacy, in plain language.</h1>
       <h2>Your archive stays in your browser.</h2>

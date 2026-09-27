@@ -7,6 +7,29 @@ const files = [
   "tests/fixtures/following.json",
 ];
 
+test("upload stays disabled until its browser handlers are ready", async ({
+  page,
+}) => {
+  let release!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/_next/static/**/*.js", async (route) => {
+    await ready;
+    await route.continue();
+  });
+  await page.goto("/followers-analyzer/", { waitUntil: "commit" });
+  const input = page.getByLabel("Upload Instagram export", { exact: true });
+  try {
+    await expect(input).toBeDisabled();
+  } finally {
+    release();
+  }
+  await expect(input).toBeEnabled();
+  await input.setInputFiles(files);
+  await expect(page.getByRole("button", { name: /Followers 3/ })).toBeVisible();
+});
+
 test("large media-rich ZIP imports locally without transferring file bytes on the main thread", async ({
   page,
 }, testInfo) => {
@@ -24,6 +47,7 @@ test("large media-rich ZIP imports locally without transferring file bytes on th
   await page.goto("/followers-analyzer/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(path);
   await expect(page.getByRole("button", { name: /Followers 1/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Following 1/ })).toBeVisible();
@@ -50,6 +74,7 @@ test("upload ZIP, correct relationships, search, and no network upload", async (
   });
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles({
       name: "instagram.zip",
       mimeType: "application/zip",
@@ -76,6 +101,7 @@ test("Cleaner preserves selection across search and exports a review list", asyn
   await page.goto("/instagram-cleaner/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(files);
   await page
     .getByRole("checkbox", { name: "Select one.way", exact: true })
@@ -104,6 +130,7 @@ test("compare older and newer snapshots without false causality", async ({
   await page.goto("/snapshot-comparison/");
   await page
     .getByLabel("Upload newer snapshot", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(files);
   const rows = [
     { string_list_data: [{ value: "alice" }] },
@@ -111,6 +138,7 @@ test("compare older and newer snapshots without false causality", async ({
   ];
   await page
     .getByLabel("Upload older snapshot", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles([
       {
         name: "followers.json",
@@ -135,6 +163,7 @@ test("Wrapped exports a real aggregate PNG and clears private data", async ({
   await page.goto("/instagram-wrapped/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(files);
   await expect(page.locator(".wrapped-card")).toContainText("3");
   await expect(page.locator(".wrapped-card")).not.toContainText("alice");
@@ -158,6 +187,7 @@ test("malformed upload has actionable error and can recover", async ({
   await page.goto("/followers-analyzer/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles({
       name: "followers.json",
       mimeType: "application/json",
@@ -168,6 +198,7 @@ test("malformed upload has actionable error and can recover", async ({
   );
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(files);
   await expect(page.getByRole("button", { name: /Followers 3/ })).toBeVisible();
 });
@@ -181,6 +212,7 @@ test("HTML is parsed without fetching or executing its contents", async ({
   await page.goto("/followers-analyzer/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles([
       "tests/fixtures/followers.html",
       "tests/fixtures/following.html",
@@ -209,6 +241,7 @@ test("rejects missing lists without a misleading dashboard", async ({
   await page.goto("/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles({
       name: "followers.json",
       mimeType: "application/json",
@@ -225,6 +258,7 @@ test("tool navigation preserves the dataset and applies the destination filter",
   await page.goto("/followers-analyzer/");
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles(files);
   await page
     .getByRole("navigation", { name: "Related tools" })

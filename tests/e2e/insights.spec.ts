@@ -33,6 +33,7 @@ async function upload(
   });
   await page
     .getByLabel("Upload Instagram export", { exact: true })
+    .and(page.locator(":enabled"))
     .setInputFiles({
       name: "synthetic-insights.zip",
       mimeType: "application/zip",
