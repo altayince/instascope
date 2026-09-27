@@ -164,6 +164,7 @@ export function PrivacyLists({ dataset }: { dataset: Dataset }) {
         <AccountList
           key={kind}
           accounts={list.accounts}
+          demo={dataset.metadata.demo}
           dateLabel="Recorded date"
         />
       )}

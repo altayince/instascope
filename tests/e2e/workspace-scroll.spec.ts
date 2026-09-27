@@ -54,7 +54,7 @@ test("workspace chrome stays visually anchored across demo routes", async ({
   await switchTab(page, "Connection privacy", "/connection-privacy/");
   await expect(
     page.getByRole("region", { name: "Connection privacy dashboard" }),
-  ).toContainText("Not included");
+  ).toContainText("Close friends");
 
   await switchTab(page, "Your unfollow history", "/unfollow-history/");
   await expect(
