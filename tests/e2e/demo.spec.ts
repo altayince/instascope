@@ -1,14 +1,48 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
-test("homepage preview leads to a working demo and all primary tools", async ({
+test("homepage leads with relationship review and keeps every tool and demo usable", async ({
   page,
 }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Your Instagram circle.",
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "With context.",
+  );
+  await expect(page.locator(".hero-copy")).toContainText(
+    "sent requests in your export",
+  );
+  await expect(
+    page.getByRole("link", { name: "Review my Instagram" }),
+  ).toHaveAttribute("href", "#tool");
   await expect(page.getByLabel("Fictional demo result preview")).toContainText(
     "1,284",
   );
-  await expect(page.locator(".feature-grid a")).toHaveCount(7);
+  await expect(page.getByLabel("Fictional demo result preview")).toContainText(
+    "25",
+  );
+  await expect(page.getByLabel("Fictional demo result preview")).toContainText(
+    "10",
+  );
+  expect(
+    await page
+      .locator(".feature-grid a")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href"))),
+  ).toEqual([
+    "/followers-analyzer/",
+    "/pending-follow-requests/",
+    "/relationship-timeline/",
+    "/snapshot-comparison/",
+    "/instagram-cleaner/",
+    "/unfollow-history/",
+    "/instagram-wrapped/",
+    "/not-following-back/",
+    "/profile-picture-viewer/",
+    "/connection-privacy/",
+    "/following-analyzer/",
+  ]);
   await expect(page.locator(".feature-grid")).toContainText(
     "Public profile tool",
   );

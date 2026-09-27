@@ -522,6 +522,11 @@ small {
   font-size: 12px;
   text-decoration: underline;
 }
+.preview-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
 .tool-kind {
   display: block;
   font-size: 10px;
