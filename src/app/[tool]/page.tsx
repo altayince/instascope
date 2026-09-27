@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { tools, type ToolSlug } from "@/lib/site";
 import { Workspace } from "@/components/workspace";
 import { ProfileViewer } from "@/components/profile-viewer";
+import { pageMetadata, applicationData } from "@/lib/seo";
+import { Breadcrumbs, StructuredData } from "@/components/structured-data";
 export function generateStaticParams() {
   return Object.keys(tools).map((tool) => ({ tool }));
 }
@@ -16,16 +18,7 @@ export async function generateMetadata({
   const { tool } = await params,
     config = tools[tool as ToolSlug];
   if (!config) return {};
-  return {
-    title: config.name,
-    description: config.description,
-    alternates: { canonical: `/${tool}/` },
-    openGraph: {
-      title: `${config.name} | InstaScope`,
-      description: config.description,
-      url: `/${tool}/`,
-    },
-  };
+  return pageMetadata(config.name, config.description, `/${tool}/`);
 }
 export default async function ToolPage({
   params,
@@ -38,9 +31,10 @@ export default async function ToolPage({
   return (
     <main id="main">
       <section className="tool-hero">
-        <Link className="eyebrow" href="/">
-          INSTASCOPE / {config.name.toUpperCase()}
-        </Link>
+        <Breadcrumbs name={config.name} path={`/${tool}/`} />
+        <StructuredData
+          value={applicationData(config.name, config.description, `/${tool}/`)}
+        />
         <h1>{config.title}</h1>
         <p>{config.description}</p>
         <span className="pill">No Instagram password required</span>
@@ -73,9 +67,9 @@ export default async function ToolPage({
             <summary>How do I get the right export?</summary>
             <p>
               Choose Followers and Following with the All time date range in
-              Instagram’s Accounts Center. JSON is recommended.{" "}
-              Include the relevant optional connection categories for requests,
-              privacy lists and your own unfollow history.{" "}
+              Instagram’s Accounts Center. JSON is recommended. Include the
+              relevant optional connection categories for requests, privacy
+              lists and your own unfollow history.{" "}
               <Link href="/how-to-download-instagram-followers-data/">
                 Read the export guide →
               </Link>

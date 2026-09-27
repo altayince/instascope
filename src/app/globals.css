@@ -595,6 +595,31 @@ footer > small {
   margin: 60px auto 38px;
   text-align: center;
 }
+.breadcrumbs {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: inherit;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.breadcrumbs li {
+  padding: 0;
+  font-size: inherit;
+}
+.breadcrumbs li + li::before {
+  content: "/";
+  margin-right: 8px;
+  color: var(--muted);
+}
+.tool-hero .breadcrumbs ol {
+  justify-content: center;
+}
 .tool-hero h1 {
   font-size: clamp(40px, 4.5vw, 62px);
   margin: 22px 0;

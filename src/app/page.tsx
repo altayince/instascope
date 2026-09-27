@@ -2,18 +2,24 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Workspace } from "@/components/workspace";
 import { tools } from "@/lib/site";
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "Your Instagram data, actually useful.",
-    description:
-      "A little clarity for your social circle. No Instagram login required.",
-    url: "/",
-  },
-};
+import { pageMetadata } from "@/lib/seo";
+import { StructuredData } from "@/components/structured-data";
+export const metadata: Metadata = pageMetadata(
+  "Private Instagram Export Analyzer",
+  "Understand followers, mutuals and one-way connections from your Instagram export. Free browser-local analysis, no Instagram login required.",
+  "/",
+);
 export default function Home() {
   return (
     <main id="main">
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "InstaScope",
+          url: "https://instascope.me/",
+        }}
+      />
       <section className="hero">
         <div className="hero-copy">
           <span className="pill">

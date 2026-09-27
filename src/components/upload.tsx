@@ -1,8 +1,11 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { readExport } from "@/lib/instagram/browser";
 import { track } from "@/lib/analytics";
 import type { Dataset } from "@/lib/instagram/types";
+const subscribeReady = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
 export function Upload({
   onLoad,
   label = "Upload Instagram export",
@@ -10,6 +13,7 @@ export function Upload({
   onLoad: (dataset: Dataset) => void;
   label?: string;
 }) {
+  const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -75,12 +79,12 @@ export function Upload({
         accept=".zip,.json,.html,.htm"
         aria-label={label}
         className="file-input"
-        disabled={busy}
+        disabled={busy || !ready}
         onChange={(event) => void load(Array.from(event.target.files ?? []))}
       />
       <button
         className="button primary"
-        disabled={busy}
+        disabled={busy || !ready}
         onClick={() => input.current?.click()}
       >
         {busy ? "Processing in your browser…" : label}

@@ -1,14 +1,19 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Download your Instagram followers data",
-  description:
-    "Choose an All time Followers and Following export for accurate local Instagram analysis.",
-  alternates: { canonical: "/how-to-download-instagram-followers-data/" },
-};
+import { pageMetadata } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/structured-data";
+export const metadata: Metadata = pageMetadata(
+  "Download your Instagram followers data",
+  "Choose an All time Followers and Following export for accurate local Instagram analysis.",
+  "/how-to-download-instagram-followers-data/",
+);
 export default function Guide() {
   return (
     <main id="main" className="prose">
+      <Breadcrumbs
+        name="Export guide"
+        path="/how-to-download-instagram-followers-data/"
+      />
       <span className="eyebrow">START WITH YOUR OWN DATA</span>
       <h1>Your export is the key.</h1>
       <p>
