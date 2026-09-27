@@ -3,26 +3,91 @@ import type { Metadata } from "next";
 import { Workspace } from "@/components/workspace";
 import { tools, type ToolSlug } from "@/lib/site";
 import { demoSnapshots } from "@/lib/demo";
-import { analyze } from "@/lib/analysis/relationships";
+import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { DemoButton } from "@/components/demo-button";
 import { pageMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/structured-data";
 export const metadata: Metadata = pageMetadata(
-  "Private Instagram Export Analyzer",
-  "Understand followers, mutuals and one-way connections from your Instagram export. Free browser-local analysis, no Instagram login required.",
+  "Review your Instagram relationships",
+  "Review your Instagram circle, sent requests and recorded relationship dates. Compare two exports to see changes over time, privately and without a password.",
   "/",
 );
+const homepageTools: {
+  slug: ToolSlug;
+  title: string;
+  description: string;
+}[] = [
+  {
+    slug: "followers-analyzer",
+    title: "Relationship overview",
+    description:
+      "Start with the followers, mutuals and one-way connections in your export.",
+  },
+  {
+    slug: "pending-follow-requests",
+    title: "Pending requests",
+    description:
+      "Review sent requests recorded in your export, with ages when dates are available.",
+  },
+  {
+    slug: "relationship-timeline",
+    title: "Relationship history",
+    description:
+      "Explore recorded follow dates and the current connections behind each period.",
+  },
+  {
+    slug: "snapshot-comparison",
+    title: "Changes between snapshots",
+    description:
+      "Bring another export later to see which connections were added or went missing.",
+  },
+  {
+    slug: "instagram-cleaner",
+    title: "Manual circle review",
+    description:
+      "Make a shortlist, open profiles for context and decide what to do yourself.",
+  },
+  {
+    slug: "unfollow-history",
+    title: "Your unfollow history",
+    description:
+      "Review records of accounts you unfollowed, if your export includes them.",
+  },
+  {
+    slug: "instagram-wrapped",
+    title: "Your circle in a story",
+    description:
+      "Share a card with aggregate numbers and no individual usernames.",
+  },
+  {
+    slug: "not-following-back",
+    title: "Not following back",
+    description:
+      "Find one-way follows in the export and decide which deserve another look.",
+  },
+  {
+    slug: "profile-picture-viewer",
+    title: "Public profile photos",
+    description:
+      "Look up a publicly available profile photo without an export, when lookup is available.",
+  },
+  {
+    slug: "connection-privacy",
+    title: "Private connection lists",
+    description:
+      "Review close friends, blocked and other lists when they are in your export.",
+  },
+  {
+    slug: "following-analyzer",
+    title: "Your following list",
+    description:
+      "Search the accounts you follow and sort by recorded dates when available.",
+  },
+];
 export default function Home() {
-  const preview = analyze(demoSnapshots().newer);
-  const acquisitionTools: ToolSlug[] = [
-    "not-following-back",
-    "followers-analyzer",
-    "profile-picture-viewer",
-    "instagram-cleaner",
-    "snapshot-comparison",
-    "instagram-wrapped",
-    "following-analyzer",
-  ];
+  const demo = demoSnapshots();
+  const preview = analyze(demo.newer);
+  const changes = compareSnapshots(demo.older, demo.newer);
   return (
     <main id="main">
       <StructuredData
@@ -36,21 +101,21 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <span className="pill">
-            <i /> YOUR CIRCLE, IN PERSPECTIVE
+            <i /> YOUR RELATIONSHIPS, IN PERSPECTIVE
           </span>
           <h1>
-            Your Instagram data.
+            Your Instagram circle.
             <br />
-            <em>Actually useful.</em>
+            <em>With context.</em>
           </h1>
           <p>
-            Analyze your Instagram followers, mutuals and one-way follows. Free,
-            without your Instagram password. Your export is processed locally in
-            your browser.
+            Review older follows, sent requests in your export and what changed
+            between snapshots. No Instagram password. Your files stay in your
+            browser.
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#tool">
-              Upload Instagram export
+              Review my Instagram
             </a>
             <DemoButton />
             <Link
@@ -61,9 +126,9 @@ export default function Home() {
             </Link>
           </div>
           <div className="trust-row">
-            <span>✓ No login needed</span>
-            <span>✓ Stays in your browser</span>
-            <span>✓ Completely free</span>
+            <span>✓ No Instagram password</span>
+            <span>✓ Private in your browser</span>
+            <span>✓ Your decisions stay yours</span>
           </div>
         </div>
         <aside
@@ -71,13 +136,13 @@ export default function Home() {
           aria-label="Fictional demo result preview"
         >
           <span className="pill">Demo data · Fictional example</span>
-          <h2>A clearer circle.</h2>
+          <h2>A circle you can revisit.</h2>
           <div className="preview-counts">
             {[
-              ["Followers", preview.followers.length],
-              ["Following", preview.following.length],
-              ["Mutuals", preview.mutuals.length],
-              ["Not following back", preview.notFollowingBack.length],
+              ["Current followers", preview.followers.length],
+              ["Mutual connections", preview.mutuals.length],
+              ["Added between snapshots", changes.newFollowers.length],
+              ["Missing between snapshots", changes.lostFollowers.length],
             ].map(([label, count]) => (
               <div key={label}>
                 <strong>{count.toLocaleString("en-US")}</strong>
@@ -86,16 +151,22 @@ export default function Home() {
             ))}
           </div>
           <p>
-            These sample numbers are not your account. Try the demo to explore
-            the lists behind them.
+            Two fictional snapshots. Added and missing describe the lists in
+            those exports, not why or exactly when a relationship changed.
           </p>
-          <Link href="/not-following-back/">Explore one-way connections</Link>
+          <div className="preview-links">
+            <Link href="/relationship-timeline/">Explore recorded dates</Link>
+            <Link href="/snapshot-comparison/">Compare snapshots</Link>
+          </div>
         </aside>
       </section>
       <section className="intro-line">
-        <span className="eyebrow">A LITTLE SOCIAL DETECTIVE WORK</span>
-        <h2>The answers are already in your data.</h2>
-        <p>Bring your export. We’ll make it make sense.</p>
+        <span className="eyebrow">A CLOSER LOOK AT YOUR CIRCLE</span>
+        <h2>More than a follower count.</h2>
+        <p>
+          See what is pending, revisit older connections and choose what to
+          review.
+        </p>
       </section>
       <Workspace />
       <div className="upload-footnote">
@@ -108,11 +179,13 @@ export default function Home() {
       </div>
       <section className="features">
         <div className="section-heading">
-          <span className="eyebrow">ONE EXPORT. A FEW GOOD DISCOVERIES.</span>
-          <h2>All Instagram tools.</h2>
+          <span className="eyebrow">
+            EXPLORE NOW. RETURN WITH ANOTHER EXPORT LATER.
+          </span>
+          <h2>Review your circle, your way.</h2>
         </div>
         <div className="feature-grid">
-          {acquisitionTools.map((slug) => (
+          {homepageTools.map(({ slug, title, description }) => (
             <Link
               key={slug}
               href={`/${slug}/`}
@@ -121,10 +194,12 @@ export default function Home() {
               <span className="tool-kind">
                 {slug === "profile-picture-viewer"
                   ? "Public profile tool"
-                  : "Uses your Instagram export"}
+                  : slug === "snapshot-comparison"
+                    ? "Compare two Instagram exports"
+                    : "Uses your Instagram export"}
               </span>
-              <h3>{tools[slug].name}</h3>
-              <p>{tools[slug].description}</p>
+              <h3>{title}</h3>
+              <p>{description}</p>
               <span className="feature-link">Open {tools[slug].name}</span>
             </Link>
           ))}
@@ -164,8 +239,8 @@ export default function Home() {
             <div>
               <h3>Follow your curiosity</h3>
               <p>
-                Explore your connections, compare snapshots, or make your
-                Wrapped.
+                Review requests and recorded dates, make a manual shortlist or
+                return with another export to see what changed.
               </p>
             </div>
           </li>

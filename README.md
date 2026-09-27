@@ -2,6 +2,8 @@
 
 Privacy-first Instagram export analysis. No Instagram login, database, or archive upload.
 
+The current product direction is [relationship review in Roadmap V3](docs/PRODUCT_ROADMAP_V3.md).
+
 ## Run locally
 
 Use Node.js 24 LTS and npm:

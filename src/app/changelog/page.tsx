@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 29,
+    title: "V3.1: Reposition homepage around relationship review",
+    summary:
+      "The homepage now leads with reviewing your Instagram circle, dated and pending connections, and changes between snapshots. The demo and existing tools remain available.",
+  },
+  {
     issue: 27,
     title: "Prepare production for Google indexing",
     summary:
