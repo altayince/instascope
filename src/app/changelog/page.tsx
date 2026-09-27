@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 33,
+    title: "V3.3: Redesign InstaCleaner as Relationship Review",
+    summary:
+      "InstaCleaner now brings one-way, dated and mutual follows together with recorded requests and your own unfollow history. One private shortlist persists across review groups, with factual context and manual account actions only.",
+  },
+  {
     issue: 31,
     title: "V3.2: Promote relationship review tools and polish navigation",
     summary:

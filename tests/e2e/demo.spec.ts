@@ -116,8 +116,17 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
     .getByRole("link", { name: "InstaCleaner", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: /Not following back 190/ }),
+    page.getByRole("button", { name: /One-way follows 190/ }),
   ).toBeVisible();
+  await page.getByRole("button", { name: /Pending requests 3/ }).click();
+  await expect(
+    page.getByRole("region", { name: "Relationship Review" }),
+  ).toContainText("Sent requests recorded as pending in this export");
+  await page.getByRole("button", { name: /You unfollowed 2/ }).click();
+  await expect(
+    page.getByRole("region", { name: "Relationship Review" }),
+  ).toContainText("This does not identify people who unfollowed you");
+  await page.getByRole("button", { name: /One-way follows 190/ }).click();
   await page.locator(".accounts input[type=checkbox]").first().check();
   await expect(page.getByText("1 selected", { exact: true })).toBeVisible();
   await page
