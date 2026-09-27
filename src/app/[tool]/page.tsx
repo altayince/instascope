@@ -6,6 +6,8 @@ import { Workspace } from "@/components/workspace";
 import { ProfileViewer } from "@/components/profile-viewer";
 import { pageMetadata, applicationData } from "@/lib/seo";
 import { Breadcrumbs, StructuredData } from "@/components/structured-data";
+import { ToolExplainer } from "@/components/tool-explainer";
+import { toolContent } from "@/lib/tool-content";
 export function generateStaticParams() {
   return Object.keys(tools).map((tool) => ({ tool }));
 }
@@ -18,7 +20,11 @@ export async function generateMetadata({
   const { tool } = await params,
     config = tools[tool as ToolSlug];
   if (!config) return {};
-  return pageMetadata(config.name, config.description, `/${tool}/`);
+  return pageMetadata(
+    toolContent[tool as ToolSlug]?.seoTitle ?? config.name,
+    config.description,
+    `/${tool}/`,
+  );
 }
 export default async function ToolPage({
   params,
@@ -48,6 +54,7 @@ export default async function ToolPage({
           initialCategory={config.category}
         />
       )}
+      <ToolExplainer slug={tool as ToolSlug} />
       <section className="faq">
         <h2>A little more clarity.</h2>
         <details open>

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 15,
+    title: "M3: Build high-intent SEO landing pages",
+    summary:
+      "Each main tool now explains its results, export requirements, privacy behavior and limitations in more detail while keeping the utility at the top of the page.",
+  },
+  {
     issue: 13,
     title: "M2: Prepare search engine indexing and structured metadata",
     summary:

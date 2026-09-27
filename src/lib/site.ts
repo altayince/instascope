@@ -52,7 +52,7 @@ export const tools = {
   },
   "followers-analyzer": {
     name: "Followers analyzer",
-    title: "Your circle, a little clearer.",
+    title: "Your Instagram followers, explained.",
     description:
       "Turn your Instagram export into a clear picture of your followers, mutuals, and one-way connections.",
     mode: "analyzer",
@@ -63,7 +63,7 @@ export const tools = {
   },
   "not-following-back": {
     name: "Not following back",
-    title: "Find the one-way connections.",
+    title: "Who doesn’t follow you back on Instagram?",
     description:
       "See the accounts you follow that do not appear in your followers export. No password. No guesswork.",
     mode: "analyzer",
@@ -74,7 +74,7 @@ export const tools = {
   },
   "following-analyzer": {
     name: "Following analyzer",
-    title: "Make sense of your following.",
+    title: "See who you follow on Instagram.",
     description:
       "Explore who you follow, search your connections, and sort dated relationships from your own Instagram export.",
     mode: "analyzer",
@@ -85,7 +85,7 @@ export const tools = {
   },
   "instagram-cleaner": {
     name: "InstaCleaner",
-    title: "A little room for your people.",
+    title: "Review your Instagram following list.",
     description:
       "Review your following, make a shortlist, and decide who belongs in your feed. Your account, your call.",
     mode: "cleaner",
@@ -96,7 +96,7 @@ export const tools = {
   },
   "snapshot-comparison": {
     name: "Compare snapshots",
-    title: "See how your circle changed.",
+    title: "Compare your Instagram followers over time.",
     description:
       "Put an older and a newer export side by side. Discover added and missing connections, with the context they deserve.",
     mode: "comparison",
@@ -107,7 +107,7 @@ export const tools = {
   },
   "instagram-wrapped": {
     name: "Instagram Wrapped",
-    title: "Your circle has a story.",
+    title: "Your Instagram Wrapped, from your export.",
     description:
       "Make a shareable snapshot of your Instagram connections. Real numbers, a little personality, and no usernames on your card.",
     mode: "wrapped",
@@ -118,7 +118,7 @@ export const tools = {
   },
   "profile-picture-viewer": {
     name: "Profile picture viewer",
-    title: "A closer look. Just the public photo.",
+    title: "View a publicly available Instagram profile photo.",
     description:
       "Enter an Instagram username or profile link to view a photo when it is publicly available. Public access restrictions always apply.",
     mode: "profile",

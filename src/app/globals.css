@@ -983,6 +983,23 @@ footer > small {
   max-width: 800px;
   margin: 65px auto;
 }
+.tool-explainer {
+  max-width: 800px;
+  margin: 60px auto;
+}
+.tool-explainer section {
+  margin: 35px 0;
+}
+.tool-explainer h2 {
+  font-size: 30px;
+  letter-spacing: -1px;
+}
+.tool-explainer p {
+  line-height: 1.85;
+}
+.tool-explainer a {
+  text-decoration: underline;
+}
 .faq h2 {
   font-size: 30px;
 }
