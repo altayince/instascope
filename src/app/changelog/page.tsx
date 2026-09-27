@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 43,
+    title: "Stabilize workspace tab position across mobile routes",
+    summary:
+      "The workspace keeps its heading and tabs together across tool routes, then restores the tab bar to the same viewport position after a tab switch.",
+  },
+  {
     issue: 41,
     title: "Keep workspace position while switching tools on mobile",
     summary:
