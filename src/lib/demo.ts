@@ -10,6 +10,12 @@ const entries = (prefix: string, count: number, offset = 0) =>
   );
 export function demoSnapshots(): { newer: Dataset; older: Dataset } {
   const mutuals = entries("mutual", 742);
+  const missingList = () => ({
+    status: "missing" as const,
+    accounts: [] as [],
+    message:
+      "Not included in this fictional demo. A real export may include this category.",
+  });
   const metadata = {
     parsedAt: Date.UTC(2025, 0, 15),
     sourceFormat: "demo",
@@ -24,6 +30,27 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
       ...mutuals.map((a) => ({ ...a })),
       ...entries("oneway", 190, 100),
     ],
+    connections: {
+      pendingRequests: {
+        status: "available",
+        accounts: [
+          account("demo.request.0001", 1704067200)!,
+          account("demo.request.0002", 1736467200)!,
+          account("demo.request.0003")!,
+        ],
+      },
+      recentlyUnfollowed: {
+        status: "available",
+        accounts: [
+          account("demo.unfollow.0001", 1704067200)!,
+          account("demo.unfollow.0002", 1736467200)!,
+        ],
+      },
+      closeFriends: missingList(),
+      blocked: missingList(),
+      restricted: missingList(),
+      hideStoryFrom: missingList(),
+    },
     metadata: {
       ...metadata,
       snapshotLabel: "Fictional newer snapshot · Jan 15, 2025",

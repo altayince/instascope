@@ -137,6 +137,9 @@ export const tools = {
 export type ToolSlug = keyof typeof tools;
 export type Mode = (typeof tools)[ToolSlug]["mode"];
 export const primaryTools: ToolSlug[] = [
+  "pending-follow-requests",
+  "relationship-timeline",
+  "unfollow-history",
   "followers-analyzer",
   "not-following-back",
   "following-analyzer",
@@ -144,4 +147,5 @@ export const primaryTools: ToolSlug[] = [
   "snapshot-comparison",
   "instagram-wrapped",
   "profile-picture-viewer",
+  "connection-privacy",
 ];

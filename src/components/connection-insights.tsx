@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type {
   ConnectionKind,
   ConnectionList,
@@ -37,6 +38,13 @@ function Unavailable({ list }: { list: ConnectionList }) {
           : "Could not read this list"}
       </strong>
       <p>{list.message}</p>
+      {list.status === "missing" && (
+        <p>
+          <Link href="/how-to-download-instagram-followers-data/">
+            See which optional categories to include
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

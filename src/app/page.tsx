@@ -122,7 +122,7 @@ export default function Home() {
               className="text-link"
               href="/how-to-download-instagram-followers-data/"
             >
-              How does it work? <span>→</span>
+              How does it work?
             </Link>
           </div>
           <div className="trust-row">
@@ -174,7 +174,7 @@ export default function Home() {
           ⌑ Processed on your device. Your archive never leaves this browser.
         </span>
         <Link href="/how-to-download-instagram-followers-data/">
-          Need your Instagram export? Here’s how →
+          Need your Instagram export? Here’s how
         </Link>
       </div>
       <section className="features">
@@ -220,7 +220,8 @@ export default function Home() {
               <h3>Get your Instagram export</h3>
               <p>
                 Choose Followers and Following, All time, and JSON in Accounts
-                Center.
+                Center. Add optional connection categories for requests and your
+                own unfollow history.
               </p>
             </div>
           </li>

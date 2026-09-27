@@ -5,7 +5,7 @@ export default function NotFound() {
       <h1>This connection is missing.</h1>
       <p>We couldn’t find that page.</p>
       <Link className="button primary" href="/">
-        Back to InstaScope →
+        Back to InstaScope
       </Link>
     </main>
   );

@@ -14,6 +14,7 @@ import { RelationshipTimeline } from "./relationship-timeline";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
+import type { ConnectionList, Dataset } from "@/lib/instagram/types";
 export const categories = {
   followers: ["Followers", "Accounts that follow you."],
   following: ["Following", "Accounts you follow."],
@@ -33,6 +34,67 @@ const changeLabels = {
   newMutuals: "New mutuals",
   lostMutuals: "No longer mutual",
 } as const;
+function optionalSummary(list: ConnectionList | undefined, label: string) {
+  if (!list || list.status === "missing")
+    return "Not included in this export. Add this optional category to review it.";
+  if (list.status !== "available")
+    return "Could not read this category from the export.";
+  return `${list.accounts.length} ${label} recorded in this export.`;
+}
+function ReviewNext({ dataset }: { dataset: Dataset }) {
+  const countDated = (accounts: Dataset["followers"]) =>
+    accounts.reduce(
+      (count, account) => count + Number(account.timestamp !== undefined),
+      0,
+    );
+  const dated = countDated(dataset.followers) + countDated(dataset.following);
+  const paths = [
+    {
+      href: "/pending-follow-requests/",
+      title: "Pending requests",
+      detail: optionalSummary(
+        dataset.connections?.pendingRequests,
+        "sent requests",
+      ),
+    },
+    {
+      href: "/relationship-timeline/",
+      title: "Relationship timeline",
+      detail: `${dated} current connections have recorded dates. These are not historical follower totals.`,
+    },
+    {
+      href: "/unfollow-history/",
+      title: "Your unfollow history",
+      detail: optionalSummary(
+        dataset.connections?.recentlyUnfollowed,
+        "recent unfollow actions by you",
+      ),
+    },
+  ];
+  return (
+    <section className="review-next" aria-label="Explore more from this export">
+      <div>
+        <h3>Go beyond the overview</h3>
+        <p>See requests, recorded dates and your own recent unfollows.</p>
+      </div>
+      <div className="review-next-grid">
+        {paths.map((path) => (
+          <Link href={path.href} key={path.href}>
+            <strong>{path.title}</strong>
+            <span>{path.detail}</span>
+          </Link>
+        ))}
+      </div>
+      <p>
+        Missing a category?{" "}
+        <Link href="/how-to-download-instagram-followers-data/">
+          Check what to include in your export
+        </Link>
+        .
+      </p>
+    </section>
+  );
+}
 export function Workspace({
   mode = "analyzer",
   initialCategory = "followers",
@@ -108,6 +170,7 @@ export function Workspace({
               Clear data & start over
             </button>
           </div>
+          {mode === "analyzer" && <ReviewNext dataset={dataset} />}
           <div className="tool-tabs">
             <Link
               href="/followers-analyzer/"
