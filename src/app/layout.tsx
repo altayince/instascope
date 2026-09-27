@@ -35,12 +35,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ◎
               </span>{" "}
               insta<span>scope</span>
-              <span className="beta">BETA</span>
             </Link>
             <nav aria-label="Main navigation">
-              <Link href="/followers-analyzer/">Analyzer</Link>
-              <Link href="/instagram-cleaner/">InstaCleaner</Link>
-              <Link href="/instagram-wrapped/">Wrapped</Link>
+              <Link href="/pending-follow-requests/">Requests</Link>
+              <Link href="/relationship-timeline/">Timeline</Link>
+              <Link href="/unfollow-history/">Your unfollows</Link>
               <ToolNavigation />
             </nav>
             <span className="header-note">

@@ -127,7 +127,7 @@ small {
   letter-spacing: -1.3px;
   white-space: nowrap;
 }
-.brand > span:not(.brand-mark):not(.beta) {
+.brand > span:not(.brand-mark) {
   font-weight: 400;
 }
 .brand-mark {
@@ -135,17 +135,9 @@ small {
   line-height: 1;
   margin-right: 8px;
 }
-.beta {
-  align-self: flex-start;
-  letter-spacing: 1px;
-  font-size: 8px;
-  background: var(--lime);
-  padding: 1px 5px;
-  margin: 5px 0 0 7px;
-  border-radius: 3px;
-}
 .site-header nav {
   display: flex;
+  align-items: center;
   gap: 32px;
   font-size: 13px;
 }
@@ -154,7 +146,7 @@ small {
 }
 .tool-menu summary {
   cursor: pointer;
-  padding: 10px 0;
+  padding: 0;
   white-space: nowrap;
 }
 .tool-menu-links {
@@ -706,6 +698,41 @@ footer > small {
   font-size: 32px;
   margin: 12px 0 0;
 }
+.review-next {
+  margin: 0 0 30px;
+}
+.review-next > div:first-child p {
+  margin-bottom: 14px;
+}
+.review-next-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.review-next-grid a {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+}
+.review-next-grid a:hover,
+.review-next-grid a:focus-visible {
+  border-color: #668935;
+}
+.review-next-grid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.review-next > p {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.review-next > p a {
+  text-decoration: underline;
+}
 .text-button {
   background: transparent;
   border: 0;
@@ -1238,10 +1265,11 @@ footer > small {
     font-size: 31px;
   }
   .site-header nav {
-    gap: 22px;
+    gap: 8px 18px;
     font-size: 11px;
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
   .hero {
     display: flex;
@@ -1391,6 +1419,9 @@ footer > small {
     font-size: 10px;
     max-width: 95px;
     flex-shrink: 0;
+  }
+  .review-next-grid {
+    grid-template-columns: 1fr;
   }
   .tool-tabs a {
     padding: 12px 14px;

@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/structured-data";
 import { articles } from "@/lib/articles";
 export const metadata: Metadata = pageMetadata(
   "How to download Instagram followers data on iPhone, Android and desktop",
-  "Find the Instagram export on your device, choose Followers and Following, All time and JSON, then analyze the ZIP locally with InstaScope.",
+  "Choose Followers and Following, All time and JSON for an Instagram overview. Include optional connection categories for requests, privacy lists and your own unfollow history.",
   "/how-to-download-instagram-followers-data/",
 );
 export default function Guide() {
@@ -91,6 +91,11 @@ export default function Guide() {
         <p>
           <strong>Followers and Following · All time · JSON</strong>
         </p>
+        <p>
+          Followers and Following are enough for the basic overview. To review
+          sent requests, privacy lists or your own unfollow history, include
+          those optional connection categories too.
+        </p>
         <ol>
           <li>
             Open <strong>Your information and permissions</strong>, then choose
@@ -132,7 +137,7 @@ export default function Guide() {
         the file locally on this site.
       </p>
       <Link className="button primary" href="/followers-analyzer/">
-        I have my export →
+        I have my export
       </Link>
       <h2>Something missing?</h2>
       <p>
@@ -143,6 +148,14 @@ export default function Guide() {
         together with Followers and Following, or choose the complete ZIP.
         Unavailable categories stay marked as missing; they are never assumed to
         be empty. JSON is recommended for request ages and the date timeline.
+      </p>
+      <p>
+        Explore <Link href="/pending-follow-requests/">sent requests</Link>,{" "}
+        <Link href="/relationship-timeline/">recorded relationship dates</Link>
+        {" and "}
+        <Link href="/unfollow-history/">accounts you recently unfollowed</Link>.
+        The timeline uses dates attached to current connections; it is not a
+        record of past follower totals.
       </p>
       <p>
         If the download is damaged, download it again. If the menus have

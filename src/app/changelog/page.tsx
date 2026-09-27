@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 31,
+    title: "V3.2: Promote relationship review tools and polish navigation",
+    summary:
+      "Pending requests, relationship timeline and your own unfollow history are easier to find after upload and in navigation. Export help now explains optional categories, and the header no longer shows a pre-release badge or decorative link arrows.",
+  },
+  {
     issue: 29,
     title: "V3.1: Reposition homepage around relationship review",
     summary:

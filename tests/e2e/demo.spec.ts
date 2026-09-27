@@ -80,6 +80,26 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
   await page.goto("/followers-analyzer/");
   await page.getByRole("button", { name: "Try demo", exact: true }).click();
   await expect(page.locator(".demo-notice")).toContainText("Fictional example");
+  const review = page.getByRole("region", {
+    name: "Explore more from this export",
+  });
+  await expect(review).toContainText("3 sent requests recorded in this export");
+  await expect(review).toContainText("2 recent unfollow actions by you");
+  await review.getByRole("link", { name: /Pending requests/ }).click();
+  await expect(
+    page.getByRole("region", { name: "Pending request review" }),
+  ).toContainText("3 requests in this export");
+  await page
+    .locator(".tool-tabs")
+    .getByRole("link", { name: "Your unfollow history", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Your unfollow history" }),
+  ).toContainText("2 records");
+  await page
+    .locator(".tool-tabs")
+    .getByRole("link", { name: "Overview", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: /Followers 1,284/ }),
   ).toBeVisible();

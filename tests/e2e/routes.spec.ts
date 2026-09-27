@@ -47,6 +47,15 @@ test("public routes render one heading, load assets and fit mobile screens", asy
       `https://instascope.me${path}`,
     );
     await expect(page.locator("body")).not.toContainText("\u2197");
+    await expect(page.locator(".site-header")).not.toContainText(/\bbeta\b/i);
+    expect(
+      await page
+        .locator("a")
+        .evaluateAll((links) =>
+          links.some((link) => /[→↗➜➔]/u.test(link.textContent ?? "")),
+        ),
+      path,
+    ).toBe(false);
     await expect(
       page.getByRole("link", { name: "InstaScope home" }),
     ).toBeVisible();
@@ -72,6 +81,23 @@ test("all primary tools are discoverable and the menu closes after navigation", 
   page,
 }) => {
   await page.goto("/");
+  for (const [name, href] of [
+    ["Requests", "/pending-follow-requests/"],
+    ["Timeline", "/relationship-timeline/"],
+    ["Your unfollows", "/unfollow-history/"],
+  ])
+    await expect(
+      page.locator(".site-header nav").getByRole("link", { name, exact: true }),
+    ).toHaveAttribute("href", href);
+  const navCenters = await page.locator(".site-header nav").evaluate((nav) =>
+    Array.from(nav.children, (child) => {
+      const rect = (
+        child.matches("details") ? child.querySelector("summary")! : child
+      ).getBoundingClientRect();
+      return rect.top + rect.height / 2;
+    }),
+  );
+  expect(Math.max(...navCenters) - Math.min(...navCenters)).toBeLessThan(4);
   await page.locator(".tool-menu summary").click();
   for (const slug of primaryTools)
     await expect(

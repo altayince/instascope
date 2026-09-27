@@ -50,6 +50,45 @@ async function goToTool(page: Page, name: string) {
   await link.click();
   await expect(link).toHaveAttribute("aria-current", "page");
 }
+test("an export leads from a familiar result to pending requests, dated connections and own unfollows", async ({
+  page,
+}) => {
+  await page.goto("/not-following-back/");
+  await upload(page);
+  const next = page.getByRole("region", {
+    name: "Explore more from this export",
+  });
+  await expect(next).toContainText("3 sent requests recorded in this export");
+  await expect(next).toContainText("3 current connections have recorded dates");
+  await expect(next).toContainText("2 recent unfollow actions by you");
+  await next.getByRole("link", { name: /Pending requests/ }).click();
+  await expect(page).toHaveURL(/pending-follow-requests\/$/);
+  await expect(
+    page.getByRole("region", { name: "Pending request review" }),
+  ).toContainText("Requests listed as pending in this export");
+  await goToTool(page, "Relationship timeline");
+  await expect(
+    page.getByRole("region", { name: "Relationship date timeline" }),
+  ).toContainText("not historical follower totals");
+  await goToTool(page, "Your unfollow history");
+  await expect(
+    page.getByRole("region", { name: "Your unfollow history" }),
+  ).toContainText("It does not identify people who unfollowed you");
+  await page.getByRole("button", { name: "Clear data & start over" }).click();
+  await page.goto("/followers-analyzer/");
+  await upload(page, {});
+  await expect(
+    page.getByRole("region", { name: "Explore more from this export" }),
+  ).toContainText("Not included in this export");
+  await page
+    .getByRole("region", { name: "Explore more from this export" })
+    .getByRole("link", { name: "Check what to include in your export" })
+    .click();
+  await expect(page).toHaveURL(/how-to-download-instagram-followers-data\/$/);
+  await expect(page.locator("#export-settings")).toContainText(
+    "optional connection categories",
+  );
+});
 test("pending requests have explicit ages, filters, persistent manual review and CSV", async ({
   page,
 }) => {

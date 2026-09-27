@@ -90,7 +90,7 @@ export default async function ToolPage({
               relevant optional connection categories for requests, privacy
               lists and your own unfollow history.{" "}
               <Link href="/how-to-download-instagram-followers-data/">
-                Read the export guide →
+                Read the export guide
               </Link>
             </p>
           </details>
