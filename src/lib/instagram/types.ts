@@ -3,7 +3,13 @@ export type Dataset = {
   followers: Account[];
   following: Account[];
   connections?: Record<ConnectionKind, ConnectionList>;
-  metadata: { parsedAt: number; sourceFormat: string; warnings: string[] };
+  metadata: {
+    parsedAt: number;
+    sourceFormat: string;
+    warnings: string[];
+    demo?: boolean;
+    snapshotLabel?: string;
+  };
 };
 export type ConnectionKind =
   | "pendingRequests"

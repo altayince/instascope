@@ -9,9 +9,11 @@ const serverReady = () => false;
 export function Upload({
   onLoad,
   label = "Upload Instagram export",
+  onDemo,
 }: {
   onLoad: (dataset: Dataset) => void;
   label?: string;
+  onDemo?: () => void;
 }) {
   const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
   const [busy, setBusy] = useState(false),
@@ -89,6 +91,19 @@ export function Upload({
       >
         {busy ? "Processing in your browser…" : label}
       </button>
+      {onDemo && (
+        <div className="demo-action">
+          <span>or</span>
+          <button
+            className="button secondary"
+            disabled={busy || !ready}
+            onClick={onDemo}
+          >
+            Try demo
+          </button>
+          <p>Fictional data. No file needed.</p>
+        </div>
+      )}
       <small>
         ZIP up to 2 GB · JSON / HTML up to 20 MB per file · All time export
       </small>

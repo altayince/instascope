@@ -11,6 +11,7 @@ export function AccountList({
   ageReference,
   initialSort = "az",
   countLabel = "accounts",
+  demo = false,
 }: {
   accounts: Account[];
   selectable?: boolean;
@@ -19,6 +20,7 @@ export function AccountList({
   ageReference?: string;
   initialSort?: "az" | "oldest" | "newest";
   countLabel?: "accounts" | "records";
+  demo?: boolean;
 }) {
   const [query, setQuery] = useState(""),
     [sort, setSort] = useState(initialSort),
@@ -142,7 +144,9 @@ export function AccountList({
                   ],
                   { type: "text/csv;charset=utf-8" },
                 ),
-                "instascope-review-list.csv",
+                demo
+                  ? "instascope-demo-review-list.csv"
+                  : "instascope-review-list.csv",
               )
             }
           >
@@ -194,15 +198,19 @@ export function AccountList({
                   </small>
                 )}
               </div>
-              <a
-                href={a.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                referrerPolicy="no-referrer"
-                aria-label={`Open ${a.username} on Instagram`}
-              >
-                View profile
-              </a>
+              {demo ? (
+                <span className="demo-profile">Fictional profile</span>
+              ) : (
+                <a
+                  href={a.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  referrerPolicy="no-referrer"
+                  aria-label={`Open ${a.username} on Instagram`}
+                >
+                  View profile
+                </a>
+              )}
             </li>
           ))}
         </ul>

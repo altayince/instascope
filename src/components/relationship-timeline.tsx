@@ -141,6 +141,7 @@ export function RelationshipTimeline({ dataset }: { dataset: Dataset }) {
             : "All relationships in this direction"}
       </h3>
       <AccountList
+        demo={dataset.metadata.demo}
         key={`${direction}:${period}`}
         accounts={accounts}
         dateLabel="Relationship recorded"

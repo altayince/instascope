@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 17,
+    title: "M4: Add interactive fictional demo mode",
+    summary:
+      "Explore the analyzer, Cleaner, comparison and Wrapped without an export. Clearly labeled fictional snapshots include dated accounts, searchable lists and demo-branded share cards.",
+  },
+  {
     issue: 15,
     title: "M3: Build high-intent SEO landing pages",
     summary:

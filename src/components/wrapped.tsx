@@ -18,6 +18,7 @@ export function Wrapped({
   const [message, setMessage] = useState("");
   const [card, setCard] = useState<"circle" | "timeline">("circle");
   const isTimeline = card === "timeline";
+  const isDemo = !!dataset.metadata.demo;
   const stats = isTimeline
     ? timelineCardStats(dataset)
     : ([
@@ -36,7 +37,9 @@ export function Wrapped({
     : ["My circle.", "In perspective."];
   const caption = isTimeline
     ? "Dates of follows present in this export; not net growth."
-    : "From my uploaded Instagram export";
+    : isDemo
+      ? "From a fictional demo snapshot"
+      : "From my uploaded Instagram export";
   async function imageBlob(): Promise<Blob> {
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -51,7 +54,12 @@ export function Wrapped({
     ctx.fill();
     ctx.fillStyle = "#faf8f0";
     ctx.font = "32px Arial";
-    ctx.fillText("MY INSTAGRAM SNAPSHOT", 88, 150);
+    ctx.fillText(
+      isDemo ? "DEMO DATA - FICTIONAL EXAMPLE" : "MY INSTAGRAM SNAPSHOT",
+      88,
+      150,
+      910,
+    );
     ctx.font = "bold 112px Arial";
     ctx.fillText(title[0], 80, 310);
     ctx.fillText(title[1], 80, 440);
@@ -102,7 +110,7 @@ export function Wrapped({
       const blob = await imageBlob(),
         file = new File(
           [blob],
-          isTimeline ? "instascope-timeline.png" : "instascope-wrapped.png",
+          `instascope-${isDemo ? "demo-" : ""}${isTimeline ? "timeline" : "wrapped"}.png`,
           {
             type: "image/png",
           },
@@ -128,7 +136,9 @@ export function Wrapped({
   return (
     <section className="wrapped-section">
       <div className="wrapped-card">
-        <span className="eyebrow">MY INSTAGRAM SNAPSHOT</span>
+        <span className="eyebrow">
+          {isDemo ? "DEMO DATA · FICTIONAL EXAMPLE" : "MY INSTAGRAM SNAPSHOT"}
+        </span>
         <h2>
           {title[0]}
           <br />
@@ -188,8 +198,8 @@ export function Wrapped({
           <br />a screenshot.
         </h2>
         <p>
-          Your actual numbers. No individual usernames. A full-size 1080 × 1920
-          PNG for your next story.
+          {isDemo ? "A fictional example." : "Your actual numbers."} No
+          individual usernames. A full-size 1080 × 1920 PNG for your next story.
         </p>
         <button
           className="button primary"
