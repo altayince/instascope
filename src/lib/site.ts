@@ -91,14 +91,14 @@ export const tools = {
   },
   "instagram-cleaner": {
     name: "InstaCleaner",
-    title: "Review your Instagram following list.",
+    title: "Review your Instagram circle.",
     description:
-      "Review your following, make a shortlist, and decide who belongs in your feed. Your account, your call.",
+      "Explore one-way and dated follows, sent requests, your own unfollow history and mutuals. Build one private shortlist and decide what to do yourself.",
     mode: "cleaner",
     category: "notFollowingBack",
     question: "Will InstaCleaner unfollow accounts for me?",
     answer:
-      "No. Select and export a review list, then open profiles and make changes yourself on Instagram. InstaScope never controls your account.",
+      "No. Select and export a review list, then open profiles and make changes yourself on Instagram. InstaScope never controls your account or judges which relationships to keep.",
   },
   "snapshot-comparison": {
     name: "Compare snapshots",

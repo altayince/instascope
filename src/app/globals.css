@@ -814,6 +814,46 @@ footer > small {
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
+.review-groups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0;
+}
+.review-groups button {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 82px;
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 12px;
+}
+.review-groups button[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--white);
+}
+.review-groups button strong {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.relationship-review .insight-controls p {
+  align-self: end;
+  font-size: 11px;
+  max-width: 290px;
+  margin: 0;
+}
+.review-year {
+  display: grid;
+  gap: 6px;
+  max-width: 240px;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
 .stat {
   padding: 21px;
   text-align: left;
@@ -892,6 +932,24 @@ footer > small {
   gap: 16px;
   padding: 14px 4px;
   border-bottom: 1px solid var(--line);
+}
+.accounts li > div {
+  min-width: 0;
+  flex: 1;
+}
+.account-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+.account-signals span {
+  background: #eef2e7;
+  border-radius: 4px;
+  color: var(--ink);
+  font-size: 10px;
+  padding: 2px 5px;
+  overflow-wrap: anywhere;
 }
 .avatar {
   width: 38px;
@@ -1430,6 +1488,9 @@ footer > small {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+  }
+  .review-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .stat {
     padding: 15px;

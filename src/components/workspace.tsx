@@ -11,6 +11,7 @@ import {
   UnfollowHistory,
 } from "./connection-insights";
 import { RelationshipTimeline } from "./relationship-timeline";
+import { RelationshipReview } from "./relationship-review";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
@@ -124,10 +125,6 @@ export function Workspace({
   useEffect(() => {
     if (comparison) track("comparison_succeeded");
   }, [comparison]);
-  const displayCategories =
-    mode === "cleaner"
-      ? (["following", "notFollowingBack", "mutuals"] as const)
-      : (Object.keys(categories) as Category[]);
   return (
     <section id="tool" className="workspace">
       {!dataset && (
@@ -158,7 +155,7 @@ export function Workspace({
               <span className="eyebrow">YOUR PRIVATE WORKSPACE</span>
               <h2>
                 {mode === "cleaner"
-                  ? "A fresh look at your feed."
+                  ? "Review your Instagram circle."
                   : mode === "comparison"
                     ? "Your circle, then and now."
                     : mode === "wrapped"
@@ -299,6 +296,8 @@ export function Workspace({
             <UnfollowHistory dataset={dataset} />
           ) : mode === "timeline" ? (
             <RelationshipTimeline dataset={dataset} />
+          ) : mode === "cleaner" ? (
+            <RelationshipReview dataset={dataset} analysis={analysis} />
           ) : mode === "wrapped" ? (
             <Wrapped
               analysis={analysis}
@@ -308,7 +307,7 @@ export function Workspace({
           ) : (
             <>
               <div className="stats-grid">
-                {displayCategories.map((key) => (
+                {(Object.keys(categories) as Category[]).map((key) => (
                   <button
                     key={key}
                     className={`stat ${category === key ? "active" : ""}`}
@@ -339,8 +338,6 @@ export function Workspace({
                 demo={dataset.metadata.demo}
                 key={`${dataset.metadata.parsedAt}-${mode}`}
                 accounts={analysis[category]}
-                selectable={mode === "cleaner"}
-                selectionScope={analysis.following}
               />
             </>
           )}

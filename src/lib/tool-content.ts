@@ -97,13 +97,13 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
     ],
   },
   "instagram-cleaner": {
-    seoTitle: "Instagram Following Cleaner — No Password",
+    seoTitle: "Instagram Relationship Review & Cleaner — No Password",
     sections: [
       {
-        title: "A manual review tool for your following list",
+        title: "One place to review your circle",
         paragraphs: [
-          "InstaCleaner helps you decide which accounts to keep reviewing. Start with all accounts you follow, mutuals or one-way follows. Search for a username, sort dated relationships, and select accounts for your shortlist.",
-          "Selection survives changes to search and category filters inside the review list. The selected-only view helps you revisit your choices, and page selection lets you work through a large list in manageable batches.",
+          "Start with one-way follows, all following, oldest or newest recorded follows, sent requests, your own recent unfollows or mutuals. The dated views sort real timestamps supplied by the export; they do not score people or infer activity.",
+          "Select accounts into one review list. Your choices survive changes to group, search and sorting. An account appearing in several groups is selected once, and the review list lets you revisit or remove it.",
         ],
       },
       {
@@ -111,13 +111,14 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
         paragraphs: [
           "InstaCleaner never signs in to Instagram and never automatically unfollows, blocks or restricts anyone. Open a profile when you want more context, then make any changes yourself on Instagram.",
           "Being absent from your followers export is not evidence that an account is inactive or uninteresting. Many useful connections are one-way. Use the results as a review aid rather than a recommendation to remove everyone in a category.",
+          "Pending requests reflect the uploaded export, not necessarily their live status. Recently-unfollowed records describe actions you took, not people who unfollowed you. Optional categories missing from the export are marked unavailable rather than empty.",
         ],
       },
       {
         title: "Export your shortlist and keep it private",
         paragraphs: [
           "The selected CSV contains usernames and profile URLs for the accounts you chose. The download is created in your browser. Keep it private unless you deliberately decide to share it.",
-          "Your archive is not uploaded to InstaScope and no Instagram password is required. Start with a fresh All time export, include both relationship directions, and remember that changes made on Instagram will appear only in a later export.",
+          "Your archive is not uploaded to InstaScope and no Instagram password is required. Start with a fresh All time export and both relationship directions. Include optional sent-request and recently-unfollowed categories to review those signals; missing categories do not mean empty lists. Changes made on Instagram will appear only in a later export.",
         ],
       },
     ],

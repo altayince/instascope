@@ -114,7 +114,7 @@ test("Cleaner preserves selection across search and exports a review list", asyn
   ).toBeChecked();
   await page.getByRole("button", { name: /Mutuals 2/ }).click();
   await expect(page.getByText("1 selected", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Not following back 2/ }).click();
+  await page.getByRole("button", { name: /One-way follows 2/ }).click();
   await expect(
     page.getByRole("checkbox", { name: "Select one.way", exact: true }),
   ).toBeChecked();

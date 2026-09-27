@@ -12,6 +12,11 @@ export function AccountList({
   initialSort = "az",
   countLabel = "accounts",
   demo = false,
+  selectedUsernames,
+  onSelectionChange,
+  context,
+  showDate = true,
+  sortDates = true,
 }: {
   accounts: Account[];
   selectable?: boolean;
@@ -21,12 +26,23 @@ export function AccountList({
   initialSort?: "az" | "oldest" | "newest";
   countLabel?: "accounts" | "records";
   demo?: boolean;
+  selectedUsernames?: Set<string>;
+  onSelectionChange?: (selected: Set<string>) => void;
+  context?: ReadonlyMap<string, string[]>;
+  showDate?: boolean;
+  sortDates?: boolean;
 }) {
   const [query, setQuery] = useState(""),
     [sort, setSort] = useState(initialSort),
     [page, setPage] = useState(0),
     [onlySelected, setOnlySelected] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [localSelected, setLocalSelected] = useState<Set<string>>(new Set());
+  const selected = selectedUsernames ?? localSelected;
+  function changeSelection(update: (previous: Set<string>) => Set<string>) {
+    const next = update(selected);
+    if (onSelectionChange) onSelectionChange(next);
+    else setLocalSelected(next);
+  }
   const activeSelection = useMemo(
     () =>
       new Set(
@@ -63,7 +79,7 @@ export function AccountList({
   );
   const visible = filtered.slice(currentPage * 50, (currentPage + 1) * 50);
   function toggle(username: string) {
-    setSelected((previous) => {
+    changeSelection((previous) => {
       const next = new Set(previous);
       if (next.has(username)) next.delete(username);
       else next.add(username);
@@ -86,29 +102,31 @@ export function AccountList({
             }}
           />
         </label>
-        <select
-          aria-label="Sort accounts"
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value as typeof sort);
-            setPage(0);
-          }}
-        >
-          <option value="az">Username A–Z</option>
-          <option value="newest">
-            {dateLabel ? "Newest recorded date" : "Recently followed"}
-          </option>
-          <option value="oldest">
-            {dateLabel ? "Oldest recorded date" : "Oldest follows"}
-          </option>
-        </select>
+        {sortDates && (
+          <select
+            aria-label="Sort accounts"
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value as typeof sort);
+              setPage(0);
+            }}
+          >
+            <option value="az">Username A–Z</option>
+            <option value="newest">
+              {dateLabel ? "Newest recorded date" : "Recently followed"}
+            </option>
+            <option value="oldest">
+              {dateLabel ? "Oldest recorded date" : "Oldest follows"}
+            </option>
+          </select>
+        )}
       </div>
       {selectable && (
         <div className="selection-bar">
           <span>{activeSelection.size} selected</span>
           <button
             onClick={() =>
-              setSelected(
+              changeSelection(
                 (previous) =>
                   new Set([...previous, ...visible.map((a) => a.username)]),
               )
@@ -116,7 +134,7 @@ export function AccountList({
           >
             Select this page
           </button>
-          <button onClick={() => setSelected(new Set())}>
+          <button onClick={() => changeSelection(() => new Set())}>
             Clear selection
           </button>
           <label>
@@ -155,7 +173,12 @@ export function AccountList({
         </div>
       )}
       <p className="list-caption">
-        {filtered.length.toLocaleString("en-US")} {countLabel}{" "}
+        {filtered.length.toLocaleString("en-US")}{" "}
+        {filtered.length === 1
+          ? countLabel === "accounts"
+            ? "account"
+            : "record"
+          : countLabel}{" "}
         {selectable && "· Review manually on Instagram"}
       </p>
       {!filtered.length ? (
@@ -179,15 +202,27 @@ export function AccountList({
               </span>
               <div>
                 <strong>@{a.username}</strong>
-                <small>
-                  {dateLabel && `${dateLabel}: `}
-                  {a.timestamp
-                    ? new Date(a.timestamp * 1000).toLocaleDateString("en-US", {
-                        dateStyle: "medium",
-                        timeZone: "UTC",
-                      })
-                    : "Date unavailable"}
-                </small>
+                {showDate && (
+                  <small>
+                    {dateLabel && `${dateLabel}: `}
+                    {a.timestamp
+                      ? new Date(a.timestamp * 1000).toLocaleDateString(
+                          "en-US",
+                          {
+                            dateStyle: "medium",
+                            timeZone: "UTC",
+                          },
+                        )
+                      : "Date unavailable"}
+                  </small>
+                )}
+                {context?.get(a.username)?.length ? (
+                  <span className="account-signals">
+                    {context.get(a.username)!.map((label) => (
+                      <span key={label}>{label}</span>
+                    ))}
+                  </span>
+                ) : null}
                 {ageReference !== undefined && (
                   <small>
                     {requestAge(a.timestamp, ageReference) === null

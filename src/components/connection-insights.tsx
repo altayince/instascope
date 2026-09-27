@@ -28,7 +28,7 @@ const privacyLists = {
 function readList(dataset: Dataset, kind: ConnectionKind) {
   return dataset.connections?.[kind] ?? missingConnection();
 }
-function Unavailable({ list }: { list: ConnectionList }) {
+export function Unavailable({ list }: { list: ConnectionList }) {
   if (list.status === "available") return null;
   return (
     <div className="empty-state" role="status">
