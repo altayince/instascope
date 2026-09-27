@@ -115,12 +115,12 @@ export const tools = {
     name: "Instagram Wrapped",
     title: "Your Instagram Wrapped, from your export.",
     description:
-      "Make a shareable snapshot of your Instagram connections. Real numbers, a little personality, and no usernames on your card.",
+      "Browse shareable stories about your circle, recorded follow dates and changes between exports when the data supports them. No usernames on the cards.",
     mode: "wrapped",
     category: "followers",
     question: "What will be on my share card?",
     answer:
-      "Choose a circle summary or a following-date story. Cards contain aggregate counts and dates only; no usernames or private connection lists. Snapshot growth appears only after comparing two exports.",
+      "Choose from the stories your data supports: circle, recorded dates, year cohorts and changes between two exports. Cards contain aggregate facts only, with no usernames or private connection lists.",
   },
   "profile-picture-viewer": {
     name: "Profile picture viewer",

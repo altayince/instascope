@@ -228,7 +228,7 @@ test("timeline filters real export dates and exports an aggregate-only story wit
   const card = page.locator(".wrapped-card");
   await expect(card).toContainText("2024-01-01");
   await expect(card).toContainText("2025-01-10");
-  await expect(card).toContainText("not net growth");
+  await expect(card).toContainText("do not prove continuous following");
   await expect(card).not.toContainText("request.old");
   const event = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download my Wrapped" }).click();

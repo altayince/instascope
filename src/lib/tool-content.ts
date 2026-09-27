@@ -240,13 +240,13 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
     related: ["relationship-timeline", "instagram-cleaner"],
   },
   "instagram-wrapped": {
-    seoTitle: "Instagram Wrapped — Your Follower Stats",
+    seoTitle: "Instagram Wrapped — Relationship Stories from Your Export",
     sections: [
       {
-        title: "Your own numbers, ready for a story",
+        title: "A small story pack from your own records",
         paragraphs: [
-          "Turn the relationships in your Instagram export into a 1080 by 1920 PNG. The circle card summarizes followers, following, mutuals, one-way connections and the follower-to-following ratio. The following-date card uses recorded dates to add another perspective.",
-          "These are export-based statistics, not an official Instagram annual report. An All time export does not automatically become a year-specific activity summary, and the date card does not infer historical follower totals.",
+          "Browse separate portrait cards for your current circle, recorded follow dates, a year with many surviving dated follows, and changes between two exports. Only stories supported by your supplied files appear; each downloads as a 1080 by 1920 PNG.",
+          "These are export-based relationship stories, not an official Instagram annual report. A date on a current follow does not prove an uninterrupted relationship, and one export cannot reconstruct historical follower totals.",
         ],
       },
       {
@@ -257,10 +257,10 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
         ],
       },
       {
-        title: "Add context when the data supports it",
+        title: "The available stories follow the available evidence",
         paragraphs: [
-          "Following-date summaries show the earliest and latest usable timestamps and the year with the most dated follows still present in the export. Missing dates are counted explicitly. A tie for top year resolves to the earliest year.",
-          "After you compare two exports, the circle card can show the aggregate follower delta between them. Without a second snapshot, InstaScope does not invent growth or loss statistics.",
+          "The timeline card needs at least one usable current-follow date. The year-cohort card needs dated follows in more than one year. Missing dates remain unknown, and a tie for the largest year resolves to the earliest year.",
+          "The changes card appears only after an older and newer export have been supplied. Added and missing accounts and net deltas describe those two snapshots, without claiming exactly when or why relationships changed.",
         ],
       },
     ],
