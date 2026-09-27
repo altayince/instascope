@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 24,
+    title: "M7: Improve Instagram export guide",
+    summary:
+      "The export guide now covers iPhone, Android and desktop, highlights the required categories, date range and format, and explains how to select the downloaded ZIP.",
+  },
+  {
     issue: 22,
     title: "M6: Add initial organic traffic content",
     summary:

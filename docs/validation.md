@@ -29,3 +29,5 @@ M4 / INS-17: Fictional demo counts and comparison deltas are unit-verified. Desk
 M5 / INS-19: The homepage shows an explicitly fictional result preview, a working hero demo action and all seven primary tools with export/public-profile labels. All 75 unit and 38 desktop/mobile tests pass, along with typecheck, lint and the production build.
 
 M6 / INS-22: Five original guides pass unique metadata, sitemap, internal-link and desktop/mobile layout checks. The guide-to-tool-to-demo journey works. Typecheck, lint, 75 unit tests, production build and 40 Playwright tests passed.
+
+M7 / INS-24: The guide has iPhone, Android and desktop entry points, shared export settings, local ZIP selection help and contextual tool links. Typecheck, lint, 75 unit tests, production build and all 40 browser tests passed. Meta's Accounts Center documentation supports the shared entry point; its help endpoint returned HTTP 429 during research, so exact current app labels and physical-device behavior are not claimed as verified.
