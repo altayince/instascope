@@ -1,5 +1,32 @@
 import { test, expect } from "@playwright/test";
 import { primaryTools, tools } from "../../src/lib/site";
+import { publicPaths } from "../../src/lib/public-paths";
+import { articles } from "../../src/lib/articles";
+
+test("export guides link to valid tools and preserve a working demo journey", async ({
+  page,
+  request,
+}) => {
+  const destinations = new Set<string>();
+  for (const slug of Object.keys(articles)) {
+    await page.goto(`/${slug}/`);
+    for (const href of await page
+      .locator('main a[href^="/"]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href")!)))
+      destinations.add(href);
+  }
+  for (const href of destinations)
+    expect((await request.get(href)).status(), href).toBe(200);
+  await page.goto("/how-to-see-who-doesnt-follow-you-back-on-instagram/");
+  await page
+    .getByRole("link", { name: "Find one-way follows", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Try demo", exact: true }).click();
+  await expect(page.locator(".demo-notice")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Not following back 190/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+});
 
 test("public routes render one heading, load assets and fit mobile screens", async ({
   page,
@@ -11,13 +38,7 @@ test("public routes render one heading, load assets and fit mobile screens", asy
   page.on("response", (response) => {
     if (response.status() >= 400) failed.push(response.url());
   });
-  const paths = [
-    "/",
-    ...Object.keys(tools).map((tool) => `/${tool}/`),
-    "/privacy/",
-    "/how-to-download-instagram-followers-data/",
-    "/changelog/",
-  ];
+  const paths = publicPaths;
   for (const path of paths) {
     expect((await page.goto(path))?.status(), path).toBe(200);
     await expect(page.locator("main h1")).toHaveCount(1);

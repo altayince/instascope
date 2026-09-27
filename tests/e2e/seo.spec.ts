@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { tools } from "../../src/lib/site";
+import { publicPaths } from "../../src/lib/public-paths";
 
 test("indexable public pages have unique metadata, truthful structured data and a canonical sitemap", async ({
   page,
@@ -21,7 +21,9 @@ test("indexable public pages have unique metadata, truthful structured data and 
     );
     return;
   }
-  expect(urls).toHaveLength(Object.keys(tools).length + 4);
+  expect(urls).toEqual(
+    publicPaths.map((path) => `https://instascope.me${path}`),
+  );
   expect(new Set(urls).size).toBe(urls.length);
   const titles = new Set<string>(),
     descriptions = new Set<string>();

@@ -8,7 +8,7 @@ Production: https://instascope.me. The supplied [V2 roadmap](PRODUCTION_ROADMAP_
 - [x] M3 — High-intent landing pages (INS-15)
 - [x] M4 — Fictional demo mode (INS-17)
 - [x] M5 — Homepage acquisition and conversion (INS-19)
-- [ ] M6 — Useful SEO content cluster
+- [x] M6 — Useful SEO content cluster (INS-22)
 - [ ] M7 — Export guide
 - [ ] M8 — Wrapped story pack and attribution
 - [ ] M9 — Public-profile acquisition
