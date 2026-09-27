@@ -35,6 +35,8 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
       - run: npm run test:e2e
+        env:
+          EXPECT_INDEXABLE: 'true'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -14,6 +14,7 @@ test("indexable public pages have unique metadata, truthful structured data and 
   const indexable = (
     await page.locator('meta[name="robots"]').getAttribute("content")
   )?.startsWith("index,");
+  if (process.env.EXPECT_INDEXABLE === "true") expect(indexable).toBe(true);
   if (!indexable) {
     expect(urls).toEqual([]);
     expect(await (await request.get("/robots.txt")).text()).toContain(
