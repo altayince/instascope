@@ -13,6 +13,7 @@ import {
 import { RelationshipTimeline } from "./relationship-timeline";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
+import { demoSnapshots } from "@/lib/demo";
 import type { Mode } from "@/lib/site";
 export const categories = {
   followers: ["Followers", "Accounts that follow you."],
@@ -76,10 +77,25 @@ export function Workspace({
               : "Upload Instagram export"
           }
           onLoad={setDataset}
+          onDemo={() => {
+            const demo = demoSnapshots();
+            setDataset(demo.newer);
+            setOlder(demo.older);
+          }}
         />
       )}
       {dataset && analysis && (
         <>
+          {dataset.metadata.demo && (
+            <div className="notice demo-notice" role="status">
+              <strong>Demo data · Fictional example</strong>
+              <p>
+                Explore the tools with invented accounts and two example
+                snapshots. These results do not describe your Instagram account.
+              </p>
+              <button onClick={clear}>Use my own export</button>
+            </div>
+          )}
           <div className="workspace-heading">
             <div>
               <span className="eyebrow">YOUR PRIVATE WORKSPACE</span>
@@ -153,14 +169,22 @@ export function Workspace({
                 <p>
                   <strong>Newer snapshot</strong> · {dataset.followers.length}{" "}
                   followers / {dataset.following.length} following
+                  {dataset.metadata.snapshotLabel && (
+                    <> · {dataset.metadata.snapshotLabel}</>
+                  )}
                 </p>
                 {older && (
                   <p>
                     <strong>Older snapshot</strong> · {older.followers.length}{" "}
                     followers / {older.following.length} following{" "}
-                    <button onClick={() => setOlder(null)}>
-                      Replace older snapshot
-                    </button>
+                    {older.metadata.snapshotLabel && (
+                      <> · {older.metadata.snapshotLabel} </>
+                    )}
+                    {!dataset.metadata.demo && (
+                      <button onClick={() => setOlder(null)}>
+                        Replace older snapshot
+                      </button>
+                    )}
                   </p>
                 )}
                 <p>
@@ -201,7 +225,11 @@ export function Workspace({
                       </button>
                     ))}
                   </div>
-                  <AccountList key={change} accounts={comparison[change]} />
+                  <AccountList
+                    key={change}
+                    accounts={comparison[change]}
+                    demo={dataset.metadata.demo}
+                  />
                 </>
               )}
             </>
@@ -250,6 +278,7 @@ export function Workspace({
                 <p>{categories[category][1]}</p>
               </div>
               <AccountList
+                demo={dataset.metadata.demo}
                 key={`${dataset.metadata.parsedAt}-${mode}`}
                 accounts={analysis[category]}
                 selectable={mode === "cleaner"}

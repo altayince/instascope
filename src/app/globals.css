@@ -433,6 +433,29 @@ small {
   font-size: 10px;
   margin-top: 12px;
 }
+.demo-action {
+  margin: 18px auto 0;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.demo-action > span,
+.demo-action p {
+  font-size: 12px;
+  margin: 0;
+}
+.demo-notice strong {
+  display: block;
+}
+.demo-notice p {
+  margin: 8px 0 12px;
+}
+.demo-profile {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .file-input {
   position: absolute;
   width: 1px;

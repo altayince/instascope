@@ -4,9 +4,9 @@ Local validation on Windows, Node 24.21.0:
 
 - TypeScript: passed.
 - ESLint: passed without warnings after cleanup.
-- Unit tests: 74 passed. Normalization, timestamp handling, duplicates, both relationship directions, snapshot differences, large lists, JSON/HTML/nested/split ZIP, empty/missing/malformed lists, truncated ZIP and decompression bounds; isolated profile/analytics service validation. INS-4 adds selective large-archive reading, stored/Deflate/data-descriptor compatibility, CRC32, forged metadata and resource-limit regressions.
+- Unit tests: 75 passed. Normalization, timestamp handling, duplicates, both relationship directions, snapshot differences, large lists, JSON/HTML/nested/split ZIP, empty/missing/malformed lists, truncated ZIP and decompression bounds; isolated profile/analytics service validation. INS-4 adds selective large-archive reading, stored/Deflate/data-descriptor compatibility, CRC32, forged metadata and resource-limit regressions.
 - Production build: passed; static `out/` generated.
-- Playwright: 34 passed across desktop and mobile Chromium. Covers ZIP upload and counts, no POST during analysis, Cleaner selection across search/filters and CSV download, old/new comparison, actual PNG signature and 1080 × 1920 dimensions, clear-data, malformed-input recovery, HTML without resource fetching, missing lists, and graceful profile-service unavailability. INS-4 tests a synthetic ZIP over 100 MB and forbids whole-file reads on the UI thread.
+- Playwright: 36 passed across desktop and mobile Chromium. Covers ZIP upload and counts, no POST during analysis, Cleaner selection across search/filters and CSV download, old/new comparison, actual PNG signature and 1080 × 1920 dimensions, clear-data, malformed-input recovery, HTML without resource fetching, missing lists, and graceful profile-service unavailability. INS-4 tests a synthetic ZIP over 100 MB and forbids whole-file reads on the UI thread.
 - Initial browser failures were ambiguous test locators (Next's live announcer also has role=alert, and the file input has button semantics). Locators were scoped; the application results and PNG export already worked.
 - npm dependency audit at installation: no known vulnerabilities reported.
 
@@ -23,3 +23,5 @@ M1 / INS-12: The explicit production build emits instascope.me canonicals and in
 M2 / INS-13: Every production sitemap URL passed unique title/description, canonical, OG image, indexability and structured-data checks. A separate preview build emitted noindex, disallowed crawling and an empty sitemap; desktop/mobile SEO tests passed. A delayed-JavaScript regression verifies uploads stay disabled until handlers are ready, preventing an observed hydration race. No Search Console submission was made.
 
 M3 / INS-15: All seven primary landing pages have distinct intent-focused titles and original explanations of results, requirements and limits. The utility remains above explanatory content. Typecheck, lint, 74 unit tests, production build and 34 desktop/mobile tests passed, including metadata uniqueness and all public routes.
+
+M4 / INS-17: Fictional demo counts and comparison deltas are unit-verified. Desktop/mobile tests cover demo activation without an archive, search/pagination, Cleaner selection, comparison, explicitly demo-labeled PNGs and switching to real data without carrying over fictional snapshots. No demo profile links navigate to real Instagram accounts; zero remote requests were observed.
