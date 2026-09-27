@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack && node scripts/normalize-static-segments.mjs",
+    "build:production": "node scripts/build-production.mjs",
     "preview": "node scripts/serve.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",

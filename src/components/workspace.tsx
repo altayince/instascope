@@ -144,7 +144,7 @@ export function Workspace({
               href="/instagram-wrapped/"
               aria-current={mode === "wrapped" ? "page" : undefined}
             >
-              My Wrapped ↗
+              My Wrapped
             </Link>
           </div>
           {mode === "comparison" ? (
@@ -240,7 +240,7 @@ export function Workspace({
                           ? "You → them"
                           : key === "fans"
                             ? "Them → you"
-                            : "Explore connections ↗"}
+                            : "Explore connections "}
                     </small>
                   </button>
                 ))}

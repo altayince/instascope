@@ -84,7 +84,6 @@ export function Upload({
         onClick={() => input.current?.click()}
       >
         {busy ? "Processing in your browser…" : label}
-        <span aria-hidden="true">↗</span>
       </button>
       <small>
         ZIP up to 2 GB · JSON / HTML up to 20 MB per file · All time export

@@ -5,6 +5,12 @@ export const metadata: Metadata = {
 };
 const changes = [
   {
+    issue: 12,
+    title: "M1: Prepare instascope.me production shell and navigation",
+    summary:
+      "Official site links now use instascope.me, all main tools are accessible from the navigation, and decorative up-right arrows have been removed. Preview builds remain excluded from indexing.",
+  },
+  {
     issue: 9,
     title: "M0: Validate production baseline and record V2 roadmap",
     summary:

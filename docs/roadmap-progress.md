@@ -3,7 +3,7 @@
 Production: https://instascope.me. The supplied [V2 roadmap](PRODUCTION_ROADMAP_V2.md) supersedes the ordering of the earlier next-phase brief. Preserve the existing product; each milestone gets its own validated commit and follows the INS issue/branch/PR flow. No direct pushes to main and no pushes with failing validation.
 
 - [x] M0 — Baseline validation (INS-9)
-- [ ] M1 — Production domain, navigation and arrow cleanup
+- [x] M1 — Production domain, navigation and arrow cleanup (INS-12; validated build, live deployment pending)
 - [ ] M2 — Search engine readiness
 - [ ] M3 — High-intent landing pages
 - [ ] M4 — Fictional demo mode

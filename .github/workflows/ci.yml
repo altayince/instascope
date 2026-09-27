@@ -19,6 +19,7 @@ jobs:
       - run: npm run check
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
   browser-tests:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +33,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()

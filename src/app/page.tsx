@@ -31,7 +31,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#tool">
-              Explore my connections <span>↗</span>
+              Explore my connections
             </a>
             <Link
               className="text-link"
@@ -54,7 +54,7 @@ export default function Home() {
           <div className="orbit orbit-two" />
           <div className="orbit orbit-three" />
           <span className="orbit-dot dot-one">✳</span>
-          <span className="orbit-dot dot-two">↗</span>
+
           <span className="orbit-dot dot-three">♡</span>
           <div className="circle-center">
             ◎<span>your circle</span>
@@ -97,7 +97,7 @@ export default function Home() {
           {[
             [
               "not-following-back",
-              "↗",
+              "",
               "Who’s on the other side?",
               "Make sense of one-way follows, without the guesswork.",
             ],
@@ -119,7 +119,7 @@ export default function Home() {
               href={`/${slug}/`}
               className={`feature-card ${slug}`}
             >
-              <span className="feature-icon">{icon}</span>
+              {icon && <span className="feature-icon">{icon}</span>}
               <h3>{title}</h3>
               <p>{copy}</p>
               <span className="feature-link">
@@ -178,7 +178,7 @@ export default function Home() {
             No Instagram login. No archive uploads. Just you and your browser.
           </p>
         </div>
-        <Link href="/privacy/">Our privacy promise ↗</Link>
+        <Link href="/privacy/">Our privacy promise </Link>
       </section>
     </main>
   );
