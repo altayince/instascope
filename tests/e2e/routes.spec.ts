@@ -117,3 +117,40 @@ test("all primary tools are discoverable and the menu closes after navigation", 
   await expect(page).toHaveURL(/following-analyzer\/$/);
   await expect(page.locator(".tool-menu")).not.toHaveAttribute("open");
 });
+
+test("All tools closes after sibling navigation, outside clicks and Escape", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const menu = page.locator(".tool-menu");
+  const summary = menu.locator("summary");
+  const header = page.getByRole("navigation", { name: "Main navigation" });
+
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  await header.getByRole("link", { name: "Requests", exact: true }).click();
+  await expect(page).toHaveURL(/\/pending-follow-requests\/$/);
+  await expect(menu).not.toHaveAttribute("open");
+
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  const timeline = header.getByRole("link", { name: "Timeline", exact: true });
+  await timeline.focus();
+  await timeline.press("Enter");
+  await expect(page).toHaveURL(/\/relationship-timeline\/$/);
+  await expect(menu).not.toHaveAttribute("open");
+
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  await menu.locator(".tool-menu-links").click({ position: { x: 4, y: 4 } });
+  await expect(menu).toHaveAttribute("open");
+  await page.mouse.click(5, 200);
+  await expect(page).toHaveURL(/\/relationship-timeline\/$/);
+  await expect(menu).not.toHaveAttribute("open");
+
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  await summary.press("Escape");
+  await expect(menu).not.toHaveAttribute("open");
+  await expect(summary).toBeFocused();
+});
