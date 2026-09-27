@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 47,
+    title: "Close All tools menu after navigation or outside taps",
+    summary:
+      "The shared header menu now closes when the route changes or a user taps outside it, while retaining native details behavior and Escape focus handling.",
+  },
+  {
     issue: 45,
     title: "Populate the fictional Connection Privacy demo",
     summary:
