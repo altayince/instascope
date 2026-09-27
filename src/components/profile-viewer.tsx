@@ -71,7 +71,7 @@ export function ProfileViewer() {
     }
   }
   return (
-    <section className="profile-viewer">
+    <section id="tool" className="profile-viewer">
       <form onSubmit={(event) => void lookup(event)}>
         <label htmlFor="profile-input">Instagram username or profile URL</label>
         <div className="profile-input-row">
