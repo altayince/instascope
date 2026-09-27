@@ -168,7 +168,7 @@ export function AccountList({
               )
             }
           >
-            Export selected CSV ↓
+            Export selected CSV
           </button>
         </div>
       )}
