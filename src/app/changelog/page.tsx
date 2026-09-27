@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 45,
+    title: "Populate the fictional Connection Privacy demo",
+    summary:
+      "The fictional demo now shows close friends, blocked, restricted and story-hidden accounts with sample recorded dates. Real exports still distinguish missing, empty and unreadable categories.",
+  },
+  {
     issue: 43,
     title: "Stabilize workspace tab position across mobile routes",
     summary:

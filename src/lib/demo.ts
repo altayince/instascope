@@ -8,14 +8,12 @@ const entries = (prefix: string, count: number, offset = 0) =>
       1451606400 + (index + offset) * 172800,
     )!,
   );
+const privacyEntries = (prefix: string, count: number, offset: number) =>
+  entries(prefix, count, offset).map((entry, index) =>
+    index === count - 1 ? { ...entry, timestamp: undefined } : entry,
+  );
 export function demoSnapshots(): { newer: Dataset; older: Dataset } {
   const mutuals = entries("mutual", 742);
-  const missingList = () => ({
-    status: "missing" as const,
-    accounts: [] as [],
-    message:
-      "Not included in this fictional demo. A real export may include this category.",
-  });
   const metadata = {
     parsedAt: Date.UTC(2025, 0, 15),
     sourceFormat: "demo",
@@ -46,10 +44,22 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
           account("demo.unfollow.0002", 1736467200)!,
         ],
       },
-      closeFriends: missingList(),
-      blocked: missingList(),
-      restricted: missingList(),
-      hideStoryFrom: missingList(),
+      closeFriends: {
+        status: "available",
+        accounts: privacyEntries("closefriend", 8, 1400),
+      },
+      blocked: {
+        status: "available",
+        accounts: privacyEntries("blocked", 4, 1410),
+      },
+      restricted: {
+        status: "available",
+        accounts: privacyEntries("restricted", 3, 1420),
+      },
+      hideStoryFrom: {
+        status: "available",
+        accounts: privacyEntries("hidden", 5, 1430),
+      },
     },
     metadata: {
       ...metadata,
