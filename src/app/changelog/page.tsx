@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 37,
+    title: "Add three focused Instagram search-intent guides",
+    summary:
+      "New guides answer how to review sent follow requests, find oldest recorded follows and compare follower changes, then lead readers to the matching tools with clear export and privacy limits.",
+  },
+  {
     issue: 35,
     title: "V3.4: Strengthen relationship tool landing pages",
     summary:
