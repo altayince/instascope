@@ -77,7 +77,9 @@ export default async function ToolPage({
           <summary>What happens to my data?</summary>
           <p>
             Your archive stays in this browser’s memory. Clear it or close the
-            tab to remove it. Public-photo searches, when enabled, send the
+            tab to remove it. If you choose to save a local snapshot, follower
+            and following usernames remain in this browser until you delete them
+            or clear site data. Public-photo searches, when enabled, send the
             entered username to our separate lookup service.
           </p>
         </details>

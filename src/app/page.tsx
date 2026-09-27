@@ -57,7 +57,7 @@ const homepageTools: {
     slug: "instagram-wrapped",
     title: "Your circle in a story",
     description:
-      "Share a card with aggregate numbers and no individual usernames.",
+      "Browse shareable relationship stories with aggregate facts and no usernames.",
   },
   {
     slug: "not-following-back",

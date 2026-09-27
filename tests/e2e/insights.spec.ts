@@ -40,7 +40,7 @@ async function upload(
       buffer: Buffer.from(zip),
     });
   await expect(
-    page.getByRole("button", { name: "Clear data & start over" }),
+    page.getByRole("button", { name: "Clear active data & start over" }),
   ).toBeVisible();
 }
 async function goToTool(page: Page, name: string) {
@@ -74,7 +74,9 @@ test("an export leads from a familiar result to pending requests, dated connecti
   await expect(
     page.getByRole("region", { name: "Your unfollow history" }),
   ).toContainText("It does not identify people who unfollowed you");
-  await page.getByRole("button", { name: "Clear data & start over" }).click();
+  await page
+    .getByRole("button", { name: "Clear active data & start over" })
+    .click();
   await page.goto("/followers-analyzer/");
   await upload(page, {});
   await expect(
@@ -153,7 +155,9 @@ test("privacy categories distinguish absent, empty and unsupported while history
   );
   await page.getByLabel("Search accounts").fill("unfollow.again");
   await expect(page.locator(".accounts li")).toHaveCount(2);
-  await page.getByRole("button", { name: "Clear data & start over" }).click();
+  await page
+    .getByRole("button", { name: "Clear active data & start over" })
+    .click();
   await upload(page, {});
   await expect(page.getByText("Not included", { exact: true })).toBeVisible();
   await goToTool(page, "Connection privacy");
@@ -228,7 +232,7 @@ test("timeline filters real export dates and exports an aggregate-only story wit
   const card = page.locator(".wrapped-card");
   await expect(card).toContainText("2024-01-01");
   await expect(card).toContainText("2025-01-10");
-  await expect(card).toContainText("not net growth");
+  await expect(card).toContainText("do not prove continuous following");
   await expect(card).not.toContainText("request.old");
   const event = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download my Wrapped" }).click();
@@ -247,7 +251,9 @@ test("timeline filters real export dates and exports an aggregate-only story wit
   expect(drawn.join(" ")).not.toMatch(
     /pending|blocked|restricted|Close friends/i,
   );
-  await page.getByRole("button", { name: "Clear data & start over" }).click();
+  await page
+    .getByRole("button", { name: "Clear active data & start over" })
+    .click();
   await expect(page.locator(".wrapped-card")).toHaveCount(0);
   expect(requests).toEqual([]);
   expect(errors).toEqual([]);

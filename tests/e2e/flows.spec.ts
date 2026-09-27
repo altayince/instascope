@@ -176,7 +176,9 @@ test("Wrapped exports a real aggregate PNG and clears private data", async ({
   expect(png.subarray(1, 4).toString()).toBe("PNG");
   expect(png.readUInt32BE(16)).toBe(1080);
   expect(png.readUInt32BE(20)).toBe(1920);
-  await page.getByRole("button", { name: "Clear data & start over" }).click();
+  await page
+    .getByRole("button", { name: "Clear active data & start over" })
+    .click();
   await expect(
     page.locator("button").filter({ hasText: "Upload Instagram export" }),
   ).toBeVisible();

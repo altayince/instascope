@@ -1042,6 +1042,66 @@ footer > small {
   margin-left: 10px;
   font-size: 11px;
 }
+.snapshot-return {
+  border: 1px solid #d5ddc9;
+  border-radius: 12px;
+  background: #f2f5ec;
+  padding: 22px;
+  margin: 22px 0;
+}
+.snapshot-return h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.snapshot-return p {
+  max-width: 780px;
+  margin: 8px 0 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.snapshot-return a {
+  text-decoration: underline;
+}
+.snapshot-return-controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.snapshot-account-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 780px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.snapshot-account-confirmation input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+.snapshot-return-controls label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.snapshot-return-controls input {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid #b8c6b3;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+}
+.snapshot-return-controls button {
+  min-height: 42px;
+  font-size: 12px;
+}
+.snapshot-return .snapshot-return-help {
+  color: var(--muted);
+  font-size: 11px;
+}
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -1068,17 +1128,21 @@ footer > small {
 .wrapped-card {
   background: var(--ink);
   color: #faf8f0;
-  padding: 38px;
+  width: min(100%, 430px);
+  aspect-ratio: 9 / 16;
+  padding: 30px;
   border-radius: 14px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .wrapped-card:before {
   content: "";
   display: block;
   position: absolute;
   right: -60px;
-  top: -60px;
+  top: -95px;
   width: 170px;
   height: 170px;
   background: var(--lime);
@@ -1087,44 +1151,87 @@ footer > small {
 .wrapped-card > .eyebrow {
   color: #fff;
   position: relative;
+  font-size: 10px;
+  line-height: 1.7;
 }
 .wrapped-card h2 {
-  font-size: 43px;
-  margin: 36px 0;
+  font-size: clamp(30px, 3.5vw, 42px);
+  line-height: 1.02;
+  margin: 30px 0 12px;
   position: relative;
 }
-.wrapped-card em {
-  color: var(--lime);
+.wrapped-lead {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
 }
-.wrapped-stats {
+.wrapped-hero {
+  margin: 24px 0 22px;
+}
+.wrapped-hero strong {
+  display: block;
+  color: var(--lime);
+  font-size: clamp(65px, 7vw, 88px);
+  font-weight: 600;
+  line-height: 1;
+}
+.wrapped-hero span {
+  display: block;
+  max-width: 310px;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.wrapped-facts {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px 20px;
+  gap: 18px 12px;
+  margin-top: auto;
 }
-.wrapped-stats strong {
+.wrapped-facts strong {
   display: block;
-  font-size: 35px;
+  font-size: 30px;
   font-weight: 500;
   color: var(--lime);
 }
-.wrapped-stats span {
+.wrapped-facts span {
+  display: block;
   font-size: 10px;
+  line-height: 1.3;
 }
 .wrapped-card > small {
   display: block;
-  margin-top: 50px;
+  margin-top: 20px;
   font-size: 12px;
 }
-.wrapped-card > p {
-  color: var(--lime);
-  font-size: 12px;
-  margin-top: 30px;
+.wrapped-note {
+  color: #d8e4d4;
+  font-size: 10px;
+  line-height: 1.45;
+  margin: 20px 0 0;
 }
 .wrapped-actions h2 {
   margin: 15px 0 20px;
 }
 .wrapped-actions p {
   font-size: 13px;
+}
+.wrapped-story-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 24px 0 10px;
+}
+.wrapped-story-picker button {
+  font-size: 12px;
+}
+.wrapped-story-picker button[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+.wrapped-actions .wrapped-position {
+  font-size: 11px;
+  margin-bottom: 24px;
 }
 .wrapped-actions .button {
   display: flex;
@@ -1527,10 +1634,10 @@ footer > small {
     gap: 25px;
   }
   .wrapped-card {
-    padding: 28px;
+    padding: 26px;
   }
   .wrapped-card h2 {
-    font-size: 39px;
+    font-size: clamp(28px, 8vw, 36px);
   }
   .wrapped-actions h2 br {
     display: none;
@@ -1538,8 +1645,11 @@ footer > small {
   .wrapped-actions h2 {
     font-size: 29px;
   }
-  .wrapped-stats strong {
-    font-size: 32px;
+  .wrapped-hero strong {
+    font-size: clamp(62px, 17vw, 80px);
+  }
+  .wrapped-facts strong {
+    font-size: 26px;
   }
   .prose {
     padding-top: 40px;

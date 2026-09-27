@@ -6,6 +6,11 @@ import { Upload } from "./upload";
 import { AccountList } from "./account-list";
 import { Wrapped } from "./wrapped";
 import {
+  SavedComparisonChoice,
+  SavedSnapshotNotice,
+  SnapshotSaver,
+} from "./snapshot-return";
+import {
   PendingRequests,
   PrivacyLists,
   UnfollowHistory,
@@ -103,7 +108,17 @@ export function Workspace({
   mode?: Mode;
   initialCategory?: Category;
 }) {
-  const { dataset, older, setDataset, setOlder, clear, startDemo } = useData();
+  const {
+    dataset,
+    older,
+    olderSource,
+    currentExportDate,
+    saved,
+    setDataset,
+    setOlder,
+    clear,
+    startDemo,
+  } = useData();
   const [category, setCategory] = useState<Category>(initialCategory);
   const [change, setChange] =
     useState<keyof typeof changeLabels>("newFollowers");
@@ -128,15 +143,18 @@ export function Workspace({
   return (
     <section id="tool" className="workspace">
       {!dataset && (
-        <Upload
-          label={
-            mode === "comparison"
-              ? "Upload newer snapshot"
-              : "Upload Instagram export"
-          }
-          onLoad={setDataset}
-          onDemo={startDemo}
-        />
+        <>
+          <SavedSnapshotNotice />
+          <Upload
+            label={
+              mode === "comparison"
+                ? "Upload newer snapshot"
+                : "Upload Instagram export"
+            }
+            onLoad={setDataset}
+            onDemo={startDemo}
+          />
+        </>
       )}
       {dataset && analysis && (
         <>
@@ -164,10 +182,11 @@ export function Workspace({
               </h2>
             </div>
             <button className="text-button" onClick={clear}>
-              Clear data & start over
+              Clear active data & start over
             </button>
           </div>
           {mode === "analyzer" && <ReviewNext dataset={dataset} />}
+          {mode === "analyzer" && <SnapshotSaver />}
           <div className="tool-tabs">
             <Link
               href="/followers-analyzer/"
@@ -222,31 +241,47 @@ export function Workspace({
             <>
               <div className="snapshot-status">
                 <p>
-                  <strong>Newer snapshot</strong> · {dataset.followers.length}{" "}
-                  followers / {dataset.following.length} following
+                  <strong>Current uploaded export · newer snapshot</strong> ·{" "}
+                  {dataset.followers.length} followers /{" "}
+                  {dataset.following.length} following
                   {dataset.metadata.snapshotLabel && (
                     <> · {dataset.metadata.snapshotLabel}</>
                   )}
                 </p>
                 {older && (
                   <p>
-                    <strong>Older snapshot</strong> · {older.followers.length}{" "}
-                    followers / {older.following.length} following{" "}
+                    <strong>
+                      {olderSource === "saved"
+                        ? "Saved local older snapshot"
+                        : olderSource === "manual"
+                          ? "Manually uploaded older snapshot"
+                          : "Fictional older snapshot"}
+                    </strong>{" "}
+                    · {older.followers.length} followers /{" "}
+                    {older.following.length} following{" "}
                     {older.metadata.snapshotLabel && (
                       <> · {older.metadata.snapshotLabel} </>
                     )}
+                    {olderSource === "saved" && currentExportDate && (
+                      <>
+                        {" "}
+                        · You entered {currentExportDate} for the current
+                        export.
+                      </>
+                    )}
                     {!dataset.metadata.demo && (
                       <button onClick={() => setOlder(null)}>
-                        Replace older snapshot
+                        Choose another older snapshot
                       </button>
                     )}
                   </p>
                 )}
                 <p>
-                  You choose which export is older. Import time is not the
-                  snapshot date.
+                  You choose which export is older. Import time is not an export
+                  date; compare files from the same account.
                 </p>
               </div>
+              {!older && <SavedComparisonChoice />}
               {!older && (
                 <Upload
                   label="Upload older snapshot"
@@ -341,14 +376,20 @@ export function Workspace({
               />
             </>
           )}
+          {(mode === "cleaner" ||
+            mode === "wrapped" ||
+            (mode === "comparison" && older)) && <SnapshotSaver />}
           <details className="data-notes">
             <summary>About these results</summary>
             {dataset.metadata.warnings.map((warning) => (
               <p key={warning}>{warning}</p>
             ))}
             <p>
-              Data stays in memory until you clear it, reload, or close this
-              tab. No lists are stored by InstaScope.
+              The current export stays in this tab’s memory until you clear it,
+              reload, or close the tab.{" "}
+              {saved
+                ? "Your saved local snapshot contains only follower and following usernames in this browser. You can delete it from the snapshot controls in Overview."
+                : "No snapshot is stored unless you choose to save one."}
             </p>
           </details>
         </>
