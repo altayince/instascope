@@ -977,6 +977,17 @@ footer > small {
   font-size: 11px;
   white-space: nowrap;
 }
+.accounts .account-username {
+  color: inherit;
+  margin-left: 0;
+  white-space: normal;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+}
+.accounts .account-username:hover,
+.accounts .account-username:focus-visible {
+  text-decoration-color: currentColor;
+}
 .selection-bar {
   display: flex;
   align-items: center;

@@ -201,7 +201,19 @@ export function AccountList({
                 {a.username.slice(0, 2).toUpperCase()}
               </span>
               <div>
-                <strong>@{a.username}</strong>
+                {demo ? (
+                  <strong>@{a.username}</strong>
+                ) : (
+                  <a
+                    className="account-username"
+                    href={a.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    referrerPolicy="no-referrer"
+                  >
+                    <strong>@{a.username}</strong>
+                  </a>
+                )}
                 {showDate && (
                   <small>
                     {dateLabel && `${dateLabel}: `}
