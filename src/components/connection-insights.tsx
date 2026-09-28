@@ -108,6 +108,7 @@ export function PendingRequests({ dataset }: { dataset: Dataset }) {
             accounts={filtered}
             selectionScope={list.accounts}
             selectable
+            demo={dataset.metadata.demo}
             dateLabel="Request recorded"
             ageReference={referenceDate}
             initialSort="oldest"
@@ -191,6 +192,7 @@ export function UnfollowHistory({ dataset }: { dataset: Dataset }) {
       {list.status === "available" && (
         <AccountList
           accounts={list.accounts}
+          demo={dataset.metadata.demo}
           dateLabel="Unfollow recorded"
           initialSort="newest"
           countLabel="records"

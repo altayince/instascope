@@ -89,6 +89,13 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
   await expect(
     page.getByRole("region", { name: "Pending request review" }),
   ).toContainText("3 requests in this export");
+  const pendingDemo = page.getByRole("region", {
+    name: "Pending request review",
+  });
+  await expect(pendingDemo.locator(".demo-profile")).toHaveCount(3);
+  await expect(
+    pendingDemo.locator('.accounts a[href*="instagram.com"]'),
+  ).toHaveCount(0);
   await page
     .locator(".tool-tabs")
     .getByRole("link", { name: "Your unfollow history", exact: true })
@@ -96,6 +103,13 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
   await expect(
     page.getByRole("region", { name: "Your unfollow history" }),
   ).toContainText("2 records");
+  const unfollowDemo = page.getByRole("region", {
+    name: "Your unfollow history",
+  });
+  await expect(unfollowDemo.locator(".demo-profile")).toHaveCount(2);
+  await expect(
+    unfollowDemo.locator('.accounts a[href*="instagram.com"]'),
+  ).toHaveCount(0);
   await page
     .locator(".tool-tabs")
     .getByRole("link", { name: "Overview", exact: true })

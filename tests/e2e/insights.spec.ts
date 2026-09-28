@@ -105,6 +105,9 @@ test("pending requests have explicit ages, filters, persistent manual review and
   await page.getByLabel("Request age", { exact: true }).selectOption("365");
   await expect(page.locator(".accounts li")).toHaveCount(1);
   await expect(page.getByText("@request.old", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open request.old on Instagram" }),
+  ).toHaveAttribute("href", "https://www.instagram.com/request.old/");
   await page.getByLabel("Request age", { exact: true }).selectOption("unknown");
   await expect(
     page.getByText("@request.undated", { exact: true }),
@@ -153,6 +156,9 @@ test("privacy categories distinguish absent, empty and unsupported while history
   await expect(page.locator(".accounts li").first()).toContainText(
     "Jan 10, 2025",
   );
+  await expect(
+    page.getByRole("link", { name: "Open unfollow.again on Instagram" }).first(),
+  ).toHaveAttribute("href", "https://www.instagram.com/unfollow.again/");
   await page.getByLabel("Search accounts").fill("unfollow.again");
   await expect(page.locator(".accounts li")).toHaveCount(2);
   await page
