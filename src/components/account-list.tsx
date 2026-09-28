@@ -208,7 +208,7 @@ export function AccountList({
               {selectable && (
                 <input
                   type="checkbox"
-                  aria-label={`Select ${displayName(a)}`}
+                  aria-label={`Select ${isDeleted(a) ? "Deleted account" : a.username}`}
                   checked={activeSelection.has(a.username)}
                   onChange={() => toggle(a.username)}
                 />
