@@ -52,7 +52,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "Get useful dates from your own export",
         paragraphs: [
-          "Request Followers and Following with the All time range. JSON can contain exact timestamps; supported HTML records can contain a visible date without a timezone. Some records in either format may lack a usable date, and the timeline does not invent one.",
+          "Request Followers and Following with the All time range. JSON can contain exact timestamps; supported HTML records can contain a visible date without a timezone. Some records may lack a usable date in either format, and the timeline does not invent one.",
           "Your archive is analyzed locally in your browser, with no Instagram password. If a period brings an old connection to mind, Relationship Review lets you select it for your own follow-up without changing your Instagram account.",
         ],
       },
