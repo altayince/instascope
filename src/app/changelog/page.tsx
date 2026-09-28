@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 56,
+    title: "Add dated core HTML export parsing",
+    summary:
+      "Followers and Following HTML records now retain valid visible dates for sorting and timelines. HTML dates remain marked as minute-precision values without a source timezone, while missing or invalid dates stay unavailable.",
+  },
+  {
     issue: 53,
     title: "Make real account-list usernames clickable",
     summary:

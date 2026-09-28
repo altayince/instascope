@@ -1,4 +1,4 @@
-import type { Account } from "./types";
+import type { Account, TimestampPrecision } from "./types";
 
 const reserved = new Set([
   "p",
@@ -42,7 +42,11 @@ export function normalizeUsername(value: unknown): string | null {
     ? name
     : null;
 }
-export function account(value: unknown, timestamp?: unknown): Account | null {
+export function account(
+  value: unknown,
+  timestamp?: unknown,
+  timestampPrecision?: TimestampPrecision,
+): Account | null {
   const username = normalizeUsername(value);
   if (!username) return null;
   const seconds =
@@ -55,23 +59,35 @@ export function account(value: unknown, timestamp?: unknown): Account | null {
   return {
     username,
     href: `https://www.instagram.com/${username}/`,
-    ...(seconds ? { timestamp: seconds } : {}),
+    ...(seconds
+      ? {
+          timestamp: seconds,
+          ...(timestampPrecision ? { timestampPrecision } : {}),
+        }
+      : {}),
   };
 }
 export function deduplicate(accounts: Account[]): Account[] {
   const unique = new Map<string, Account>();
   for (const entry of accounts) {
-    const normalized = account(entry.username, entry.timestamp);
+    const normalized = account(
+      entry.username,
+      entry.timestamp,
+      entry.timestampPrecision,
+    );
     if (!normalized) continue;
     const previous = unique.get(normalized.username);
-    // Deterministically retain the earliest known relationship timestamp.
-    if (
+    const shouldReplace =
       !previous ||
       (normalized.timestamp !== undefined &&
         (previous.timestamp === undefined ||
-          normalized.timestamp < previous.timestamp))
-    )
-      unique.set(normalized.username, normalized);
+          (previous.timestampPrecision !== undefined &&
+            normalized.timestampPrecision === undefined) ||
+          (previous.timestampPrecision === normalized.timestampPrecision &&
+            normalized.timestamp < previous.timestamp)));
+    // Deterministically retain the earliest known relationship timestamp.
+    // Exact JSON instants take priority over timezone-unknown HTML minutes.
+    if (shouldReplace) unique.set(normalized.username, normalized);
   }
   return [...unique.values()];
 }
@@ -80,7 +96,11 @@ export function deduplicate(accounts: Account[]): Account[] {
 export function deduplicateEvents(accounts: Account[]): Account[] {
   const events = new Map<string, Account>();
   for (const entry of accounts) {
-    const normalized = account(entry.username, entry.timestamp);
+    const normalized = account(
+      entry.username,
+      entry.timestamp,
+      entry.timestampPrecision,
+    );
     if (normalized)
       events.set(
         `${normalized.username}:${normalized.timestamp ?? "unknown"}`,

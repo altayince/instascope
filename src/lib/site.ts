@@ -87,7 +87,7 @@ export const tools = {
     category: "following",
     question: "Where do follow dates come from?",
     answer:
-      "Dates come from timestamps supplied by Instagram in JSON exports. If a timestamp is absent, we show Date unavailable.",
+      "Dates come from usable values in Instagram's JSON or supported HTML records. HTML dates do not include a timezone; if no valid date is present, we show Date unavailable.",
   },
   "instagram-cleaner": {
     name: "InstaCleaner",

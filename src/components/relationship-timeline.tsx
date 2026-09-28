@@ -76,7 +76,8 @@ export function RelationshipTimeline({ dataset }: { dataset: Dataset }) {
       <p className="notice">
         {timeline.coverage[direction]} of {dataset[direction].length}{" "}
         relationships have a recorded date; {missing} dates unavailable. All
-        date groups use UTC.
+        dates are grouped by their recorded calendar date. HTML records do not
+        include a timezone and are not exact UTC timestamps.
       </p>
       {periods.length ? (
         <div
@@ -102,8 +103,8 @@ export function RelationshipTimeline({ dataset }: { dataset: Dataset }) {
         </div>
       ) : (
         <div className="empty-state">
-          No recorded dates for this direction. JSON exports can include
-          timestamps; HTML dates are not interpreted.
+          No recorded dates for this direction. Dates appear only when the
+          supplied export includes a usable value.
         </div>
       )}
       {periods.length > 24 && (

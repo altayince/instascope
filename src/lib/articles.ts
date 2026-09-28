@@ -48,7 +48,7 @@ export const articles: Record<string, Article> = {
         heading: "Who did you follow first, according to this export?",
         paragraphs: [
           "Start with the Following list in your own Instagram export. InstaScope can sort its usable timestamps oldest first, and the Relationship Timeline can group the dated accounts by year or month. The first result is your oldest recorded follow among accounts still in that list, not necessarily the first person you ever followed.",
-          "If an account has no usable timestamp, its date stays unknown. It cannot be placed earlier or later by guesswork. JSON exports often provide more usable dates than HTML, but some records may still be undated.",
+          "If an account has no usable recorded date, its date stays unknown. It cannot be placed earlier or later by guesswork. JSON timestamps identify an instant, while supported HTML dates omit the timezone; records in either format may still be undated.",
         ],
       },
       {
