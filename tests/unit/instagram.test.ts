@@ -58,6 +58,30 @@ describe("normalization", () => {
   });
 });
 describe("archive adapters", () => {
+  it("preserves only usable follower timestamps from Instagram JSON", () => {
+    const data = importDataset([
+      json("followers.json", [
+        {
+          string_list_data: [
+            { value: "dated.follower", timestamp: 1609459200 },
+          ],
+        },
+        { string_list_data: [{ value: "undated.follower" }] },
+        {
+          string_list_data: [
+            { value: "malformed.follower", timestamp: "not-a-timestamp" },
+          ],
+        },
+      ]),
+      json("following.json", { relationships_following: [] }),
+    ]);
+
+    expect(data.followers).toEqual([
+      account("dated.follower", 1609459200),
+      account("undated.follower"),
+      account("malformed.follower"),
+    ]);
+  });
   it("reads real-shaped JSON and deduplicates", () => {
     const data = valid();
     expect(data.followers.map((a) => a.username)).toEqual([

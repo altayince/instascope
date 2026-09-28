@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 51,
+    title: "Lock follower timestamp parsing and rendering behavior",
+    summary:
+      "Followers with usable timestamps in Instagram JSON exports show their recorded dates. Missing, malformed and timestamp-free HTML records continue to say that the date is unavailable.",
+  },
+  {
     issue: 49,
     title: "Keep fictional request and unfollow profiles inside the demo",
     summary:
