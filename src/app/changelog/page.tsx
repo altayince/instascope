@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 53,
+    title: "Make real account-list usernames clickable",
+    summary:
+      "Usernames from uploaded exports now open the same Instagram profile as the existing profile action. Fictional demo usernames remain plain, non-clickable text.",
+  },
+  {
     issue: 51,
     title: "Lock follower timestamp parsing and rendering behavior",
     summary:
