@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 58,
+    title: "Keep deleted export accounts from linking to Instagram",
+    summary:
+      "Instagram's deleted-account sentinel remains in relationship counts and comparisons, but shared account lists now show a friendly label without unusable profile links.",
+  },
+  {
     issue: 56,
     title: "Add dated core HTML export parsing",
     summary:
