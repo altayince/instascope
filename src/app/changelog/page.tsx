@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 49,
+    title: "Keep fictional request and unfollow profiles inside the demo",
+    summary:
+      "Pending Requests and Unfollow History now label demo accounts as fictional without linking them to Instagram. Real export account links continue to work.",
+  },
+  {
     issue: 47,
     title: "Close All tools menu after navigation or outside taps",
     summary:
