@@ -4,7 +4,9 @@ import { strToU8, zipSync } from "fflate";
 import {
   account,
   deduplicate,
+  isDeletedInstagramAccount,
   normalizeUsername,
+  usableInstagramProfileHref,
 } from "../../src/lib/instagram/normalize";
 import { importDataset, LIMITS } from "../../src/lib/instagram/import";
 import {
@@ -39,6 +41,7 @@ const htmlRecord = (username: string, date?: string) => `
       ${date ? `<div>${date}</div>` : ""}
     </div></div>
   </div>`;
+const deletedUsername = "__deleted__bcdefghijabcdefgh";
 describe("normalization", () => {
   it.each([
     " Alice ",
@@ -72,6 +75,18 @@ describe("normalization", () => {
         account("Alice")!,
       ]),
     ).toEqual([account("alice", 80)]);
+  });
+  it("recognizes only Instagram's exact deleted-account sentinel", () => {
+    const deleted = account(deletedUsername)!;
+
+    expect(isDeletedInstagramAccount(deleted.username)).toBe(true);
+    expect(usableInstagramProfileHref(deleted)).toBeNull();
+    expect(isDeletedInstagramAccount("my_deleted_account")).toBe(false);
+    expect(isDeletedInstagramAccount("__deleted__memories")).toBe(false);
+    expect(isDeletedInstagramAccount("deleted.account")).toBe(false);
+    expect(usableInstagramProfileHref(account("deleted.memories")!)).toBe(
+      "https://www.instagram.com/deleted.memories/",
+    );
   });
 });
 describe("archive adapters", () => {
@@ -238,6 +253,25 @@ describe("archive adapters", () => {
     expect(html.timestampPrecision).toBe("minute-without-timezone");
     expect(jsonAccount.timestampPrecision).toBeUndefined();
   });
+  it("normalizes the deleted-account sentinel consistently from JSON and HTML", () => {
+    const jsonAccount = parseJson(
+      JSON.stringify([
+        { string_list_data: [{ value: deletedUsername, timestamp: 1 }] },
+      ]),
+      "followers",
+    )[0].accounts[0];
+    const htmlAccount = parseHtml(
+      htmlDocument(htmlRecord(deletedUsername)),
+      "followers",
+    )[0].accounts[0];
+
+    expect({ username: htmlAccount.username, href: htmlAccount.href }).toEqual({
+      username: jsonAccount.username,
+      href: jsonAccount.href,
+    });
+    expect(isDeletedInstagramAccount(jsonAccount.username)).toBe(true);
+    expect(isDeletedInstagramAccount(htmlAccount.username)).toBe(true);
+  });
   it("supports empty explicit JSON lists", () =>
     expect(
       importDataset([
@@ -314,6 +348,18 @@ describe("archive adapters", () => {
   });
 });
 describe("relationship math", () => {
+  it("keeps deleted accounts in counts and relationship analysis", () => {
+    const stats = analyze({
+      followers: [account(deletedUsername)!, account("active.follower")!],
+      following: [account(deletedUsername)!],
+    });
+
+    expect(stats.followers).toHaveLength(2);
+    expect(stats.following).toHaveLength(1);
+    expect(stats.mutuals.map((entry) => entry.username)).toEqual([
+      deletedUsername,
+    ]);
+  });
   it("calculates both directions, mutuals, and ratio", () => {
     const stats = analyze(valid());
     expect(stats.mutuals.map((a) => a.username)).toEqual(["alice", "bob"]);

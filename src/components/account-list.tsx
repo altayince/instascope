@@ -1,6 +1,10 @@
 "use client";
 import { useMemo, useState } from "react";
 import type { Account } from "@/lib/instagram/types";
+import {
+  isDeletedInstagramAccount,
+  usableInstagramProfileHref,
+} from "@/lib/instagram/normalize";
 import { download } from "@/lib/download";
 import { requestAge } from "@/lib/analysis/insights";
 export function AccountList({
@@ -86,6 +90,15 @@ export function AccountList({
       return next;
     });
   }
+  function isDeleted(entry: Account) {
+    return !demo && isDeletedInstagramAccount(entry.username);
+  }
+  function profileHref(entry: Account) {
+    return demo ? null : usableInstagramProfileHref(entry);
+  }
+  function displayName(entry: Account) {
+    return isDeleted(entry) ? "Deleted account" : `@${entry.username}`;
+  }
   return (
     <div className="account-list">
       <div className="list-controls">
@@ -157,7 +170,10 @@ export function AccountList({
                     "username,profile_url\n" +
                       selectionScope
                         .filter((a) => activeSelection.has(a.username))
-                        .map((a) => `${a.username},${a.href}`)
+                        .map(
+                          (a) =>
+                            `${a.username},${usableInstagramProfileHref(a) ?? ""}`,
+                        )
                         .join("\n"),
                   ],
                   { type: "text/csv;charset=utf-8" },
@@ -192,27 +208,27 @@ export function AccountList({
               {selectable && (
                 <input
                   type="checkbox"
-                  aria-label={`Select ${a.username}`}
+                  aria-label={`Select ${isDeleted(a) ? "Deleted account" : a.username}`}
                   checked={activeSelection.has(a.username)}
                   onChange={() => toggle(a.username)}
                 />
               )}
               <span className="avatar" aria-hidden="true">
-                {a.username.slice(0, 2).toUpperCase()}
+                {isDeleted(a) ? "DA" : a.username.slice(0, 2).toUpperCase()}
               </span>
               <div>
-                {demo ? (
-                  <strong>@{a.username}</strong>
-                ) : (
+                {profileHref(a) ? (
                   <a
                     className="account-username"
-                    href={a.href}
+                    href={profileHref(a)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     referrerPolicy="no-referrer"
                   >
-                    <strong>@{a.username}</strong>
+                    <strong>{displayName(a)}</strong>
                   </a>
+                ) : (
+                  <strong>{displayName(a)}</strong>
                 )}
                 {showDate && (
                   <small>
@@ -247,9 +263,9 @@ export function AccountList({
               </div>
               {demo ? (
                 <span className="demo-profile">Fictional profile</span>
-              ) : (
+              ) : profileHref(a) ? (
                 <a
-                  href={a.href}
+                  href={profileHref(a)!}
                   target="_blank"
                   rel="noopener noreferrer"
                   referrerPolicy="no-referrer"
@@ -257,7 +273,7 @@ export function AccountList({
                 >
                   View profile
                 </a>
-              )}
+              ) : null}
             </li>
           ))}
         </ul>

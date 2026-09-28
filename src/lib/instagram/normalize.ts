@@ -12,6 +12,20 @@ const reserved = new Set([
   "developer",
   "legal",
 ]);
+// Instagram replaces permanently removed usernames with this sentinel plus a
+// 17-character account identifier encoded with the letters a-j.
+const deletedAccountPattern = /^__deleted__[a-j]{17}$/;
+
+export function isDeletedInstagramAccount(username: string): boolean {
+  return deletedAccountPattern.test(username);
+}
+
+export function usableInstagramProfileHref(
+  entry: Pick<Account, "username" | "href">,
+): string | null {
+  return isDeletedInstagramAccount(entry.username) ? null : entry.href;
+}
+
 export function normalizeUsername(value: unknown): string | null {
   if (typeof value !== "string") return null;
   let name = value.trim();
