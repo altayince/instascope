@@ -147,14 +147,14 @@ describe("selective ZIP import", () => {
     }
     expect(read(zip).following).toEqual([]);
   });
-  it("retains HTML date limitations when the HTML is inside ZIP", async () => {
+  it("retains HTML date precision context when HTML is inside ZIP", async () => {
     const html = strToU8(
       '<a href="https://www.instagram.com/example.friend/">friend</a>',
     );
     const zip = zipSync({ "followers.html": html, "following.html": html });
     expect(
       (await importFiles([asFile(zip)])).metadata.warnings.some((warning) =>
-        warning.includes("HTML timestamps"),
+        warning.includes("HTML does not include a timezone"),
       ),
     ).toBe(true);
   });

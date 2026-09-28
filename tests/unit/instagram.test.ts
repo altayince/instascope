@@ -7,7 +7,11 @@ import {
   normalizeUsername,
 } from "../../src/lib/instagram/normalize";
 import { importDataset, LIMITS } from "../../src/lib/instagram/import";
-import { parseJson } from "../../src/lib/instagram/parsers";
+import {
+  parseHtml,
+  parseHtmlDate,
+  parseJson,
+} from "../../src/lib/instagram/parsers";
 import {
   analyze,
   compareSnapshots,
@@ -16,12 +20,25 @@ const fixture = (name: string) => ({
   name,
   bytes: new Uint8Array(readFileSync(`tests/fixtures/${name}`)),
 });
+const fixtureNamed = (source: string, name: string) => ({
+  ...fixture(source),
+  name,
+});
 const json = (name: string, data: unknown) => ({
   name,
   bytes: strToU8(JSON.stringify(data)),
 });
 const valid = () =>
   importDataset([fixture("followers_1.json"), fixture("following.json")]);
+const htmlDocument = (body: string) =>
+  `<!doctype html><html><body><main>${body}</main></body></html>`;
+const htmlRecord = (username: string, date?: string) => `
+  <div class="pam _3-95 _2ph- _a6-g uiBoxWhite noborder">
+    <div class="_a6-p"><div>
+      <div><a href="https://www.instagram.com/${username}/">${username}</a></div>
+      ${date ? `<div>${date}</div>` : ""}
+    </div></div>
+  </div>`;
 describe("normalization", () => {
   it.each([
     " Alice ",
@@ -124,6 +141,102 @@ describe("archive adapters", () => {
     ]);
     expect(data.followers).toHaveLength(3);
     expect(data.following).toHaveLength(4);
+  });
+  it("reads dated real-shaped Followers and Following HTML records", () => {
+    const data = importDataset([
+      fixtureNamed("followers-dated.html", "followers_1.html"),
+      fixtureNamed("following-dated.html", "following.html"),
+    ]);
+    const precision = "minute-without-timezone" as const;
+
+    expect(data.followers).toEqual([
+      account("dated.follower", Date.UTC(2026, 8, 7, 9, 5) / 1000, precision),
+      account(
+        "midnight.follower",
+        Date.UTC(2024, 0, 1, 0, 0) / 1000,
+        precision,
+      ),
+      account("noon.follower", Date.UTC(2024, 0, 1, 12, 0) / 1000, precision),
+      account("malformed.follower"),
+      account("impossible.follower"),
+      account("undated.follower"),
+    ]);
+    expect(data.following).toEqual([
+      account("dated.following", Date.UTC(2025, 9, 8, 13, 6) / 1000, precision),
+    ]);
+  });
+  it("parses only strict, possible HTML dates", () => {
+    expect(parseHtmlDate("Jan 01, 2024 12:00 am")).toBe(
+      Date.UTC(2024, 0, 1, 0, 0) / 1000,
+    );
+    expect(parseHtmlDate("Jan 01, 2024 12:00 pm")).toBe(
+      Date.UTC(2024, 0, 1, 12, 0) / 1000,
+    );
+    expect(parseHtmlDate("Oct 08, 2025 1:06 pm")).toBe(
+      Date.UTC(2025, 9, 8, 13, 6) / 1000,
+    );
+    expect(parseHtmlDate("Not a date")).toBeUndefined();
+    expect(parseHtmlDate("Feb 30, 2026 9:05 am")).toBeUndefined();
+    expect(parseHtmlDate("Jan 01, 2024 0:00 am")).toBeUndefined();
+    expect(parseHtmlDate("Jan 01, 2024 12:60 pm")).toBeUndefined();
+    expect(parseHtmlDate("Foo 01, 2024 1:00 pm")).toBeUndefined();
+  });
+  it("combines dated split follower HTML files", () => {
+    const data = importDataset([
+      fixtureNamed("followers-dated.html", "followers_1.html"),
+      {
+        name: "followers_2.html",
+        bytes: strToU8(
+          htmlDocument(htmlRecord("split.follower", "Nov 09, 2025 2:07 pm")),
+        ),
+      },
+      fixtureNamed("following-dated.html", "following.html"),
+    ]);
+
+    expect(data.followers).toHaveLength(7);
+    expect(data.followers.at(-1)).toEqual(
+      account(
+        "split.follower",
+        Date.UTC(2025, 10, 9, 14, 7) / 1000,
+        "minute-without-timezone",
+      ),
+    );
+  });
+  it("ignores Instagram links outside core HTML records", () => {
+    const parsed = parseHtml(
+      `<!doctype html><html><body>
+        <header><a href="https://www.instagram.com/not.a.record/">Ignore</a></header>
+        <main>${htmlRecord("actual.record", "Dec 10, 2025 3:08 pm")}</main>
+      </body></html>`,
+      "followers",
+    );
+
+    expect(parsed[0].accounts.map((entry) => entry.username)).toEqual([
+      "actual.record",
+    ]);
+  });
+  it("keeps JSON timestamps exact while matching shared calendar values", () => {
+    const timestamp = Date.UTC(2025, 11, 10, 15, 8) / 1000;
+    const html = parseHtml(
+      htmlDocument(htmlRecord("same.account", "Dec 10, 2025 3:08 pm")),
+      "followers",
+    )[0].accounts[0];
+    const jsonAccount = parseJson(
+      JSON.stringify([
+        {
+          string_list_data: [{ value: "same.account", timestamp }],
+        },
+      ]),
+      "followers",
+    )[0].accounts[0];
+
+    expect({
+      username: html.username,
+      href: html.href,
+      timestamp: html.timestamp,
+    }).toEqual(jsonAccount);
+    expect(html.timestampPrecision).toBe("minute-without-timezone");
+    expect(jsonAccount.timestampPrecision).toBeUndefined();
   });
   it("supports empty explicit JSON lists", () =>
     expect(

@@ -98,7 +98,7 @@ function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
           ),
         ...(inputs.some((file) => /\.html?$/i.test(file.name))
           ? [
-              "HTML timestamps are not interpreted; date sorting is available for JSON exports.",
+              "When present, HTML dates preserve the calendar date and minute shown in the export. HTML does not include a timezone, so these are not exact UTC timestamps.",
             ]
           : []),
       ],

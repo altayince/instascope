@@ -52,7 +52,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "Get useful dates from your own export",
         paragraphs: [
-          "Request Followers and Following with the All time range; JSON is recommended because it can contain relationship timestamps. Some records may lack a usable date, especially in HTML exports. The timeline does not invent dates for them.",
+          "Request Followers and Following with the All time range. JSON can contain exact timestamps; supported HTML records can contain a visible date without a timezone. Some records may lack a usable date in either format, and the timeline does not invent one.",
           "Your archive is analyzed locally in your browser, with no Instagram password. If a period brings an old connection to mind, Relationship Review lets you select it for your own follow-up without changing your Instagram account.",
         ],
       },
@@ -139,7 +139,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "Explore the people behind the counts",
         paragraphs: [
-          "Choose a category, search by username and browse the results in pages of 50. JSON timestamps enable oldest/newest sorting; records without usable dates remain explicitly undated. The relationship timeline groups the dates that actually exist in the export.",
+          "Choose a category, search by username and browse the results in pages of 50. Usable JSON timestamps and supported HTML recorded dates enable oldest/newest sorting; records without usable dates remain explicitly undated. The relationship timeline groups only the dates that actually exist in the export.",
           "Move into Cleaner for a manual review list, compare two exports to inspect changes, or make an aggregate Wrapped card. Your dataset stays available while you navigate between tools in the same tab.",
         ],
       },
@@ -158,14 +158,14 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "Make your following list easier to review",
         paragraphs: [
-          "Start with the accounts you chose to follow. Search for a username, sort alphabetically, or use recorded JSON dates to look at older and newer connections. You can see which relationships are mutual and which accounts do not appear in your followers export.",
+          "Start with the accounts you chose to follow. Search for a username, sort alphabetically, or use recorded dates from supported JSON and HTML exports to look at older and newer connections. You can see which relationships are mutual and which accounts do not appear in your followers export.",
           "An old follow is not automatically a bad follow. InstaScope does not assign an activity score or guess whether a person is worth following; the list gives you context for your own decisions.",
         ],
       },
       {
         title: "What the recorded dates can tell you",
         paragraphs: [
-          "When Instagram supplies a timestamp for a relationship, InstaScope displays it in UTC and makes date sorting available. Missing timestamps stay unavailable, and dates embedded in localized HTML are not inferred.",
+          "When Instagram supplies a usable relationship date, InstaScope displays its calendar date and makes sorting available. JSON timestamps identify an instant; supported HTML dates omit the timezone and are kept as lower-precision recorded dates. Missing or malformed dates stay unavailable.",
           "The timeline groups dates for relationships still present in the export. It cannot reconstruct everyone you ever followed or your historical following total. Two exports are needed to compare their totals and membership.",
         ],
       },

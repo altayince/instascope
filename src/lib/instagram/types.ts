@@ -1,4 +1,10 @@
-export type Account = { username: string; href: string; timestamp?: number };
+export type TimestampPrecision = "minute-without-timezone";
+export type Account = {
+  username: string;
+  href: string;
+  timestamp?: number;
+  timestampPrecision?: TimestampPrecision;
+};
 export type Dataset = {
   followers: Account[];
   following: Account[];
