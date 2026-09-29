@@ -15,6 +15,12 @@ export function ToolExplainer({ slug }: { slug: ToolSlug }) {
         </section>
       ))}
       <p className="notice">
+        {content.guide && (
+          <>
+            <Link href={content.guide.href}>{content.guide.label}</Link>
+            {" · "}
+          </>
+        )}
         <Link href="/how-to-download-instagram-followers-data/">
           Get your Instagram export
         </Link>

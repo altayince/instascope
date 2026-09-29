@@ -6,6 +6,65 @@ export type Article = {
 };
 
 export const articles: Record<string, Article> = {
+  "how-to-view-instagram-profiles-without-an-account": {
+    title: "How to View Instagram Profiles Without an Account",
+    description:
+      "Learn what you can see on Instagram without an account or login, what private profiles hide, and how to view an available Instagram profile picture in full size.",
+    sections: [
+      {
+        heading: "Can you view Instagram without an account?",
+        paragraphs: [
+          "Sometimes, but anonymous access is not guaranteed. What you can see without an Instagram account depends on what Instagram makes publicly accessible at that time. Instagram may show limited profile information, require a login, rate-limit requests or change its public access behavior.",
+          "You can try opening a public profile directly in a browser. If Instagram presents a login screen or withholds the page, InstaScope cannot remove that restriction or provide privileged access.",
+        ],
+      },
+      {
+        heading: "Viewing a public Instagram profile without logging in",
+        paragraphs: [
+          "A public profile may expose a username, profile image, biography or some public posts to an anonymous visitor. Instagram decides which parts are delivered, and a profile being public does not mean every visitor can always browse the complete page without logging in.",
+          "If your goal is specifically the profile image, enter the username in InstaScope's Profile Picture Viewer. Its configured public lookup attempts to retrieve the image Instagram or its public infrastructure makes available; it does not browse the person's posts.",
+        ],
+      },
+      {
+        heading: "Can you view a private Instagram profile without an account?",
+        paragraphs: [
+          "Private posts, private stories, follower-only reels, hidden follower or following information and other follower-only content remain private. InstaScope cannot unlock them, and it does not bypass Instagram authentication or privacy controls.",
+          "Anonymous access rules can also change. A page or field visible today may later require a login, and a failed anonymous request does not establish anything about the account owner.",
+        ],
+      },
+      {
+        heading: "Can you view a private Instagram profile picture?",
+        paragraphs: [
+          "A private Instagram account does not mean every piece of profile information is secret. Its posts and other follower-only content remain private. If Instagram makes the account's profile image publicly available, InstaScope may be able to show that image in a larger viewer.",
+          "Profile-picture availability is conditional. Instagram may omit the image, require login or limit the public lookup, so a private or public account's picture is never guaranteed to load.",
+        ],
+      },
+      {
+        heading: "View an available Instagram profile picture in full size",
+        paragraphs: [
+          "Open the Instagram Profile Picture Viewer and enter a username, @username or profile URL. When the configured public lookup returns an available image, InstaScope displays it with zoom, square or circular preview, and fullscreen controls.",
+          "InstaScope does not ask for your Instagram login or password for this lookup. Only the username you enter is sent to the configured photo service, and the result remains subject to Instagram's public delivery and rate limits.",
+        ],
+      },
+      {
+        heading: "What InstaScope cannot show",
+        paragraphs: [
+          "InstaScope cannot show private posts, private stories, follower-only reels, hidden follower or following lists, or other follower-only content. It cannot turn a profile image into access to the rest of an account.",
+          "Be cautious with services that promise unrestricted access to private Instagram content or ask for credentials. InstaScope's viewer is limited to a profile image that public infrastructure actually supplies, when available.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/profile-picture-viewer/",
+        label: "View an available Instagram profile picture",
+      },
+      {
+        href: "/is-instagram-follower-tracker-safe/",
+        label: "Review Instagram tool safety questions",
+      },
+    ],
+  },
   "instagram-sent-follow-requests": {
     title: "How to see follow requests you sent on Instagram",
     description:

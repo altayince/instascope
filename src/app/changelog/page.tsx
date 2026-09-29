@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 62,
+    title: "Explain viewing Instagram without an account",
+    summary:
+      "A new guide explains the limits of anonymous public-profile access, keeps private content private and leads to the existing viewer only when a profile image is publicly available.",
+  },
+  {
     issue: 60,
     title: "Add three informational Instagram search guides",
     summary:
