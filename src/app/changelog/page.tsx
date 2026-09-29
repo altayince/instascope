@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 60,
+    title: "Add three informational Instagram search guides",
+    summary:
+      "New guides explain how to review exported sent requests, interpret recorded follow dates and distinguish one-way relationships from followers missing between two snapshots.",
+  },
+  {
     issue: 58,
     title: "Keep deleted export accounts from linking to Instagram",
     summary:

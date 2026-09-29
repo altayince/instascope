@@ -6,6 +6,7 @@ const guides = [
     title: "How to see follow requests you sent on Instagram | InstaScope",
     primary: "/pending-follow-requests/",
     secondary: null,
+    question: "/how-to-see-who-you-requested-to-follow-on-instagram/",
     facts: [
       "optional sent follow requests category",
       "cannot confirm today's status",
@@ -17,6 +18,7 @@ const guides = [
     title: "How to find your oldest recorded Instagram follows | InstaScope",
     primary: "/relationship-timeline/",
     secondary: "/instagram-cleaner/",
+    question: "/how-to-see-when-you-followed-someone-on-instagram/",
     facts: [
       "oldest recorded follow among accounts still in that list",
       "its date stays unknown",
@@ -30,6 +32,7 @@ const guides = [
       "How to compare Instagram follower changes between exports | InstaScope",
     primary: "/snapshot-comparison/",
     secondary: "/relationship-timeline/",
+    question: "/can-you-see-who-unfollowed-you-on-instagram/",
     facts: [
       "newer file first and the older file second",
       "new and lost mutuals",
@@ -73,11 +76,12 @@ test("three focused guides answer their intent and lead to working tools", async
       name: "Put this guide into practice",
     });
     const links = await practice.locator("ul a").all();
-    expect(links.length).toBe(guide.secondary ? 2 : 1);
+    expect(links.length).toBe(guide.secondary ? 3 : 2);
     await expect(links[0]).toHaveAttribute("href", guide.primary);
     if (guide.secondary) {
       await expect(links[1]).toHaveAttribute("href", guide.secondary);
     }
+    await expect(links.at(-1)!).toHaveAttribute("href", guide.question);
     await expect(
       practice.getByRole("link", { name: "Get the right Instagram export" }),
     ).toHaveAttribute("href", "/how-to-download-instagram-followers-data/");
