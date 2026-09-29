@@ -37,6 +37,48 @@ export const articles: Record<string, Article> = {
         href: "/pending-follow-requests/",
         label: "Review sent requests in your export",
       },
+      {
+        href: "/how-to-see-who-you-requested-to-follow-on-instagram/",
+        label: "See the step-by-step sent-request method",
+      },
+    ],
+  },
+  "how-to-see-who-you-requested-to-follow-on-instagram": {
+    title: "How to See Who You Requested to Follow on Instagram",
+    description:
+      "Use your Instagram export to review sent follow-request records without a password, and understand why an exported request may no longer be pending.",
+    sections: [
+      {
+        heading: "Use your sent follow-request records",
+        paragraphs: [
+          "You can see accounts recorded as sent follow requests by requesting your own Instagram information and including the optional sent follow requests category. Open that export in InstaScope's Pending Requests tool to search the supplied records; no Instagram password is required for the analysis.",
+          "The result describes the moment the export was prepared. A request listed there was pending at that time, but it may have been accepted, declined or cancelled since then. InstaScope does not check the account's live status or cancel requests for you.",
+        ],
+      },
+      {
+        heading: "Request an export that includes the optional list",
+        paragraphs: [
+          "In Instagram's Accounts Center, request a download of your information with Followers and Following plus the sent follow requests category. Choose All time and JSON when those options are available, then download the ZIP from Instagram and select it in InstaScope.",
+          "If the category was not included, InstaScope reports it as missing instead of showing a misleading zero. Request a new export with that category selected; the standard Followers and Following lists cannot recreate sent requests that are absent from the download.",
+        ],
+      },
+      {
+        heading: "Review the recorded accounts yourself",
+        paragraphs: [
+          "Sort dated records to bring older requests into view, search for an account and then check Instagram before taking action. Export dates are evidence about the supplied file, not proof of what is pending today.",
+          "The archive is analyzed locally in your browser. InstaScope does not receive your Instagram credentials, follow accounts or automatically withdraw requests.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/instagram-sent-follow-requests/",
+        label: "Understand exported sent-request records",
+      },
+      {
+        href: "/pending-follow-requests/",
+        label: "Review requests in your export",
+      },
     ],
   },
   "oldest-instagram-follows": {
@@ -71,6 +113,48 @@ export const articles: Record<string, Article> = {
         label: "Explore your follow-date timeline",
       },
       { href: "/instagram-cleaner/", label: "Review old connections manually" },
+      {
+        href: "/how-to-see-when-you-followed-someone-on-instagram/",
+        label: "Check what a recorded follow date means",
+      },
+    ],
+  },
+  "how-to-see-when-you-followed-someone-on-instagram": {
+    title: "How to See When You Followed Someone on Instagram",
+    description:
+      "Find a recorded Instagram follow date in your export, sort dated current follows and understand what the timestamp cannot prove.",
+    sections: [
+      {
+        heading: "Look for a timestamp in your Following export",
+        paragraphs: [
+          "Instagram exports may attach a timestamp to an account in your current Following list. InstaScope reads supported timestamps, lets you sort recorded follows by date and places dated relationships in the Relationship Timeline. Search the list for the username when you want to check one account.",
+          "If the record has no usable timestamp, the date remains unknown. InstaScope does not estimate a missing value from list order, account age or other relationships.",
+        ],
+      },
+      {
+        heading: "Interpret the recorded date carefully",
+        paragraphs: [
+          "A timestamp can identify the date attached to that current Following record. It does not prove that you followed the account without interruption from that day, because the export does not reconstruct every unfollow and refollow event.",
+          "The date is also not necessarily the first time you ever followed that person, and it is not the creation date of either Instagram account. Supported HTML exports can include a visible date without a timezone, while JSON may provide a precise timestamp; InstaScope preserves those limits instead of inventing precision.",
+        ],
+      },
+      {
+        heading: "Find your oldest recorded current follows",
+        paragraphs: [
+          "Request Followers and Following with All time coverage, preferably in JSON, then select the ZIP in InstaScope. Sort the Following view oldest first or browse the Relationship Timeline by year and month. The earliest result is the oldest usable date among current relationships in that export.",
+          "Analysis happens locally in your browser and does not require your Instagram password. Any undated account stays visible in the relationship lists even though it cannot be placed on the dated timeline.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/oldest-instagram-follows/",
+        label: "Find your oldest recorded current follows",
+      },
+      {
+        href: "/relationship-timeline/",
+        label: "Explore recorded follow dates",
+      },
     ],
   },
   "instagram-follower-changes": {
@@ -107,6 +191,56 @@ export const articles: Record<string, Article> = {
       {
         href: "/relationship-timeline/",
         label: "Explore recorded follow dates",
+      },
+      {
+        href: "/can-you-see-who-unfollowed-you-on-instagram/",
+        label: "Understand what an unfollower comparison can prove",
+      },
+    ],
+  },
+  "can-you-see-who-unfollowed-you-on-instagram": {
+    title: "Can You See Who Unfollowed You on Instagram?",
+    description:
+      "Learn what one Instagram export can show, how two follower snapshots reveal missing accounts and why that still cannot prove an intentional unfollow.",
+    sections: [
+      {
+        heading: "One export shows current one-way relationships",
+        paragraphs: [
+          "A single Instagram export can show accounts in your Following list that are absent from your Followers list. InstaScope calls these accounts Not Following Back. That comparison answers who does not appear to follow you in the supplied snapshot; it does not show who unfollowed you.",
+          "Someone in that result may never have followed you. A missing, incomplete or date-limited Followers file can also affect the list, so a one-export result is not evidence of a change over time.",
+        ],
+      },
+      {
+        heading: "Two comparable snapshots can show who is missing",
+        paragraphs: [
+          "To check follower changes, keep an older export and request a newer export from the same Instagram account with comparable Followers and Following coverage. Snapshot Comparison matches normalized usernames and can show accounts present in the older Followers list but missing from the newer one.",
+          "The accurate description is missing between snapshots. The exports do not say exactly when the change happened or why. An actual unfollow is one possibility, but a username change, account deactivation or deletion, or a problem or difference in an export can produce the same observation.",
+        ],
+      },
+      {
+        heading: "InstaScope compares only the files you provide",
+        paragraphs: [
+          "InstaScope does not continuously monitor your Instagram account and has no access to Instagram's private account history. It analyzes the older and newer files you deliberately select, locally in your browser and without asking for your Instagram password.",
+          "Use Not Following Back when you want a current relationship review. Use Snapshot Comparison when you have two valid exports and want to describe additions and absences between their recorded points in time.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/instagram-follower-changes/",
+        label: "Learn how follower snapshot changes are calculated",
+      },
+      {
+        href: "/instagram-unfollowers-without-password/",
+        label: "Compare followers without sharing a password",
+      },
+      {
+        href: "/snapshot-comparison/",
+        label: "Compare two follower snapshots",
+      },
+      {
+        href: "/not-following-back/",
+        label: "Review one-way relationships in one export",
       },
     ],
   },
@@ -176,6 +310,10 @@ export const articles: Record<string, Article> = {
         label: "Compare your follower snapshots",
       },
       { href: "/not-following-back/", label: "Analyze one export instead" },
+      {
+        href: "/can-you-see-who-unfollowed-you-on-instagram/",
+        label: "See what unfollower evidence actually establishes",
+      },
     ],
   },
   "is-instagram-follower-tracker-safe": {
