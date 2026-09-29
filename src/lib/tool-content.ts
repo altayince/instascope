@@ -3,6 +3,7 @@ type Content = {
   seoTitle: string;
   sections: { title: string; paragraphs: string[] }[];
   related?: ToolSlug[];
+  guide?: { href: string; label: string };
 };
 export const toolContent: Partial<Record<ToolSlug, Content>> = {
   "pending-follow-requests": {
@@ -267,6 +268,10 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
   },
   "profile-picture-viewer": {
     seoTitle: "Instagram Profile Picture Viewer — Public Photos",
+    guide: {
+      href: "/how-to-view-instagram-profiles-without-an-account/",
+      label: "Learn what you can view on Instagram without an account",
+    },
     sections: [
       {
         title: "A closer look at a publicly available photo",
