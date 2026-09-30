@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 64,
+    title: "Make Wrapped a shareable relationship story pack",
+    summary:
+      "Colorful portrait stories reveal your social orbit, recorded eras, earliest-year mutuals and the changes behind follower totals. Swipe through cards, save a Story-sized PNG or send it through your phone's share menu. Usernames and private lists stay off the cards.",
+  },
+  {
     issue: 62,
     title: "Explain viewing Instagram without an account",
     summary:
