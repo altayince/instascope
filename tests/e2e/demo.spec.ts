@@ -162,7 +162,7 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
   const drawn = await page.evaluate(
     () => (window as unknown as { drawnTexts: string[] }).drawnTexts,
   );
-  expect(drawn).toContain("DEMO DATA - FICTIONAL EXAMPLE");
+  expect(drawn).toContain("DEMO DATA · FICTIONAL EXAMPLE");
   await page
     .getByRole("button", { name: "Use my own export", exact: true })
     .click();

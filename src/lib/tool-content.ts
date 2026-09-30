@@ -246,7 +246,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "A small story pack from your own records",
         paragraphs: [
-          "Browse separate portrait cards for your current circle, recorded follow dates, a year with many surviving dated follows, and changes between two exports. Only stories supported by your supplied files appear; each downloads as a 1080 by 1920 PNG.",
+          "Find your social orbit, your most represented follow year and month, and mutuals from your earliest recorded era. Compare two exports to see the changes behind the net total. Swipe between colorful portrait cards; every supported story has its own 1080 by 1920 PNG.",
           "These are export-based relationship stories, not an official Instagram annual report. A date on a current follow does not prove an uninterrupted relationship, and one export cannot reconstruct historical follower totals.",
         ],
       },
@@ -260,7 +260,7 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
       {
         title: "The available stories follow the available evidence",
         paragraphs: [
-          "The timeline card needs at least one usable current-follow date. The year-cohort card needs dated follows in more than one year. Missing dates remain unknown, and a tie for the largest year resolves to the earliest year.",
+          "Date stories use surviving current-follow records, not all follows ever made. Year and month stories need more than one recorded period; ties resolve to the earliest period. The time capsule needs a mutual from the earliest recorded follow year and dates spanning multiple years. Missing dates stay unknown; HTML dates carry no timezone.",
           "The changes card appears only after an older and newer export have been supplied. Added and missing accounts and net deltas describe those two snapshots, without claiming exactly when or why relationships changed.",
         ],
       },
