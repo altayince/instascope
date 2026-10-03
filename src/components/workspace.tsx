@@ -416,15 +416,20 @@ export function Workspace({
                 <h3>{categories[category][0]}</h3>
                 <p>{categories[category][1]}</p>
                 {category === "followers" && (
-                  <p>
-                    When did someone follow you? Search for a username or sort
-                    followers by oldest or newest recorded date. Dates appear
-                    only where Instagram supplied them; missing dates stay
-                    unavailable.{" "}
-                    <Link href="/relationship-timeline/?direction=followers">
+                  <>
+                    <p>
+                      When did someone follow you? Search for a username or sort
+                      followers by oldest or newest recorded date. Dates appear
+                      only where Instagram supplied them; missing dates stay
+                      unavailable.
+                    </p>
+                    <Link
+                      href="/relationship-timeline/?direction=followers"
+                      className="button secondary"
+                    >
                       Explore follower dates
                     </Link>
-                  </p>
+                  </>
                 )}
               </div>
               <AccountList
