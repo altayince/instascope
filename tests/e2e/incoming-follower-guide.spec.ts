@@ -157,7 +157,7 @@ test("guide CTA opens Followers and its documented search and oldest-date sortin
   ).toHaveAttribute("aria-pressed", "true");
   await page
     .getByLabel("Sort accounts")
-    .selectOption({ label: "Oldest follows" });
+    .selectOption({ label: "Oldest recorded followers" });
   await expect(page.locator(".accounts li").first()).toContainText(
     "@sample.earliest",
   );

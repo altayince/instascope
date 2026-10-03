@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 68,
+    title: "Make recorded follower dates easier to find",
+    summary:
+      "The homepage, Followers overview and follower-date guide now lead directly to the incoming direction in Relationship Timeline. Clear follower-specific sorting labels explain how to search and find the oldest supplied dates without implying a complete history.",
+  },
+  {
     issue: 66,
     title: "Explain when someone followed you on Instagram",
     summary:

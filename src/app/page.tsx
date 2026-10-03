@@ -16,6 +16,7 @@ const homepageTools: {
   slug: ToolSlug;
   title: string;
   description: string;
+  href?: string;
 }[] = [
   {
     slug: "followers-analyzer",
@@ -31,9 +32,10 @@ const homepageTools: {
   },
   {
     slug: "relationship-timeline",
-    title: "Relationship history",
+    title: "When did someone follow me?",
+    href: "/relationship-timeline/?direction=followers",
     description:
-      "Explore recorded follow dates and the current connections behind each period.",
+      "Search for a follower, see their recorded date and find your earliest recorded followers. Dates come from your export, where available.",
   },
   {
     slug: "snapshot-comparison",
@@ -185,10 +187,10 @@ export default function Home() {
           <h2>Review your circle, your way.</h2>
         </div>
         <div className="feature-grid">
-          {homepageTools.map(({ slug, title, description }) => (
+          {homepageTools.map(({ slug, title, description, href }) => (
             <Link
               key={slug}
-              href={`/${slug}/`}
+              href={href ?? `/${slug}/`}
               className={`feature-card ${slug}`}
             >
               <span className="tool-kind">
