@@ -175,6 +175,7 @@ export function Workspace({
       {!dataset && (
         <>
           <SavedSnapshotNotice />
+          {mode === "timeline" && <RelationshipTimeline dataset={null} />}
           <Upload
             label={
               mode === "comparison"
@@ -414,11 +415,32 @@ export function Workspace({
               <div className="list-heading">
                 <h3>{categories[category][0]}</h3>
                 <p>{categories[category][1]}</p>
+                {category === "followers" && (
+                  <>
+                    <p>
+                      When did someone follow you? Search for a username or sort
+                      followers by oldest or newest recorded date. Dates appear
+                      only where Instagram supplied them; missing dates stay
+                      unavailable.
+                    </p>
+                    <Link
+                      href="/relationship-timeline/?direction=followers"
+                      className="button secondary"
+                    >
+                      Explore follower dates
+                    </Link>
+                  </>
+                )}
               </div>
               <AccountList
                 demo={dataset.metadata.demo}
                 key={`${dataset.metadata.parsedAt}-${mode}`}
                 accounts={analysis[category]}
+                dateDirection={
+                  category === "followers" || category === "fans"
+                    ? "followers"
+                    : "following"
+                }
               />
             </>
           )}

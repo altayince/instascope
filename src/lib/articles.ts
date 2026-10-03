@@ -45,7 +45,8 @@ export const articles: Record<string, Article> = {
       {
         heading: "How to find your earliest Instagram followers",
         paragraphs: [
-          "In Followers, clear the username search and choose Oldest follows in the Sort accounts menu. Dated follower records appear oldest first; undated accounts stay at the end. To inspect the newest recorded dates instead, choose Recently followed while keeping Followers selected.",
+          "In Followers, clear the username search and choose Oldest recorded followers in the Sort accounts menu. Dated follower records appear oldest first; undated accounts stay at the end. To inspect the newest recorded dates instead, choose Newest recorded followers while keeping Followers selected.",
+          "Use Explore follower dates below to open Relationship Timeline with Accounts that follow you already selected. After opening your export, the account list starts with the oldest recorded followers. Search for one username or explore the dates by year or month.",
           "The first dated result is your earliest recorded follower among the usable records in that export. It is not necessarily your first-ever follower: older relationships may be absent, an account may have followed again, or some records may have no date. Requesting All time coverage helps avoid a deliberately limited range but does not reconstruct missing history.",
         ],
       },
@@ -76,6 +77,10 @@ export const articles: Record<string, Article> = {
       },
     ],
     links: [
+      {
+        href: "/relationship-timeline/?direction=followers",
+        label: "Explore follower dates — when did someone follow you?",
+      },
       {
         href: "/followers-analyzer/",
         label: "Check your recorded follower dates in Followers Analyzer",

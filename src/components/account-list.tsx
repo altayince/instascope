@@ -21,6 +21,7 @@ export function AccountList({
   context,
   showDate = true,
   sortDates = true,
+  dateDirection,
 }: {
   accounts: Account[];
   selectable?: boolean;
@@ -35,6 +36,7 @@ export function AccountList({
   context?: ReadonlyMap<string, string[]>;
   showDate?: boolean;
   sortDates?: boolean;
+  dateDirection?: "followers" | "following";
 }) {
   const [query, setQuery] = useState(""),
     [sort, setSort] = useState(initialSort),
@@ -126,10 +128,18 @@ export function AccountList({
           >
             <option value="az">Username A–Z</option>
             <option value="newest">
-              {dateLabel ? "Newest recorded date" : "Recently followed"}
+              {dateDirection === "followers"
+                ? "Newest recorded followers"
+                : dateLabel
+                  ? "Newest recorded date"
+                  : "Recently followed"}
             </option>
             <option value="oldest">
-              {dateLabel ? "Oldest recorded date" : "Oldest follows"}
+              {dateDirection === "followers"
+                ? "Oldest recorded followers"
+                : dateLabel
+                  ? "Oldest recorded date"
+                  : "Oldest follows"}
             </option>
           </select>
         )}

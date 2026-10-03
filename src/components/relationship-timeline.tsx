@@ -1,13 +1,52 @@
 "use client";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Dataset } from "@/lib/instagram/types";
 import { relationshipTimeline, utcDate } from "@/lib/analysis/insights";
 import { AccountList } from "./account-list";
 
-export function RelationshipTimeline({ dataset }: { dataset: Dataset }) {
+export function RelationshipTimeline({ dataset }: { dataset: Dataset | null }) {
+  return (
+    <Suspense fallback={dataset ? <p>Loading recorded dates…</p> : null}>
+      <TimelineEntry dataset={dataset} />
+    </Suspense>
+  );
+}
+
+function TimelineEntry({ dataset }: { dataset: Dataset | null }) {
+  const params = useSearchParams();
+  const initialDirection =
+    params.get("direction") === "followers" ? "followers" : "following";
+  if (!dataset)
+    return initialDirection === "followers" ? (
+      <div className="list-heading">
+        <h2>When did someone follow me?</h2>
+        <p>
+          Open your Instagram export to explore accounts that follow you, oldest
+          recorded dates first. Search for a username; dates appear only where
+          Instagram supplied a usable value.
+        </p>
+      </div>
+    ) : null;
+  return (
+    <Timeline
+      key={initialDirection}
+      dataset={dataset}
+      initialDirection={initialDirection}
+    />
+  );
+}
+
+function Timeline({
+  dataset,
+  initialDirection,
+}: {
+  dataset: Dataset;
+  initialDirection: "followers" | "following";
+}) {
   const [granularity, setGranularity] = useState<"year" | "month">("year");
   const [direction, setDirection] = useState<"following" | "followers">(
-    "following",
+    initialDirection,
   );
   const [period, setPeriod] = useState("");
   const [page, setPage] = useState(0);
@@ -146,6 +185,7 @@ export function RelationshipTimeline({ dataset }: { dataset: Dataset }) {
         key={`${direction}:${period}`}
         accounts={accounts}
         dateLabel="Relationship recorded"
+        dateDirection={direction}
         initialSort="oldest"
       />
     </section>

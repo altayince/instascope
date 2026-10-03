@@ -33,7 +33,7 @@ test("homepage leads with relationship review and keeps every tool and demo usab
   ).toEqual([
     "/followers-analyzer/",
     "/pending-follow-requests/",
-    "/relationship-timeline/",
+    "/relationship-timeline/?direction=followers",
     "/snapshot-comparison/",
     "/instagram-cleaner/",
     "/unfollow-history/",
