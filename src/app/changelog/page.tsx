@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 66,
+    title: "Explain when someone followed you on Instagram",
+    summary:
+      "A dedicated guide explains recorded incoming follower dates, earliest-follower sorting and missing-date limits, with links to Followers Analyzer and the separate guide for accounts you followed.",
+  },
+  {
     issue: 64,
     title: "Make Wrapped a shareable relationship story pack",
     summary:
