@@ -6,6 +6,90 @@ export type Article = {
 };
 
 export const articles: Record<string, Article> = {
+  "how-to-see-when-someone-followed-you-on-instagram": {
+    title: "How to See When Someone Followed You on Instagram",
+    description:
+      "You can check a recorded follower date in your Instagram export when a usable date is included. Search and sort your Followers privately with InstaScope.",
+    sections: [
+      {
+        heading: "Check the date in your Followers records",
+        paragraphs: [
+          "To see when someone followed you on Instagram, look for their username in the Followers list in your own data export. If Instagram included a usable timestamp or a supported HTML date for that record, InstaScope can display it. This is the date attached to the exported relationship, not a guarantee of the first time that person ever followed you.",
+          "Followers means accounts following you. Following means accounts you follow. For this question, select Followers in the analyzer; checking the other list answers a different question, even when the same username appears in both.",
+        ],
+      },
+      {
+        heading: "Can Instagram show when someone followed you?",
+        paragraphs: [
+          "Do not rely on Instagram's Followers screen to expose an exact follow date for every account. A current follower list is not a complete, dated history of everyone who has followed you. Instagram's interface can vary, and an account's position in a list is not evidence of a particular date.",
+          "If you see a date-followed sorting option in your own Following list, that concerns accounts you followed, not the date they followed you. For a recorded incoming follower date, check the Followers records in your export instead. InstaScope cannot retrieve a missing date from a public profile or query Instagram's live relationship history.",
+        ],
+      },
+      {
+        heading: "How follower dates work in an Instagram data export",
+        paragraphs: [
+          "Supported JSON follower records can include a username, profile link and numeric timestamp. Supported HTML follower records can include an Instagram profile link and a visible date. InstaScope keeps usable dates associated with the correct accounts and shows them in the Followers view.",
+          "JSON timestamps represent instants; the account list displays their calendar dates using UTC. Supported HTML dates have no timezone, so InstaScope preserves the recorded calendar date without claiming an exact UTC event time. Missing, malformed or unsupported dates display as Date unavailable, while the accounts remain in the list.",
+          "A dated record does not establish uninterrupted following, explain an unfollow and refollow, or reveal account creation time. These files describe the supplied snapshot. They do not provide a complete history of past followers or historical follower totals.",
+        ],
+      },
+      {
+        heading: "How to check follower history using InstaScope",
+        paragraphs: [
+          "1. Request your own Instagram information through Accounts Center. Include both Followers and Following and choose the All time range when available. JSON is recommended; supported HTML relationship files also work. The export guide below walks through obtaining the files.",
+          "2. Open Followers Analyzer and select the ZIP from your device. If you use extracted files, select every numbered followers part, such as followers_1.json and followers_2.json, together with following.json. Leaving out a followers part can leave out the account you are looking for.",
+          "3. Select Followers and enter the username in Search accounts. Read the date shown beneath that account. A missing search result means the account is absent from the loaded list, not proof that it never followed you. If the row says Date unavailable, InstaScope has no usable source date to show.",
+          "The archive is processed locally in your browser. You sign in to Instagram to request your information, but InstaScope does not ask for your Instagram password or upload the archive for analysis.",
+        ],
+      },
+      {
+        heading: "How to find your earliest Instagram followers",
+        paragraphs: [
+          "In Followers, clear the username search and choose Oldest follows in the Sort accounts menu. Dated follower records appear oldest first; undated accounts stay at the end. To inspect the newest recorded dates instead, choose Recently followed while keeping Followers selected.",
+          "The first dated result is your earliest recorded follower among the usable records in that export. It is not necessarily your first-ever follower: older relationships may be absent, an account may have followed again, or some records may have no date. Requesting All time coverage helps avoid a deliberately limited range but does not reconstruct missing history.",
+        ],
+      },
+      {
+        heading: "When you followed someone versus when someone followed you",
+        paragraphs: [
+          "If you ask when did someone follow me on Instagram, use their Followers record. If you ask when you followed them, use their Following record. Mutual accounts can have two different recorded dates; one direction cannot establish the date in the other direction.",
+          "The separate guide on when you followed someone covers the outgoing relationship. Its oldest-follows companion also concerns people you follow. Use the Followers Analyzer link below for incoming followers and their recorded dates.",
+        ],
+      },
+      {
+        heading: "FAQ: Can I find the exact first day someone followed me?",
+        paragraphs: [
+          "You can inspect the date Instagram supplied for the current follower record, when present. The export does not prove that this was their first-ever follow or that they followed continuously afterward. InstaScope does not turn a recorded date into that stronger claim.",
+        ],
+      },
+      {
+        heading: "FAQ: Why does a follower say Date unavailable?",
+        paragraphs: [
+          "The imported record has no usable date in a supported format. InstaScope preserves the account rather than guessing from list position, another account's date or the day you uploaded the ZIP. A new export may contain different information, but cannot be guaranteed to restore that date.",
+        ],
+      },
+      {
+        heading: "FAQ: Can I check dates for someone else's followers?",
+        paragraphs: [
+          "This method uses your own Instagram export. Entering another person's public username cannot reveal dates for their follower relationships. InstaScope does not access private account history or offer a live follower-date lookup.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/followers-analyzer/",
+        label: "Check your recorded follower dates in Followers Analyzer",
+      },
+      {
+        href: "/how-to-see-when-you-followed-someone-on-instagram/",
+        label: "Looking for when you followed someone instead?",
+      },
+      {
+        href: "/oldest-instagram-follows/",
+        label: "Find your oldest outgoing follows instead",
+      },
+    ],
+  },
   "how-to-view-instagram-profiles-without-an-account": {
     title: "How to View Instagram Profiles Without an Account",
     description:
@@ -213,6 +297,10 @@ export const articles: Record<string, Article> = {
       {
         href: "/relationship-timeline/",
         label: "Explore recorded follow dates",
+      },
+      {
+        href: "/how-to-see-when-someone-followed-you-on-instagram/",
+        label: "Check when someone followed you instead",
       },
     ],
   },
