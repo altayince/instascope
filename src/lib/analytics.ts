@@ -1,4 +1,5 @@
 export const events = [
+  "dashboard_opened",
   "landing_viewed",
   "parser_started",
   "parser_succeeded",

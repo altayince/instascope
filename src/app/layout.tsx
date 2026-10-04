@@ -37,6 +37,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               insta<span>scope</span>
             </Link>
             <nav aria-label="Main navigation">
+              <Link href="/dashboard/">Dashboard</Link>
               <Link href="/pending-follow-requests/">Requests</Link>
               <Link href="/relationship-timeline/">Timeline</Link>
               <Link href="/unfollow-history/">Your unfollows</Link>
