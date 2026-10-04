@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 70,
+    title: "Bring your circle together in a private dashboard",
+    summary:
+      "A new Dashboard brings export counts, recorded-date coverage and grouped tools into one starting point. Navigate between tools with your loaded data intact, explore follower dates directly, and see which optional records are available. The homepage remains the public entry point.",
+  },
+  {
     issue: 68,
     title: "Make recorded follower dates easier to find",
     summary:
