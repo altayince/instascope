@@ -1598,10 +1598,20 @@ footer > small {
   object-fit: contain;
 }
 .photo-preview:fullscreen {
+  margin: 0;
   width: 100vw;
   height: 100vh;
   max-width: none;
+  aspect-ratio: auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   border-radius: 0;
+}
+.photo-preview:fullscreen img {
+  min-width: 0;
+  min-height: 0;
+  /* Fit the complete photo while leaving the normal preview's zoom intact. */
+  transform: none !important;
 }
 .photo-controls {
   display: flex;

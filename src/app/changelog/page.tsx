@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 80,
+    title: "Fit the complete profile photo in fullscreen without cropping",
+    summary:
+      "Fullscreen now fits the complete original or AI-enhanced photo to the screen. Preview zoom and circular clipping do not carry into fullscreen, and the selected preview settings remain intact when you exit.",
+  },
+  {
     issue: 78,
     title: "Restore public photos with local AI at 1080px",
     summary:

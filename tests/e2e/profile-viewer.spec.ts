@@ -22,6 +22,41 @@ async function submit(page: Page, value = "@Sample.Account") {
 }
 const alert = (page: Page) => page.getByRole("main").getByRole("alert");
 
+async function checkFullscreenFit(page: Page) {
+  const preview = page.locator(".photo-preview");
+  const photo = preview.locator("img");
+  // Exercise the real Fullscreen API, not a mocked fullscreen class/state.
+  await page.getByRole("button", { name: "Fullscreen", exact: true }).click();
+  await expect
+    .poll(() => preview.evaluate((node) => document.fullscreenElement === node))
+    .toBe(true);
+  await expect(preview).toHaveCSS("margin", "0px");
+  await expect(preview).toHaveCSS("border-radius", "0px");
+  await expect(photo).toHaveCSS("object-fit", "contain");
+  await expect(photo).toHaveCSS("transform", "none");
+  const bounds = await preview.evaluate((node) => {
+    const frame = node.getBoundingClientRect();
+    const image = node.querySelector("img")!.getBoundingClientRect();
+    return {
+      coversScreen:
+        Math.abs(frame.left) < 2 &&
+        Math.abs(frame.top) < 2 &&
+        Math.abs(frame.width - innerWidth) < 2 &&
+        Math.abs(frame.height - innerHeight) < 2,
+      imageInsideFrame:
+        image.left >= frame.left - 1 &&
+        image.top >= frame.top - 1 &&
+        image.right <= frame.right + 1 &&
+        image.bottom <= frame.bottom + 1,
+    };
+  });
+  expect(bounds).toEqual({ coversScreen: true, imageInsideFrame: true });
+  await page.evaluate(() => document.exitFullscreen());
+  await expect
+    .poll(() => page.evaluate(() => document.fullscreenElement))
+    .toBeNull();
+}
+
 test("deployment fallback is safe when the build is unconfigured or its API route is missing", async ({
   page,
 }) => {
@@ -107,6 +142,60 @@ test("configured same-origin lookup displays a verified photo and keeps preview 
     ),
   ).toContain("profile_succeeded");
 });
+
+for (const [shape, width, height] of [
+  ["square", 1080, 1080],
+  ["portrait", 400, 800],
+  ["landscape", 800, 400],
+] as const) {
+  test(`fullscreen fits the complete ${shape} photo and preserves preview settings on exit`, async ({
+    page,
+  }) => {
+    const photoBytes = await sharp({
+      create: {
+        width,
+        height,
+        channels: 3,
+        background: "#b9d5c6",
+      },
+    })
+      .png()
+      .toBuffer();
+    await page.route(endpoint, (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ username: "sample.account", imageUrl }),
+      }),
+    );
+    await page.route(imageUrl, (route) =>
+      route.fulfill({ contentType: "image/png", body: photoBytes }),
+    );
+    await open(page);
+    await submit(page);
+    const preview = page.locator(".photo-preview");
+    const photo = preview.locator("img");
+    await expect
+      .poll(() =>
+        photo.evaluate((img) => (img as HTMLImageElement).naturalWidth),
+      )
+      .toBe(width);
+    for (const zoom of [1, 3]) {
+      await page.getByLabel("Circular preview").setChecked(zoom === 3);
+      const slider = page.getByRole("slider", { name: "Zoom" });
+      await slider.press(zoom === 3 ? "End" : "Home");
+      const transform = `matrix(${zoom}, 0, 0, ${zoom}, 0, 0)`;
+      await expect(photo).toHaveCSS("transform", transform);
+      await checkFullscreenFit(page);
+      await expect(preview).toHaveCSS(
+        "border-radius",
+        zoom === 3 ? "50%" : "0px",
+      );
+      await expect(photo).toHaveCSS("transform", transform);
+      await expect(photo).toHaveAttribute("src", imageUrl);
+      await expect(slider).toHaveValue(String(zoom));
+    }
+  });
+}
 
 for (const [status, code, message] of [
   [503, "service_not_configured", "not available on this deployment"],
@@ -348,6 +437,7 @@ test("local AI inference produces a 1080px PNG and preserves original comparison
   expect(
     await photo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
   ).toBe(1080);
+  await checkFullscreenFit(page);
   await expect(
     page.getByText("can change facial features", { exact: false }),
   ).toBeVisible();
