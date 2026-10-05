@@ -225,6 +225,13 @@ test("HTML is parsed without fetching or executing its contents", async ({
 test("profile viewer normalizes URLs and degrades independently", async ({
   page,
 }) => {
+  await page.route("**/api/profile-picture?*", (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "service_not_configured" }),
+    }),
+  );
   await page.goto("/profile-picture-viewer/");
   await page
     .getByLabel("Instagram username or profile URL")

@@ -13,4 +13,23 @@
     },
   ],
   "observability": { "enabled": false },
+  "env": {
+    "production": {
+      "name": "instascope-public-photo",
+      "vars": { "ENABLE_PUBLIC_LOOKUP": "true" },
+      "routes": [
+        {
+          "pattern": "instascope.me/api/profile-picture*",
+          "zone_name": "instascope.me",
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 10, "period": 60 },
+        },
+      ],
+    },
+  },
 }
