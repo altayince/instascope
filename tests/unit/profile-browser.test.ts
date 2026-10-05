@@ -253,7 +253,8 @@ it("does not open a browser when disabled, invalid, rate limited or rejected by 
     .mockResolvedValueOnce({ success: false });
   const shared = await handleProfile(request(), env, blocked());
   expect(shared.status).toBe(429);
-  expect(await shared.json()).toMatchObject({ code: "service_rate_limited" });
+  expect(await shared.json()).toMatchObject({ code: "service_budget_limited" });
+  expect(shared.headers.get("retry-after")).toBe("60");
   expect(env.BROWSER.quickAction).not.toHaveBeenCalled();
   for (const status of [429, 503]) {
     await handleProfile(
@@ -263,6 +264,60 @@ it("does not open a browser when disabled, invalid, rate limited or rejected by 
     );
     expect(env.BROWSER.quickAction).not.toHaveBeenCalled();
   }
+});
+
+it.each([
+  ["7", "7"],
+  [null, "10"],
+  ["-2", "10"],
+  ["999999999", "10"],
+  ["secret provider details", "10"],
+])(
+  "returns a safe retry delay for browser capacity (%s)",
+  async (header, delay) => {
+    const response = await handleProfile(
+      request(),
+      config(async () =>
+        Response.json(
+          { success: false, errors: [{ message: "secret provider details" }] },
+          {
+            status: 429,
+            headers: header ? { "Retry-After": header } : {},
+          },
+        ),
+      ),
+      blocked(),
+    );
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe(delay);
+    expect(await response.json()).toEqual({
+      code: "service_rate_limited",
+      error: "Public photo lookup has reached its shared request limit.",
+    });
+  },
+);
+
+it("distinguishes daily browser exhaustion from a short request limit", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-10-05T23:59:30Z"));
+  const response = await handleProfile(
+    request(),
+    config(async () =>
+      Response.json(
+        {
+          success: false,
+          errors: [{ message: "Browser time limit exceeded for today" }],
+        },
+        { status: 429, headers: { "Retry-After": "10" } },
+      ),
+    ),
+    blocked(),
+  );
+  expect(response.status).toBe(429);
+  expect(response.headers.get("retry-after")).toBe("30");
+  expect(await response.json()).toMatchObject({
+    code: "service_daily_limited",
+  });
 });
 
 it.each(["browser", "budget"])(

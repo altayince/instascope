@@ -6,6 +6,8 @@ import {
 import {
   profileEndpoint,
   profileErrorMessage,
+  profileRetrySeconds,
+  profileRetryDelay,
   verifiedPublicImageUrl,
 } from "../../src/lib/profile-lookup";
 const limiter = { limit: vi.fn(async () => ({ success: true })) };
@@ -34,6 +36,34 @@ const html =
 afterEach(() => {
   vi.useRealTimers();
   vi.clearAllMocks();
+});
+it("accepts bounded Retry-After seconds or HTTP dates and rejects unsafe delays", () => {
+  const now = Date.parse("2026-10-05T12:00:00Z");
+  expect(profileRetrySeconds("7", now)).toBe(7);
+  expect(profileRetrySeconds("Mon, 05 Oct 2026 12:00:15 GMT", now)).toBe(15);
+  expect(profileRetrySeconds("86400", now)).toBe(86400);
+  for (const value of [
+    null,
+    "",
+    "0",
+    "-10",
+    "1.5",
+    "Infinity",
+    "NaN",
+    "86401",
+    "99999999999999999",
+    "secret",
+    "Mon, 05 Oct 2026 11:59:59 GMT",
+  ])
+    expect(profileRetrySeconds(value, now)).toBeNull();
+});
+it("uses distinct short, minute and UTC daily fallback delays", () => {
+  const now = Date.parse("2026-10-05T23:59:30Z");
+  expect(profileRetryDelay("service_rate_limited", null, now)).toBe(10);
+  expect(profileRetryDelay("service_budget_limited", null, now)).toBe(60);
+  expect(profileRetryDelay("request_rate_limited", null, now)).toBe(60);
+  expect(profileRetryDelay("service_daily_limited", null, now)).toBe(30);
+  expect(profileRetryDelay("service_rate_limited", "7", now)).toBe(7);
 });
 
 it("reads current public OpenGraph structure and legacy title-only metadata", () => {

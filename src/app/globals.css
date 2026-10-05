@@ -1505,6 +1505,79 @@ footer > small {
   font-size: 11px;
   margin-top: 14px;
 }
+.profile-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: profile-spin 0.85s linear infinite;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+@keyframes profile-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.profile-loading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 24px 0;
+  padding: 20px;
+  background: #e5ecd9;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.profile-loading-orbit {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f8faf3;
+  flex-shrink: 0;
+}
+.profile-loading-orbit .profile-spinner {
+  width: 30px;
+  height: 30px;
+}
+.profile-loading p,
+.profile-limit-note,
+.photo-enhancement p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.profile-loading p {
+  margin: 5px 0 0;
+}
+.profile-limit {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #d9c995;
+  border-radius: 10px;
+  background: #faf3dc;
+  color: #624c13;
+  line-height: 1.7;
+}
+.photo-enhancement {
+  margin: 18px 0;
+  padding: 16px;
+  background: #f8faf3;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.photo-enhancement button[aria-pressed="true"] {
+  background: var(--ink);
+  color: white;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-spinner {
+    animation: none;
+  }
+}
 .photo-preview {
   margin: 24px auto;
   max-width: 400px;

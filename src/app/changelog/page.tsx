@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 76,
+    title: "Show public-photo progress, retry times and optional enhancement",
+    summary:
+      "Photo searches now show visible progress through lookup and image loading. Rate limits include a retry countdown and explain shared request, minute or daily allowances. An optional browser-local 2× smoothing and sharpening preview can be compared with the original and saved without claiming recovered HD detail.",
+  },
+  {
     issue: 74,
     title: "Open public profile photos in an enlarged viewer",
     summary:

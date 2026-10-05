@@ -7,7 +7,11 @@ export const profileMessages = {
     "Public photo lookup is temporarily unavailable. Please try again later.",
   request_rate_limited: "Too many requests. Wait a minute before trying again.",
   service_rate_limited:
-    "Public photo lookup is temporarily at capacity. Please try again later.",
+    "Public photo lookup has reached its shared request limit.",
+  service_budget_limited:
+    "Public photo lookup has reached its shared minute limit.",
+  service_daily_limited:
+    "Today's shared public-photo allowance has been used. It resets at midnight UTC.",
   instagram_rate_limited:
     "Instagram is temporarily limiting public lookups. Please try again later.",
   profile_unavailable:
@@ -21,6 +25,39 @@ export const profileMessages = {
   route_not_found: "This lookup route is unavailable.",
 } as const;
 export type ProfileErrorCode = keyof typeof profileMessages;
+
+// Retry-After is a standard delay or HTTP date, never arbitrary server copy.
+export function profileRetrySeconds(
+  value: string | null,
+  now = Date.now(),
+): number | null {
+  if (!value) return null;
+  const seconds = /^\d+$/.test(value)
+    ? Number(value)
+    : /^[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(
+          value,
+        )
+      ? Math.ceil((Date.parse(value) - now) / 1000)
+      : NaN;
+  return Number.isFinite(seconds) && seconds > 0 && seconds <= 86400
+    ? Math.ceil(seconds)
+    : null;
+}
+
+export function profileRetryDelay(
+  code: unknown,
+  header: string | null,
+  now = Date.now(),
+): number {
+  const provided = profileRetrySeconds(header, now);
+  if (provided) return provided;
+  if (code === "service_daily_limited") {
+    const tomorrow = new Date(now);
+    tomorrow.setUTCHours(24, 0, 0, 0);
+    return Math.ceil((tomorrow.getTime() - now) / 1000);
+  }
+  return code === "service_rate_limited" ? 10 : 60;
+}
 
 export function verifiedPublicImageUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
