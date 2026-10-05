@@ -2,9 +2,13 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
 const root = resolve("out");
+const headersFile = await readFile(resolve(root, "_headers"), "utf8");
+const csp = headersFile.match(/^\s+Content-Security-Policy: (.+)$/m)?.[1];
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
+  ".mjs": "text/javascript",
+  ".wasm": "application/wasm",
   ".css": "text/css",
   ".svg": "image/svg+xml",
   ".png": "image/png",
@@ -29,6 +33,7 @@ createServer(async (req, res) => {
       mime[extname(path)] || "application/octet-stream",
     );
     res.setHeader("X-Content-Type-Options", "nosniff");
+    if (csp) res.setHeader("Content-Security-Policy", csp);
     res.end(await readFile(path));
   } catch {
     res.writeHead(404);

@@ -30,6 +30,7 @@ export function ProfileViewer() {
     [enhancedActive, setEnhancedActive] = useState(false),
     [enhancing, setEnhancing] = useState(false),
     [enhancementError, setEnhancementError] = useState(""),
+    [enhancementProgress, setEnhancementProgress] = useState(""),
     [zoom, setZoom] = useState(1),
     [circle, setCircle] = useState(false);
   const preview = useRef<HTMLDivElement>(null);
@@ -97,12 +98,17 @@ export function ProfileViewer() {
     enhancementRequest.current = controller;
     setEnhancing(true);
     setEnhancementError("");
+    setEnhancementProgress("Loading the source photo…");
     // Allow the loading state to paint before local image processing starts.
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => resolve()),
     );
     try {
-      const result = await enhancePublicPhoto(image, controller.signal);
+      const result = await enhancePublicPhoto(
+        image,
+        controller.signal,
+        setEnhancementProgress,
+      );
       if (controller.signal.aborted) URL.revokeObjectURL(result.url);
       else {
         setEnhanced(result);
@@ -111,7 +117,7 @@ export function ProfileViewer() {
     } catch {
       if (!controller.signal.aborted)
         setEnhancementError(
-          "Enhancement is unavailable for this photo. The original is still available.",
+          "AI enhancement is unavailable for this photo. The original is still available.",
         );
     } finally {
       if (!controller.signal.aborted) setEnhancing(false);
@@ -334,7 +340,7 @@ export function ProfileViewer() {
             <div className="photo-enhancement">
               <p>
                 {enhancedActive && enhanced
-                  ? `Enhanced preview · ${enhanced.width} × ${enhanced.height}`
+                  ? `AI-enhanced · ${enhanced.width} × ${enhanced.height}`
                   : `Original public photo · ${dimensions.width} × ${dimensions.height}`}
               </p>
               <div className="photo-controls">
@@ -359,25 +365,37 @@ export function ProfileViewer() {
                   }
                   onClick={() => void enhance()}
                 >
-                  {enhancing ? "Enhancing…" : "Enhance 2×"}
+                  {enhancing ? "Enhancing…" : "Enhance to 1080"}
                 </button>
                 {enhancedActive && enhanced && (
                   <a
                     className="text-link"
                     href={enhanced.url}
-                    download={`instascope-${username}-enhanced.png`}
+                    download={`instascope-${username}-ai-1080.png`}
                   >
                     Save enhanced PNG
                   </a>
                 )}
               </div>
               <p>
-                Optional 2× smoothing and sharpening, processed in your browser.
-                This is an enhanced preview, not original HD or recovered
-                detail.
+                AI super resolution runs in your browser. It estimates detail
+                and can change facial features; this is not Instagram&apos;s
+                original HD photo. The first use downloads the model and may
+                take a little longer.
               </p>
               {enhancing && (
-                <p role="status">Enhancing the preview in your browser…</p>
+                <>
+                  <p role="status">{enhancementProgress}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      enhancementRequest.current?.abort();
+                      setEnhancing(false);
+                    }}
+                  >
+                    Cancel enhancement
+                  </button>
+                </>
               )}
               {enhancementError && <p role="status">{enhancementError}</p>}
             </div>
