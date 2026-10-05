@@ -79,6 +79,12 @@ test("configured same-origin lookup displays a verified photo and keeps preview 
     name: "Public profile photo for sample.account",
   });
   await expect(photo).toBeVisible();
+  expect((await photo.boundingBox())!.width).toBeGreaterThan(200);
+  await expect(
+    page.getByText("Enlarging the preview does not add detail.", {
+      exact: false,
+    }),
+  ).toBeVisible();
   await expect
     .poll(() =>
       photo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
@@ -105,6 +111,7 @@ for (const [status, code, message] of [
   [503, "lookup_disabled", "currently disabled"],
   [404, "profile_unavailable", "verifiable public profile photo"],
   [429, "request_rate_limited", "Too many requests"],
+  [429, "service_rate_limited", "temporarily at capacity"],
   [429, "instagram_rate_limited", "Instagram is temporarily limiting"],
   [503, "service_unavailable", "temporarily unavailable"],
   [502, "upstream_unavailable", "Instagram is temporarily unavailable"],

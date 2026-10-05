@@ -163,6 +163,10 @@ export function ProfileViewer() {
               }}
             />
           </div>
+          <p>
+            Enlarging the preview does not add detail. Image quality depends on
+            the photo Instagram makes publicly available.
+          </p>
           <div className="photo-controls">
             <label>
               Zoom{" "}

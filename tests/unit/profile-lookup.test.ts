@@ -9,7 +9,23 @@ import {
   verifiedPublicImageUrl,
 } from "../../src/lib/profile-lookup";
 const limiter = { limit: vi.fn(async () => ({ success: true })) };
-const env = { RATE_LIMITER: limiter, ENABLE_PUBLIC_LOOKUP: "true" };
+const browser = {
+  quickAction: vi.fn(async () =>
+    Response.json({
+      success: true,
+      result: "<html>Log in</html>",
+      meta: {
+        status: 200,
+        finalUrl: "https://www.instagram.com/sample.account/",
+      },
+    }),
+  ),
+};
+const env = {
+  RATE_LIMITER: limiter,
+  ENABLE_PUBLIC_LOOKUP: "true",
+  BROWSER: browser,
+};
 const request = (query = "username=sample.account") =>
   new Request(`https://instascope.test/api/profile-picture?${query}`);
 // Synthetic fields follow the observed public HTML, including decimal/hex entities.
@@ -92,7 +108,12 @@ it("health exposes only readiness and never contacts Instagram or consumes the r
   const fetcher = vi.fn<typeof fetch>();
   for (const [config, status, expected] of [
     [{}, 503, "not_configured"],
-    [{ RATE_LIMITER: limiter }, 503, "disabled"],
+    [{ RATE_LIMITER: limiter, BROWSER: browser }, 503, "disabled"],
+    [
+      { RATE_LIMITER: limiter, ENABLE_PUBLIC_LOOKUP: "true" },
+      503,
+      "not_configured",
+    ],
     [env, 200, "ready"],
   ] as const) {
     const response = await handleProfile(
@@ -104,7 +125,8 @@ it("health exposes only readiness and never contacts Instagram or consumes the r
     expect(await response.json()).toEqual({
       service: "instascope-profile-picture",
       status: expected,
-      configured: !!config.RATE_LIMITER,
+      configured: !!config.RATE_LIMITER && !!config.BROWSER,
+      browserConfigured: !!config.BROWSER,
       enabled: config.ENABLE_PUBLIC_LOOKUP === "true",
       capability: "public-html-best-effort",
     });
@@ -112,6 +134,7 @@ it("health exposes only readiness and never contacts Instagram or consumes the r
   }
   expect(fetcher).not.toHaveBeenCalled();
   expect(limiter.limit).not.toHaveBeenCalled();
+  expect(browser.quickAction).not.toHaveBeenCalled();
 });
 it("invalid inputs, paths, disabled lookup and missing/broken limiter never reach the upstream", async () => {
   const fetcher = vi.fn<typeof fetch>();
@@ -165,13 +188,11 @@ it("invalid inputs, paths, disabled lookup and missing/broken limiter never reac
   expect(fetcher).not.toHaveBeenCalled();
 });
 it("builds a fixed credential-free Instagram request and returns only verified photo data", async () => {
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response(html, {
-        headers: { "content-type": "text/html; charset=utf-8" },
-      }),
-    );
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(html, {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    }),
+  );
   const response = await handleProfile(
     request("username=%40Sample.Account"),
     env,
@@ -200,17 +221,15 @@ it.each([
   [429, 429, "instagram_rate_limited"],
   [503, 502, "upstream_unavailable"],
 ])("classifies upstream status %i safely", async (status, expected, code) => {
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response("", {
-        status,
-        headers: {
-          "content-type": "text/html",
-          location: "https://evil.test/",
-        },
-      }),
-    );
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response("", {
+      status,
+      headers: {
+        "content-type": "text/html",
+        location: "https://evil.test/",
+      },
+    }),
+  );
   const response = await handleProfile(request(), env, fetcher);
   expect(response.status).toBe(expected);
   expect(await response.json()).toMatchObject({ code });

@@ -46,6 +46,7 @@ export async function checkProfileInfrastructure(origin, fetcher = fetch) {
         response.status === 200 &&
         health.status === "ready" &&
         health.configured === true &&
+        health.browserConfigured === true &&
         health.enabled === true,
       upstream: "not_checked_public_html_is_best_effort",
     };
