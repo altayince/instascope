@@ -111,16 +111,20 @@ for (const [status, code, message] of [
   [503, "lookup_disabled", "currently disabled"],
   [404, "profile_unavailable", "verifiable public profile photo"],
   [429, "request_rate_limited", "Too many requests"],
-  [429, "service_rate_limited", "temporarily at capacity"],
+  [429, "service_rate_limited", "shared request limit"],
+  [429, "service_budget_limited", "shared minute limit"],
+  [429, "service_daily_limited", "allowance has been used"],
   [429, "instagram_rate_limited", "Instagram is temporarily limiting"],
   [503, "service_unavailable", "temporarily unavailable"],
   [502, "upstream_unavailable", "Instagram is temporarily unavailable"],
 ] as const) {
   test(`safe lookup error: ${code}`, async ({ page }) => {
+    if (status === 429) await page.clock.install();
     await page.route(endpoint, (route) =>
       route.fulfill({
         status,
         contentType: "application/json",
+        headers: status === 429 ? { "Retry-After": "10" } : {},
         body: JSON.stringify({ code, error: "raw internal secret details" }),
       }),
     );
@@ -129,6 +133,13 @@ for (const [status, code, message] of [
     await expect(alert(page)).toContainText(message);
     await expect(alert(page)).not.toContainText("raw internal");
     await expect(page.locator(".photo-preview")).toHaveCount(0);
+    if (status === 429) {
+      await expect(
+        page.getByRole("button", { name: /Try again in/ }),
+      ).toBeDisabled();
+      await page.clock.runFor(61000);
+      await expect(alert(page)).toContainText("You can try again now.");
+    }
     await expect(
       page.getByRole("button", { name: "View public photo", exact: true }),
     ).toBeEnabled();
@@ -151,6 +162,223 @@ test("invalid usernames never trigger lookup", async ({ page }) => {
     await expect(alert(page)).toContainText("Enter an Instagram username");
   }
   expect(calls).toBe(0);
+});
+
+test("a daily allowance uses its reset countdown without the short-limit explanation", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      headers: { "Retry-After": "3600" },
+      body: JSON.stringify({ code: "service_daily_limited" }),
+    }),
+  );
+  await open(page);
+  await submit(page);
+  await expect(alert(page)).toContainText("Please try again in 3600 seconds.");
+  await expect(alert(page)).toContainText("midnight UTC");
+  await expect(alert(page)).not.toContainText("one lookup every 10 seconds");
+  await page.clock.fastForward(3600000);
+  await expect(
+    page.getByRole("button", { name: "View public photo", exact: true }),
+  ).toBeEnabled();
+});
+
+test("an image that never loads cannot leave the progress indicator stuck", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    }),
+  );
+  await page.route(imageUrl, () => {});
+  await open(page);
+  await submit(page);
+  await expect(page.getByRole("status")).toContainText("Loading your photo");
+  await page.clock.runFor(13000);
+  await expect(alert(page)).toContainText("photo took too long to load");
+  await expect(page.locator(".profile-loading")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "View public photo", exact: true }),
+  ).toBeEnabled();
+});
+
+test("visible progress lasts through lookup and image loading, without duplicate requests", async ({
+  page,
+}) => {
+  let releaseLookup!: () => void;
+  let releaseImage!: () => void;
+  const pendingLookup = new Promise<void>((resolve) => {
+    releaseLookup = resolve;
+  });
+  const pendingImage = new Promise<void>((resolve) => {
+    releaseImage = resolve;
+  });
+  let calls = 0;
+  await page.route(endpoint, async (route) => {
+    calls++;
+    await pendingLookup;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    });
+  });
+  await page.route(imageUrl, async (route) => {
+    await pendingImage;
+    await route.fulfill({ contentType: "image/png", body: png });
+  });
+  await open(page);
+  await submit(page);
+  await expect(page.getByRole("status")).toContainText(
+    "Finding the public photo",
+  );
+  await expect(page.locator(".profile-viewer")).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
+  await expect(
+    page.getByRole("button", { name: "Looking for photo…" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByLabel("Instagram username or profile URL"),
+  ).toBeDisabled();
+  await page
+    .locator(".profile-viewer form")
+    .evaluate((form) => (form as HTMLFormElement).requestSubmit());
+  expect(calls).toBe(1);
+  releaseLookup();
+  await expect(page.getByRole("status")).toContainText("Loading your photo");
+  releaseImage();
+  await expect(page.locator(".profile-viewer")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  await expect(page.locator(".profile-loading")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "View public photo", exact: true }),
+  ).toBeEnabled();
+});
+
+test("shared capacity countdown uses Retry-After and blocks a different profile until retry", async ({
+  page,
+}) => {
+  await page.clock.install();
+  let calls = 0;
+  await page.route(endpoint, (route) => {
+    calls++;
+    return route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      headers: { "Retry-After": "7" },
+      body: JSON.stringify({ code: "service_rate_limited" }),
+    });
+  });
+  await open(page);
+  await submit(page);
+  await expect(alert(page)).toContainText("Please try again in 7 seconds.");
+  await expect(alert(page)).toContainText("one lookup every 10 seconds");
+  await page
+    .getByLabel("Instagram username or profile URL")
+    .fill("different.account");
+  await page
+    .locator(".profile-viewer form")
+    .evaluate((form) => (form as HTMLFormElement).requestSubmit());
+  expect(calls).toBe(1);
+  await page.clock.runFor(3000);
+  await expect(
+    page.getByRole("button", { name: "Try again in 4s" }),
+  ).toBeDisabled();
+  await page.clock.runFor(4000);
+  await expect(
+    page.getByRole("button", { name: "View public photo", exact: true }),
+  ).toBeEnabled();
+  expect(calls).toBe(1); // Expiry never triggers an automatic Instagram request.
+  await submit(page, "different.account");
+  expect(calls).toBe(2);
+});
+
+test("optional local enhancement produces a 2x PNG and preserves original comparison", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route(endpoint, (route) => {
+    calls++;
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    });
+  });
+  await page.route(imageUrl, (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: png,
+    }),
+  );
+  await open(page);
+  await submit(page);
+  await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
+  await page.getByRole("button", { name: "Enhance 2×" }).click();
+  await expect(page.getByText("Enhanced preview · 2 × 2")).toBeVisible();
+  const photo = page.locator(".photo-preview img");
+  await expect(photo).toHaveAttribute("src", /^blob:/);
+  expect(
+    await photo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
+  ).toBe(2);
+  await expect(
+    page.getByText("not original HD or recovered detail", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Save enhanced PNG" }),
+  ).toHaveAttribute("download", "instascope-sample.account-enhanced.png");
+  await page.getByRole("button", { name: "Original", exact: true }).click();
+  await expect(photo).toHaveAttribute("src", imageUrl);
+  await page.getByRole("button", { name: "Enhance 2×" }).click();
+  await expect(photo).toHaveAttribute("src", /^blob:/);
+  expect(calls).toBe(1);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("a CDN that disallows enhancement still leaves the original photo usable", async ({
+  page,
+}) => {
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    }),
+  );
+  await page.route(imageUrl, (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      headers: {
+        "Access-Control-Allow-Origin": "https://different-origin.test",
+      },
+      body: png,
+    }),
+  );
+  await open(page);
+  await submit(page);
+  await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
+  await page.getByRole("button", { name: "Enhance 2×" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Enhancement is unavailable",
+  );
+  await expect(page.locator(".photo-preview img")).toHaveAttribute(
+    "src",
+    imageUrl,
+  );
+  await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
 });
 test("lookup timeout re-enables the form and does not show a photo", async ({
   page,

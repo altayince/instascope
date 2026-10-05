@@ -1,13 +1,15 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Public images are isolated from the static Next image optimizer. */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { normalizeUsername } from "@/lib/instagram/normalize";
 import { track } from "@/lib/analytics";
 import {
   profileMessages,
   profileErrorMessage,
   verifiedPublicImageUrl,
+  profileRetryDelay,
 } from "@/lib/profile-lookup";
+import { enhancePublicPhoto } from "@/lib/profile-enhancement";
 const endpoint = process.env.NEXT_PUBLIC_PROFILE_ENDPOINT;
 export function ProfileViewer() {
   const [input, setInput] = useState(""),
@@ -15,13 +17,120 @@ export function ProfileViewer() {
     [username, setUsername] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
+    [loadingPhoto, setLoadingPhoto] = useState(false),
+    [retryUntil, setRetryUntil] = useState(0),
+    [remaining, setRemaining] = useState(0),
+    [retryHint, setRetryHint] = useState(""),
+    [dimensions, setDimensions] = useState({ width: 0, height: 0 }),
+    [enhanced, setEnhanced] = useState<{
+      url: string;
+      width: number;
+      height: number;
+    } | null>(null),
+    [enhancedActive, setEnhancedActive] = useState(false),
+    [enhancing, setEnhancing] = useState(false),
+    [enhancementError, setEnhancementError] = useState(""),
     [zoom, setZoom] = useState(1),
     [circle, setCircle] = useState(false);
   const preview = useRef<HTMLDivElement>(null);
+  const enhancementRequest = useRef<AbortController | null>(null);
+  const succeededImage = useRef("");
+  const loading = busy || loadingPhoto;
+  useEffect(() => {
+    if (!retryUntil) return;
+    const timer = setInterval(() => {
+      const seconds = Math.max(0, Math.ceil((retryUntil - Date.now()) / 1000));
+      setRemaining(seconds);
+      if (!seconds) clearInterval(timer);
+    }, 250);
+    return () => clearInterval(timer);
+  }, [retryUntil]);
+  useEffect(
+    () => () => {
+      if (enhanced) URL.revokeObjectURL(enhanced.url);
+    },
+    [enhanced],
+  );
+  useEffect(() => () => enhancementRequest.current?.abort(), []);
+  useEffect(() => {
+    if (!loadingPhoto) return;
+    const timer = setTimeout(() => {
+      setLoadingPhoto(false);
+      setImage("");
+      setError(
+        "The public photo took too long to load. Try opening the profile.",
+      );
+      track("profile_failed");
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, [loadingPhoto]);
+  function lookupError(response: Response, code: unknown) {
+    setError(profileErrorMessage(code, response.status));
+    if (response.status === 429) {
+      const seconds = profileRetryDelay(
+        code,
+        response.headers.get("retry-after"),
+      );
+      setRetryUntil(Date.now() + seconds * 1000);
+      setRemaining(seconds);
+      setRetryHint(
+        code === "service_rate_limited"
+          ? "Shared browser limit: one lookup every 10 seconds. Other visitors share this allowance."
+          : code === "service_budget_limited"
+            ? "Shared browser budget: up to 10 lookups per minute per service location."
+            : code === "service_daily_limited"
+              ? "The daily allowance is shared across the service."
+              : code === "instagram_rate_limited"
+                ? "Instagram controls this limit."
+                : "Request limit: up to 10 lookups per minute.",
+      );
+    }
+    track("profile_failed");
+  }
+  async function enhance() {
+    if (!image || enhancing) return;
+    if (enhanced) {
+      setEnhancedActive(true);
+      return;
+    }
+    const controller = new AbortController();
+    enhancementRequest.current = controller;
+    setEnhancing(true);
+    setEnhancementError("");
+    // Allow the loading state to paint before local image processing starts.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+    try {
+      const result = await enhancePublicPhoto(image, controller.signal);
+      if (controller.signal.aborted) URL.revokeObjectURL(result.url);
+      else {
+        setEnhanced(result);
+        setEnhancedActive(true);
+      }
+    } catch {
+      if (!controller.signal.aborted)
+        setEnhancementError(
+          "Enhancement is unavailable for this photo. The original is still available.",
+        );
+    } finally {
+      if (!controller.signal.aborted) setEnhancing(false);
+    }
+  }
   async function lookup(event: React.FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (loading || Date.now() < retryUntil) return;
+    enhancementRequest.current?.abort();
+    setEnhancing(false);
+    setEnhanced(null);
+    setEnhancedActive(false);
+    setEnhancementError("");
+    setDimensions({ width: 0, height: 0 });
+    setRetryUntil(0);
+    setRemaining(0);
+    setRetryHint("");
     setImage("");
+    succeededImage.current = "";
     setError("");
     const normalized = normalizeUsername(input);
     if (!normalized) {
@@ -49,12 +158,12 @@ export function ProfileViewer() {
         },
       );
       if (!response.headers.get("content-type")?.includes("application/json")) {
-        setError(
+        lookupError(
+          response,
           response.status === 404 || response.ok
-            ? profileMessages.service_not_configured
-            : profileErrorMessage(undefined, response.status),
+            ? "service_not_configured"
+            : undefined,
         );
-        track("profile_failed");
         return;
       }
       const data: unknown = await response.json();
@@ -63,8 +172,7 @@ export function ProfileViewer() {
           data && typeof data === "object" && "code" in data
             ? data.code
             : undefined;
-        setError(profileErrorMessage(code, response.status));
-        track("profile_failed");
+        lookupError(response, code);
         return;
       }
       const url =
@@ -81,6 +189,7 @@ export function ProfileViewer() {
         return;
       }
       setImage(url);
+      setLoadingPhoto(true);
       setZoom(1);
     } catch (error) {
       setError(
@@ -95,7 +204,7 @@ export function ProfileViewer() {
     }
   }
   return (
-    <section id="tool" className="profile-viewer">
+    <section id="tool" className="profile-viewer" aria-busy={loading}>
       <form
         onSubmit={(event) => void lookup(event)}
         data-profile-endpoint={endpoint || ""}
@@ -110,10 +219,22 @@ export function ProfileViewer() {
             onChange={(event) => setInput(event.target.value)}
             maxLength={200}
             required
-            disabled={busy}
+            disabled={loading}
           />
-          <button className="button primary" disabled={busy}>
-            {busy ? "Looking…" : "View public photo "}
+          <button
+            className="button primary"
+            disabled={loading || remaining > 0}
+          >
+            {loading ? (
+              <>
+                <span className="profile-spinner" aria-hidden="true" /> Looking
+                for photo…
+              </>
+            ) : remaining > 0 ? (
+              `Try again in ${remaining}s`
+            ) : (
+              "View public photo"
+            )}
           </button>
         </div>
         <p>
@@ -126,9 +247,31 @@ export function ProfileViewer() {
           retrieval.
         </p>
       </form>
+      {loading && (
+        <div className="profile-loading" role="status">
+          <span className="profile-loading-orbit" aria-hidden="true">
+            <span className="profile-spinner" />
+          </span>
+          <div>
+            <strong>
+              {loadingPhoto ? "Loading your photo" : "Finding the public photo"}
+            </strong>
+            <p>This usually takes a few seconds. No Instagram login needed.</p>
+          </div>
+        </div>
+      )}
       {error && (
-        <p className="error" role="alert">
+        <p className={retryHint ? "profile-limit" : "error"} role="alert">
           {error}
+          {retryHint && (
+            <>
+              <br />
+              {remaining > 0
+                ? `Please try again in ${remaining} seconds.`
+                : "You can try again now."}{" "}
+              <span className="profile-limit-note">({retryHint})</span>
+            </>
+          )}
         </p>
       )}
       {username && (
@@ -149,12 +292,32 @@ export function ProfileViewer() {
             className={`photo-preview ${circle ? "circle" : ""}`}
           >
             <img
-              src={image}
+              src={enhancedActive && enhanced ? enhanced.url : image}
               alt={`Public profile photo for ${username}`}
               referrerPolicy="no-referrer"
               style={{ transform: `scale(${zoom})` }}
-              onLoad={() => track("profile_succeeded")}
+              onLoad={(event) => {
+                setLoadingPhoto(false);
+                if (!enhancedActive) {
+                  setDimensions({
+                    width: event.currentTarget.naturalWidth,
+                    height: event.currentTarget.naturalHeight,
+                  });
+                  if (succeededImage.current !== image) {
+                    succeededImage.current = image;
+                    track("profile_succeeded");
+                  }
+                }
+              }}
               onError={() => {
+                setLoadingPhoto(false);
+                if (enhancedActive) {
+                  setEnhancedActive(false);
+                  setEnhancementError(
+                    "The enhanced preview could not load. Showing the original photo.",
+                  );
+                  return;
+                }
                 setImage("");
                 setError(
                   "The public photo is no longer available. Try opening the profile.",
@@ -167,6 +330,58 @@ export function ProfileViewer() {
             Enlarging the preview does not add detail. Image quality depends on
             the photo Instagram makes publicly available.
           </p>
+          {dimensions.width > 0 && (
+            <div className="photo-enhancement">
+              <p>
+                {enhancedActive && enhanced
+                  ? `Enhanced preview · ${enhanced.width} × ${enhanced.height}`
+                  : `Original public photo · ${dimensions.width} × ${dimensions.height}`}
+              </p>
+              <div className="photo-controls">
+                <button
+                  type="button"
+                  aria-pressed={!enhancedActive}
+                  onClick={() => setEnhancedActive(false)}
+                >
+                  Original
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={enhancedActive}
+                  title={
+                    Math.max(dimensions.width, dimensions.height) > 1024
+                      ? "This source photo is already larger than the enhancement size limit."
+                      : undefined
+                  }
+                  disabled={
+                    enhancing ||
+                    Math.max(dimensions.width, dimensions.height) > 1024
+                  }
+                  onClick={() => void enhance()}
+                >
+                  {enhancing ? "Enhancing…" : "Enhance 2×"}
+                </button>
+                {enhancedActive && enhanced && (
+                  <a
+                    className="text-link"
+                    href={enhanced.url}
+                    download={`instascope-${username}-enhanced.png`}
+                  >
+                    Save enhanced PNG
+                  </a>
+                )}
+              </div>
+              <p>
+                Optional 2× smoothing and sharpening, processed in your browser.
+                This is an enhanced preview, not original HD or recovered
+                detail.
+              </p>
+              {enhancing && (
+                <p role="status">Enhancing the preview in your browser…</p>
+              )}
+              {enhancementError && <p role="status">{enhancementError}</p>}
+            </div>
+          )}
           <div className="photo-controls">
             <label>
               Zoom{" "}

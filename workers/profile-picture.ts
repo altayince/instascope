@@ -3,6 +3,7 @@ import { findAll, textContent } from "domutils";
 import { normalizeUsername } from "../src/lib/instagram/normalize";
 import {
   profileMessages,
+  profileRetrySeconds,
   verifiedPublicImageUrl,
   type ProfileErrorCode,
 } from "../src/lib/profile-lookup";
@@ -33,14 +34,18 @@ const headers = {
   "X-Content-Type-Options": "nosniff",
   "X-Robots-Tag": "noindex",
 };
-const reply = (status: number, code: ProfileErrorCode) =>
+const reply = (status: number, code: ProfileErrorCode, retrySeconds?: number) =>
   Response.json(
     { code, error: profileMessages[code] },
     {
       status,
       headers: {
         ...headers,
-        ...(code === "request_rate_limited" ? { "Retry-After": "60" } : {}),
+        ...(retrySeconds
+          ? { "Retry-After": String(retrySeconds) }
+          : code === "request_rate_limited"
+            ? { "Retry-After": "60" }
+            : {}),
       },
     },
   );
@@ -165,7 +170,7 @@ async function browserPhoto(
       !(await withAbort(limiter.limit({ key: "profile-browser" }), signal))
         .success
     )
-      return reply(429, "service_rate_limited");
+      return reply(429, "service_budget_limited", 60);
     const url = `https://www.instagram.com/${username}/`;
     const response = await withAbort(
       browser.quickAction("content", {
@@ -184,7 +189,26 @@ async function browserPhoto(
       }),
       signal,
     );
-    if (response.status === 429) return reply(429, "service_rate_limited");
+    if (response.status === 429) {
+      // The provider uses 429 both for brief request limits and the Free daily
+      // allowance. Never turn a daily exhaustion into a misleading 10s promise.
+      const body = await readBounded(response, signal);
+      if (body && /browser time limit exceeded for today/i.test(body)) {
+        const now = Date.now();
+        const tomorrow = new Date(now);
+        tomorrow.setUTCHours(24, 0, 0, 0);
+        return reply(
+          429,
+          "service_daily_limited",
+          Math.ceil((tomorrow.getTime() - now) / 1000),
+        );
+      }
+      return reply(
+        429,
+        "service_rate_limited",
+        profileRetrySeconds(response.headers.get("retry-after")) ?? 10,
+      );
+    }
     if (response.status === 400) return reply(404, "profile_unavailable");
     if (
       !response.ok ||
@@ -282,7 +306,12 @@ export async function handleProfile(
       referrerPolicy: "no-referrer",
       signal: controller.signal,
     });
-    if (upstream.status === 429) return reply(429, "instagram_rate_limited");
+    if (upstream.status === 429)
+      return reply(
+        429,
+        "instagram_rate_limited",
+        profileRetrySeconds(upstream.headers.get("retry-after")) ?? 60,
+      );
     if (upstream.status >= 500) return reply(502, "upstream_unavailable");
     if (!upstream.ok)
       return await browserPhoto(username, env, controller.signal, deadline);
