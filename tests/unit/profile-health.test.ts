@@ -1,11 +1,12 @@
 import { expect, it, vi } from "vitest";
 import { checkProfileInfrastructure } from "../../scripts/profile-health.mjs";
 it("production smoke checks both static build wiring and Worker configuration without querying Instagram", async () => {
-  for (const [endpoint, healthStatus, ready] of [
-    ["/api/profile-picture", "ready", true],
-    ["", "ready", false],
-    ["/api/profile-picture", "disabled", false],
-    ["/api/profile-picture", "not_configured", false],
+  for (const [endpoint, healthStatus, browserConfigured, ready] of [
+    ["/api/profile-picture", "ready", true, true],
+    ["", "ready", true, false],
+    ["/api/profile-picture", "ready", false, false],
+    ["/api/profile-picture", "disabled", true, false],
+    ["/api/profile-picture", "not_configured", false, false],
   ] as const) {
     const fetcher = vi
       .fn<typeof fetch>()
@@ -18,6 +19,7 @@ it("production smoke checks both static build wiring and Worker configuration wi
             service: "instascope-profile-picture",
             status: healthStatus,
             configured: healthStatus !== "not_configured",
+            browserConfigured,
             enabled: healthStatus === "ready",
           },
           { status: healthStatus === "ready" ? 200 : 503 },

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 74,
+    title: "Open public profile photos in an enlarged viewer",
+    summary:
+      "Public photo lookup now uses Cloudflare's browser service when the direct public-page request cannot provide a verified image. Only the requested public page may load, and the viewer enlarges the available photo with zoom and fullscreen controls. Image quality remains limited to what Instagram supplies.",
+  },
+  {
     issue: 72,
     title: "Connect public photo lookup to production infrastructure",
     summary:

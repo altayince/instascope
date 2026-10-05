@@ -8,6 +8,7 @@ export default defineConfig([
     ".next/**",
     "out/**",
     ".tools/**",
+    "**/.wrangler/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

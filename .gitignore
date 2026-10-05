@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 .tools/
+.wrangler/
 test-results/
 playwright-report/
 coverage/

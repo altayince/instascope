@@ -6,6 +6,8 @@ export const profileMessages = {
   service_unavailable:
     "Public photo lookup is temporarily unavailable. Please try again later.",
   request_rate_limited: "Too many requests. Wait a minute before trying again.",
+  service_rate_limited:
+    "Public photo lookup is temporarily at capacity. Please try again later.",
   instagram_rate_limited:
     "Instagram is temporarily limiting public lookups. Please try again later.",
   profile_unavailable:

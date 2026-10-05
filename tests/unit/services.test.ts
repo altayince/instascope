@@ -34,14 +34,12 @@ it("fails closed, limits requests and never follows login redirects", async () =
       })
     ).status,
   ).toBe(429);
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response(null, {
-        status: 302,
-        headers: { location: "/accounts/login" },
-      }),
-    );
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(null, {
+      status: 302,
+      headers: { location: "/accounts/login" },
+    }),
+  );
   expect(
     (
       await handleProfile(
@@ -50,7 +48,7 @@ it("fails closed, limits requests and never follows login redirects", async () =
         fetcher,
       )
     ).status,
-  ).toBe(404);
+  ).toBe(503);
   expect(fetcher.mock.calls[0][1]?.redirect).toBe("manual");
 });
 it("returns a public photo when independently available", async () => {

@@ -17,6 +17,7 @@
     "production": {
       "name": "instascope-public-photo",
       "vars": { "ENABLE_PUBLIC_LOOKUP": "true" },
+      "browser": { "binding": "BROWSER" },
       "routes": [
         {
           "pattern": "instascope.me/api/profile-picture*",
