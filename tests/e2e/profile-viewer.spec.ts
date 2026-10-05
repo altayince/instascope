@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import sharp from "sharp";
+import { readFile } from "node:fs/promises";
 const endpoint = "**/api/profile-picture?*";
 const imageUrl = "https://scontent-synthetic.cdninstagram.com/photo.png";
 const png = Buffer.from(
@@ -303,10 +305,22 @@ test("shared capacity countdown uses Retry-After and blocks a different profile 
   expect(calls).toBe(2);
 });
 
-test("optional local enhancement produces a 2x PNG and preserves original comparison", async ({
+test("local AI inference produces a 1080px PNG and preserves original comparison", async ({
   page,
 }) => {
   let calls = 0;
+  const modelRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/profile-ai/"))
+      modelRequests.push(request.url());
+  });
+  const neuralPng = await sharp(
+    Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#b9d5c6"/><circle cx="16" cy="16" r="10" fill="#ed9462"/></svg>',
+    ),
+  )
+    .png()
+    .toBuffer();
   await page.route(endpoint, (route) => {
     calls++;
     return route.fulfill({
@@ -318,28 +332,52 @@ test("optional local enhancement produces a 2x PNG and preserves original compar
     route.fulfill({
       contentType: "image/png",
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: png,
+      body: neuralPng,
     }),
   );
   await open(page);
   await submit(page);
-  await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
-  await page.getByRole("button", { name: "Enhance 2×" }).click();
-  await expect(page.getByText("Enhanced preview · 2 × 2")).toBeVisible();
+  await expect(page.getByText("Original public photo · 32 × 32")).toBeVisible();
+  expect(modelRequests).toHaveLength(0);
+  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await expect(page.getByText("AI-enhanced · 1080 × 1080")).toBeVisible({
+    timeout: 20000,
+  });
   const photo = page.locator(".photo-preview img");
   await expect(photo).toHaveAttribute("src", /^blob:/);
   expect(
     await photo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
-  ).toBe(2);
+  ).toBe(1080);
   await expect(
-    page.getByText("not original HD or recovered detail", { exact: false }),
+    page.getByText("can change facial features", { exact: false }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Save enhanced PNG" }),
-  ).toHaveAttribute("download", "instascope-sample.account-enhanced.png");
+  ).toHaveAttribute("download", "instascope-sample.account-ai-1080.png");
+  expect(modelRequests.some((url) => url.endsWith(".onnx"))).toBe(true);
+  expect(modelRequests.some((url) => url.endsWith(".wasm"))).toBe(true);
+  for (const url of modelRequests)
+    expect(new URL(url).origin).toBe(new URL(page.url()).origin);
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Save enhanced PNG" }).click();
+  const downloaded = await downloading;
+  const saved = await readFile((await downloaded.path())!);
+  expect((await sharp(saved).metadata()).width).toBe(1080);
+  expect((await sharp(saved).metadata()).height).toBe(1080);
+  // The learned output must differ from simply resizing the source PNG.
+  const naive = await sharp(neuralPng)
+    .resize(1080, 1080)
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  const restored = await sharp(saved).removeAlpha().raw().toBuffer();
+  let difference = 0;
+  for (let i = 0; i < naive.length; i++)
+    difference += Math.abs(restored[i] - naive[i]);
+  expect(difference / naive.length).toBeGreaterThan(0.5);
   await page.getByRole("button", { name: "Original", exact: true }).click();
   await expect(photo).toHaveAttribute("src", imageUrl);
-  await page.getByRole("button", { name: "Enhance 2×" }).click();
+  await page.getByRole("button", { name: "Enhance to 1080" }).click();
   await expect(photo).toHaveAttribute("src", /^blob:/);
   expect(calls).toBe(1);
   expect(
@@ -347,6 +385,76 @@ test("optional local enhancement produces a 2x PNG and preserves original compar
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+test("untrusted model bytes fail closed and leave the original available", async ({
+  page,
+}) => {
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    }),
+  );
+  await page.route(imageUrl, (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: png,
+    }),
+  );
+  await page.route("**/profile-ai/*.onnx", (route) =>
+    route.fulfill({ body: "not the reviewed model" }),
+  );
+  await open(page);
+  await submit(page);
+  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "AI enhancement is unavailable",
+  );
+  await expect(page.locator(".photo-preview img")).toHaveAttribute(
+    "src",
+    imageUrl,
+  );
+  await expect(
+    page.getByRole("link", { name: "Save enhanced PNG" }),
+  ).toHaveCount(0);
+});
+
+test("AI model loading can be cancelled while the original controls remain responsive", async ({
+  page,
+}) => {
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username: "sample.account", imageUrl }),
+    }),
+  );
+  await page.route(imageUrl, (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: png,
+    }),
+  );
+  await page.route("**/profile-ai/*.onnx", () => {});
+  await open(page);
+  await submit(page);
+  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await expect(page.getByRole("status")).toContainText("Loading the AI model");
+  await page.getByLabel("Circular preview").check();
+  await expect(page.locator(".photo-preview")).toHaveClass(/circle/);
+  await page.getByRole("button", { name: "Cancel enhancement" }).click();
+  await expect(
+    page.getByRole("button", { name: "Enhance to 1080" }),
+  ).toBeEnabled();
+  await expect(page.locator(".photo-preview img")).toHaveAttribute(
+    "src",
+    imageUrl,
+  );
+  await expect(
+    page.getByRole("link", { name: "Save enhanced PNG" }),
+  ).toHaveCount(0);
 });
 
 test("a CDN that disallows enhancement still leaves the original photo usable", async ({
@@ -370,9 +478,9 @@ test("a CDN that disallows enhancement still leaves the original photo usable", 
   await open(page);
   await submit(page);
   await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
-  await page.getByRole("button", { name: "Enhance 2×" }).click();
+  await page.getByRole("button", { name: "Enhance to 1080" }).click();
   await expect(page.getByRole("status")).toContainText(
-    "Enhancement is unavailable",
+    "AI enhancement is unavailable",
   );
   await expect(page.locator(".photo-preview img")).toHaveAttribute(
     "src",

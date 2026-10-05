@@ -9,6 +9,7 @@ export default defineConfig([
     "out/**",
     ".tools/**",
     "**/.wrangler/**",
+    "public/profile-ai/runtime/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

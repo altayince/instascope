@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 78,
+    title: "Restore public photos with local AI at 1080px",
+    summary:
+      "The basic 2× sharpening option is replaced by browser-local Real-ESRGAN super resolution with a 1080px output. Model loading and processing have visible progress and cancellation. Compare the original or save an explicitly AI-enhanced PNG; estimated detail is never presented as Instagram's original HD photo.",
+  },
+  {
     issue: 76,
     title: "Show public-photo progress, retry times and optional enhancement",
     summary:

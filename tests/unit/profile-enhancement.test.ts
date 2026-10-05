@@ -1,38 +1,34 @@
 import { expect, it } from "vitest";
-import {
-  enhancePublicPhoto,
-  sharpenProfilePixels,
-} from "../../src/lib/profile-enhancement";
+import { enhancePublicPhoto } from "../../src/lib/profile-enhancement";
+import { profileTensor, profilePixels } from "../../src/lib/profile-ai-pixels";
 
-it("preserves uniform colors and transparency, including image boundaries", () => {
-  const pixels = new Uint8ClampedArray([100, 120, 140, 180, 100, 120, 140, 0]);
-  expect(sharpenProfilePixels(pixels, 2, 1)).toEqual(pixels);
+it("converts RGB pixels to normalized planar input without changing channel order", () => {
+  const input = profileTensor(
+    new Uint8ClampedArray([255, 0, 128, 255, 0, 255, 64, 255]),
+    2,
+    1,
+  );
+  expect(Array.from(input)).toEqual([
+    1,
+    0,
+    0,
+    1,
+    Math.fround(128 / 255),
+    Math.fround(64 / 255),
+  ]);
 });
-it("enhances existing contrast without modifying the source or alpha", () => {
-  const pixels = new Uint8ClampedArray(3 * 3 * 4).fill(100);
-  pixels[16] = pixels[17] = pixels[18] = 180;
-  const original = new Uint8ClampedArray(pixels);
-  const enhanced = sharpenProfilePixels(pixels, 3, 3);
-  expect(enhanced[16]).toBeGreaterThan(180);
-  expect(enhanced[12]).toBeLessThan(100);
-  expect(pixels).toEqual(original);
-  for (let offset = 3; offset < pixels.length; offset += 4)
-    expect(enhanced[offset]).toBe(pixels[offset]);
+it("converts planar model output to opaque pixels and clamps overshoots", () => {
+  expect(
+    profilePixels(new Float32Array([-1, 2, 1, 0, 0.5, 0.25]), 2, 1),
+  ).toEqual(new Uint8ClampedArray([0, 255, 128, 255, 255, 0, 64, 255]));
 });
-it("clamps bright and dark edges rather than wrapping color values", () => {
-  const pixels = new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]);
-  expect(sharpenProfilePixels(pixels, 2, 1)).toEqual(pixels);
+it("rejects oversized, malformed and nonfinite model data", () => {
+  expect(() => profileTensor(new Uint8ClampedArray(4), 271, 1)).toThrow();
+  expect(() => profileTensor(new Uint8ClampedArray(4), 1.5, 1)).toThrow();
+  expect(() => profilePixels(new Float32Array([NaN, 0, 0]), 1, 1)).toThrow();
+  expect(() => profilePixels(new Float32Array(3), 1081, 1)).toThrow();
 });
-it("rejects invalid dimensions and untrusted image URLs before accessing browser APIs", async () => {
-  for (const [width, height] of [
-    [0, 1],
-    [-1, 1],
-    [1.5, 1],
-    [1, 3],
-  ])
-    expect(() =>
-      sharpenProfilePixels(new Uint8ClampedArray(4), width, height),
-    ).toThrow();
+it("rejects untrusted image URLs before browser APIs or model downloads", async () => {
   await expect(
     enhancePublicPhoto(
       "https://evil.test/photo.jpg",
