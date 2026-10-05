@@ -30,6 +30,7 @@ it("fails closed, limits requests and never follows login redirects", async () =
     (
       await handleProfile(request, {
         RATE_LIMITER: { limit: async () => ({ success: false }) },
+        ENABLE_PUBLIC_LOOKUP: "true",
       })
     ).status,
   ).toBe(429);
@@ -49,7 +50,7 @@ it("fails closed, limits requests and never follows login redirects", async () =
         fetcher,
       )
     ).status,
-  ).toBe(502);
+  ).toBe(404);
   expect(fetcher.mock.calls[0][1]?.redirect).toBe("manual");
 });
 it("returns a public photo when independently available", async () => {
@@ -62,7 +63,7 @@ it("returns a public photo when independently available", async () => {
       ),
     );
   const response = await handleProfile(
-    new Request("https://test/api?username=alice"),
+    new Request("https://test/api/profile-picture?username=alice"),
     { RATE_LIMITER: limiter, ENABLE_PUBLIC_LOOKUP: "true" },
     fetcher,
   );

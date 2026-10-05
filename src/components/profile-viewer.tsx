@@ -3,6 +3,12 @@
 import { useRef, useState } from "react";
 import { normalizeUsername } from "@/lib/instagram/normalize";
 import { track } from "@/lib/analytics";
+import {
+  profileMessages,
+  profileErrorMessage,
+  verifiedPublicImageUrl,
+} from "@/lib/profile-lookup";
+const endpoint = process.env.NEXT_PUBLIC_PROFILE_ENDPOINT;
 export function ProfileViewer() {
   const [input, setInput] = useState(""),
     [image, setImage] = useState(""),
@@ -14,6 +20,7 @@ export function ProfileViewer() {
   const preview = useRef<HTMLDivElement>(null);
   async function lookup(event: React.FormEvent) {
     event.preventDefault();
+    if (busy) return;
     setImage("");
     setError("");
     const normalized = normalizeUsername(input);
@@ -25,11 +32,8 @@ export function ProfileViewer() {
     }
     setUsername(normalized);
     track("profile_search");
-    const endpoint = process.env.NEXT_PUBLIC_PROFILE_ENDPOINT;
     if (!endpoint || !/^\/(?!\/)[a-z0-9/_-]+$/i.test(endpoint)) {
-      setError(
-        "Public photo lookup is not available on this deployment. You can open the public profile on Instagram instead.",
-      );
+      setError(profileMessages.service_not_configured);
       track("profile_failed");
       return;
     }
@@ -40,30 +44,50 @@ export function ProfileViewer() {
         {
           credentials: "omit",
           referrerPolicy: "no-referrer",
+          redirect: "error",
           signal: AbortSignal.timeout(12000),
         },
       );
-      if (!response.ok)
-        throw new Error(
-          response.status === 429
-            ? "Too many requests. Wait a minute before trying again."
-            : "Instagram is not making a public profile photo available right now. Try again later or open the profile.",
+      if (!response.headers.get("content-type")?.includes("application/json")) {
+        setError(
+          response.status === 404 || response.ok
+            ? profileMessages.service_not_configured
+            : profileErrorMessage(undefined, response.status),
         );
-      const data = await response.json();
-      const url = new URL(data.imageUrl);
-      if (
-        url.protocol !== "https:" ||
-        !/(^|\.)(cdninstagram\.com|fbcdn\.net)$/.test(url.hostname)
-      )
-        throw new Error("The public photo response could not be verified.");
-      setImage(url.href);
+        track("profile_failed");
+        return;
+      }
+      const data: unknown = await response.json();
+      if (!response.ok) {
+        const code =
+          data && typeof data === "object" && "code" in data
+            ? data.code
+            : undefined;
+        setError(profileErrorMessage(code, response.status));
+        track("profile_failed");
+        return;
+      }
+      const url =
+        data &&
+        typeof data === "object" &&
+        "imageUrl" in data &&
+        "username" in data &&
+        data.username === normalized
+          ? verifiedPublicImageUrl(data.imageUrl)
+          : null;
+      if (!url) {
+        setError("The public photo response could not be verified.");
+        track("profile_failed");
+        return;
+      }
+      setImage(url);
       setZoom(1);
-      track("profile_succeeded");
     } catch (error) {
       setError(
-        error instanceof Error && error.name !== "TimeoutError"
-          ? error.message
-          : "The lookup timed out. Please try again later.",
+        error instanceof Error &&
+          (error.name === "TimeoutError" || error.name === "AbortError")
+          ? profileMessages.lookup_timeout
+          : profileMessages.service_unavailable,
       );
       track("profile_failed");
     } finally {
@@ -72,7 +96,10 @@ export function ProfileViewer() {
   }
   return (
     <section id="tool" className="profile-viewer">
-      <form onSubmit={(event) => void lookup(event)}>
+      <form
+        onSubmit={(event) => void lookup(event)}
+        data-profile-endpoint={endpoint || ""}
+      >
         <label htmlFor="profile-input">Instagram username or profile URL</label>
         <div className="profile-input-row">
           <input
@@ -83,6 +110,7 @@ export function ProfileViewer() {
             onChange={(event) => setInput(event.target.value)}
             maxLength={200}
             required
+            disabled={busy}
           />
           <button className="button primary" disabled={busy}>
             {busy ? "Looking…" : "View public photo "}
@@ -91,6 +119,11 @@ export function ProfileViewer() {
         <p>
           Only the username you enter is sent for lookup. Archive data is never
           involved.
+        </p>
+        <p>
+          Photos appear only when Instagram provides a public profile page.
+          Login restrictions, unavailable accounts and rate limits can prevent
+          retrieval.
         </p>
       </form>
       {error && (
@@ -120,11 +153,13 @@ export function ProfileViewer() {
               alt={`Public profile photo for ${username}`}
               referrerPolicy="no-referrer"
               style={{ transform: `scale(${zoom})` }}
+              onLoad={() => track("profile_succeeded")}
               onError={() => {
                 setImage("");
                 setError(
                   "The public photo is no longer available. Try opening the profile.",
                 );
+                track("profile_failed");
               }}
             />
           </div>

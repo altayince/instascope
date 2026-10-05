@@ -1,5 +1,8 @@
 // Read-only public smoke check; never imports or uploads an archive.
-const origin = process.argv[2] || "https://instascope.me";
+import { checkProfileInfrastructure } from "./profile-health.mjs";
+const origin =
+  process.argv.slice(2).find((arg) => !arg.startsWith("--")) ||
+  "https://instascope.me";
 const paths = [
   "/",
   "/followers-analyzer/",
@@ -37,4 +40,8 @@ for (const path of paths) {
   });
 }
 console.log(JSON.stringify(results, null, 2));
+const profileLookup = await checkProfileInfrastructure(origin);
+console.log(JSON.stringify({ profileLookup }, null, 2));
 if (results.some((result) => result.status !== 200)) process.exitCode = 1;
+if (process.argv.includes("--require-profile") && !profileLookup.ready)
+  process.exitCode = 1;

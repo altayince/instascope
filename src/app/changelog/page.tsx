@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 72,
+    title: "Connect public photo lookup to production infrastructure",
+    summary:
+      "Production builds now target the same-origin public-photo service. The Worker has an explicit production route, native rate limiting and a configuration health check. Lookup errors distinguish unavailable infrastructure, restrictions, rate limits and timeouts; photos are shown only after profile identity and CDN checks.",
+  },
+  {
     issue: 70,
     title: "Bring your circle together in a private dashboard",
     summary:
