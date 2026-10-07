@@ -3,10 +3,17 @@ export type Article = {
   description: string;
   sections: { heading: string; paragraphs: string[] }[];
   links: { href: string; label: string }[];
+  related: string[];
 };
 
 export const articles: Record<string, Article> = {
   "how-to-find-oldest-instagram-followers": {
+    related: [
+      "how-to-see-when-someone-followed-you-on-instagram",
+      "how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram",
+      "oldest-instagram-follows",
+      "how-to-download-instagram-followers-data",
+    ],
     title: "How to Find Your Oldest Instagram Followers",
     description:
       "Find your oldest recorded Instagram followers by sorting the dates in your own export. Explore incoming follower dates privately, without an Instagram password.",
@@ -65,6 +72,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram": {
+    related: [
+      "how-to-see-who-doesnt-follow-you-back-on-instagram",
+      "how-to-see-when-someone-followed-you-on-instagram",
+      "how-to-find-oldest-instagram-followers",
+    ],
     title: "How to See Who Follows You but You Don't Follow Back on Instagram",
     description:
       "Open the Fans category to find followers you do not follow back in your Instagram export. Compare both lists privately, without an Instagram password.",
@@ -114,6 +126,12 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-when-someone-followed-you-on-instagram": {
+    related: [
+      "how-to-find-oldest-instagram-followers",
+      "how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram",
+      "how-to-see-when-you-followed-someone-on-instagram",
+      "how-to-download-instagram-followers-data",
+    ],
     title: "How to See When Someone Followed You on Instagram",
     description:
       "You can check a recorded follower date in your Instagram export when a usable date is included. Search and sort your Followers privately with InstaScope.",
@@ -207,6 +225,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-view-instagram-profiles-without-an-account": {
+    related: [
+      "profile-picture-viewer",
+      "is-instagram-follower-tracker-safe",
+      "privacy",
+    ],
     title: "How to View Instagram Profiles Without an Account",
     description:
       "Learn what you can see on Instagram without an account or login, what private profiles hide, and how to view an available Instagram profile picture in full size.",
@@ -266,6 +289,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "instagram-sent-follow-requests": {
+    related: [
+      "how-to-see-who-you-requested-to-follow-on-instagram",
+      "how-to-download-instagram-followers-data",
+      "how-to-analyze-instagram-data-download",
+    ],
     title: "How to see follow requests you sent on Instagram",
     description:
       "Find sent follow requests recorded in your Instagram export, learn which optional data to include and why an old record cannot confirm a request is still pending.",
@@ -303,6 +331,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-who-you-requested-to-follow-on-instagram": {
+    related: [
+      "instagram-sent-follow-requests",
+      "how-to-download-instagram-followers-data",
+      "how-to-analyze-instagram-data-download",
+    ],
     title: "How to See Who You Requested to Follow on Instagram",
     description:
       "Use your Instagram export to review sent follow-request records without a password, and understand why an exported request may no longer be pending.",
@@ -341,6 +374,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "oldest-instagram-follows": {
+    related: [
+      "how-to-see-when-you-followed-someone-on-instagram",
+      "how-to-find-oldest-instagram-followers",
+      "how-to-see-who-doesnt-follow-you-back-on-instagram",
+    ],
     title: "How to find your oldest recorded Instagram follows",
     description:
       "Sort dated accounts you still follow using your Instagram export, see which follow dates are unknown and understand what an old recorded date can and cannot tell you.",
@@ -383,6 +421,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-when-you-followed-someone-on-instagram": {
+    related: [
+      "oldest-instagram-follows",
+      "how-to-see-when-someone-followed-you-on-instagram",
+      "how-to-see-who-doesnt-follow-you-back-on-instagram",
+    ],
     title: "How to See When You Followed Someone on Instagram",
     description:
       "Find a recorded Instagram follow date in your export, sort dated current follows and understand what the timestamp cannot prove.",
@@ -425,6 +468,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "instagram-follower-changes": {
+    related: [
+      "can-you-see-who-unfollowed-you-on-instagram",
+      "instagram-unfollowers-without-password",
+      "how-to-download-instagram-followers-data",
+    ],
     title: "How to compare Instagram follower changes between exports",
     description:
       "Compare older and newer Instagram exports to see added or missing followers, following and mutual changes, while keeping the limits of two snapshots clear.",
@@ -478,6 +526,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "can-you-see-who-unfollowed-you-on-instagram": {
+    related: [
+      "instagram-follower-changes",
+      "instagram-unfollowers-without-password",
+      "how-to-see-who-doesnt-follow-you-back-on-instagram",
+    ],
     title: "Can You See Who Unfollowed You on Instagram?",
     description:
       "Learn what one Instagram export can show, how two follower snapshots reveal missing accounts and why that still cannot prove an intentional unfollow.",
@@ -524,6 +577,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-who-doesnt-follow-you-back-on-instagram": {
+    related: [
+      "how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram",
+      "oldest-instagram-follows",
+      "can-you-see-who-unfollowed-you-on-instagram",
+    ],
     title: "How to see who doesn't follow you back on Instagram",
     description:
       "Compare your exported Following and Followers lists locally to find one-way follows, understand the result and review accounts yourself.",
@@ -561,6 +619,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "instagram-unfollowers-without-password": {
+    related: [
+      "instagram-follower-changes",
+      "can-you-see-who-unfollowed-you-on-instagram",
+      "is-instagram-follower-tracker-safe",
+    ],
     title: "Instagram unfollowers without a password: what exports can show",
     description:
       "Learn how two Instagram exports reveal new and missing followers without sharing your password, and why a snapshot cannot prove an unfollow.",
@@ -600,6 +663,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "is-instagram-follower-tracker-safe": {
+    related: [
+      "privacy",
+      "how-to-view-instagram-profiles-without-an-account",
+      "instagram-unfollowers-without-password",
+    ],
     title: "Is an Instagram follower tracker safe? Questions to ask first",
     description:
       "Check credentials, file handling, account actions and unsupported promises before choosing a follower tool. Understand InstaScope's local processing model.",
@@ -632,6 +700,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-analyze-instagram-data-download": {
+    related: [
+      "how-to-download-instagram-followers-data",
+      "instagram-followers-json-explained",
+      "is-instagram-follower-tracker-safe",
+    ],
     title: "How to analyze your Instagram data download",
     description:
       "Choose the right export files, check follower relationships and dates, and understand what to do when an Instagram archive is incomplete or unsupported.",
@@ -678,6 +751,11 @@ export const articles: Record<string, Article> = {
     ],
   },
   "instagram-followers-json-explained": {
+    related: [
+      "how-to-download-instagram-followers-data",
+      "how-to-analyze-instagram-data-download",
+      "how-to-see-when-someone-followed-you-on-instagram",
+    ],
     title: "Instagram followers JSON explained",
     description:
       "Understand followers_1.json, following.json, username entries, timestamps and split files before using your Instagram data download for analysis.",

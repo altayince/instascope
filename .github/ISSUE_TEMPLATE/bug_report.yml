@@ -1,0 +1,43 @@
+name: Report a problem
+description: Report an export, profile viewer or site problem without sharing personal data.
+title: "Problem: "
+assignees:
+  - altayince
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reports are public. Never attach an Instagram export, saved snapshot, passwords, session cookies or screenshots with personal usernames. Use fictional examples only.
+        Describe what happened; this form does not submit anything until you choose to create the issue on GitHub.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did the problem happen?
+      options:
+        - Export import (ZIP / JSON / HTML)
+        - Followers, Following or relationship tools
+        - Profile Picture Viewer or enhancement
+        - Navigation, guides or another site area
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened, and what did you expect?
+      description: Include any visible error message after removing personal information. Do not paste account lists or file contents.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and device details
+      description: Describe how to reproduce it, your browser/device, and JSON or HTML format if relevant. Use fictional usernames only.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before publishing
+      options:
+        - label: I removed personal export data, account lists, credentials and identifying screenshots from this report.
+          required: true

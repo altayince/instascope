@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 85,
+    title: "Find focused guides and report problems safely",
+    summary:
+      "A grouped Guides hub and curated related links make existing educational content easier to explore. Public-photo explanations now cover local AI enhancement and its limits. Privacy copy explains local processing and public problem reports; the footer links to a safe GitHub reporting form.",
+  },
+  {
     issue: 83,
     title: "Explain oldest followers and incoming one-way connections",
     summary:

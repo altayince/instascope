@@ -65,6 +65,10 @@ Run `npm run check`, `npm run build:production` and the full `npm run test:e2e` 
 
 ## Optional product analytics
 
+INS-85 production audit: live `/privacy/` matched the generated current-main content; no stale Privacy build/cache was found. The public-photo endpoint was compiled as `/api/profile-picture`, and remote product analytics was disabled in the live copy. Local AI enhancement and the required same-account snapshot confirmation were missing from that explanation and have been added. Build-time `NEXT_PUBLIC_*` settings must be verified in the generated `out/privacy/index.html` and the deployed page, not inferred from Worker runtime settings. This task does not deploy analytics infrastructure or change its configuration.
+
+The footer's reporting destination is the existing public repository's GitHub issue form. Repository visibility and enabled Issues were verified before linking it. Reports are public and must contain fictional examples rather than archives, account lists or credentials; GitHub sign-in is required to submit a report. If repository visibility changes, remove or replace this public link rather than pointing users at a private repository.
+
 With no configuration, event names are visible only via a browser event listener:
 
 ```js

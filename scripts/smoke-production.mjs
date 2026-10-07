@@ -13,6 +13,7 @@ const paths = [
   "/instagram-wrapped/",
   "/profile-picture-viewer/",
   "/privacy/",
+  "/guides/",
   "/how-to-download-instagram-followers-data/",
   "/changelog/",
   "/robots.txt",

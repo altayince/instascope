@@ -53,13 +53,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ◎ instascope
             </Link>
             <p>A little clarity for your social circle.</p>
-            <div>
+            <nav aria-label="Footer navigation">
+              <Link href="/guides/">Guides</Link>
               <Link href="/privacy/">Privacy</Link>
               <Link href="/how-to-download-instagram-followers-data/">
                 Export guide
               </Link>
               <Link href="/changelog/">What’s new</Link>
-            </div>
+              <a
+                href="https://github.com/altayince/instascope/issues/new?template=bug_report.yml"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Report a problem on GitHub (opens in a new tab)"
+              >
+                Report a problem
+              </a>
+            </nav>
             <small>
               Independent tool. Not affiliated with Instagram or Meta.
             </small>

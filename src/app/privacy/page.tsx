@@ -27,7 +27,8 @@ export default function Privacy() {
         or relationship dates. You can replace or delete the saved snapshot in
         the workspace. Clearing browser/site data may also remove it. Nothing is
         compared with a later export until you choose the older snapshot and
-        confirm the dates.
+        confirm the dates and that both exports belong to the same Instagram
+        account. InstaScope does not automatically verify account identity.
       </p>
       <h2>No Instagram credentials.</h2>
       <p>
@@ -59,6 +60,22 @@ export default function Privacy() {
           : "Public-photo lookup is not configured on this deployment."}{" "}
         It has no access to your uploaded export. Restricted content is never
         bypassed.
+      </p>
+      <h2>Photo enhancement happens on your device.</h2>
+      <p>
+        Optional AI super resolution runs in a browser worker on your device.
+        Model and runtime files are downloaded from InstaScope when needed; the
+        photo is not uploaded to an AI service for enhancement. The model
+        estimates detail and can change facial features. An enhanced PNG is not
+        Instagram&apos;s original HD photo. You choose whether to save or share
+        it.
+      </p>
+      <h2>Problem reports are public.</h2>
+      <p>
+        The footer&apos;s Report a problem link opens GitHub in a new tab.
+        Reports there are public. Describe the tool, file format and steps using
+        fictional examples. Do not attach your export, saved snapshot,
+        credentials or screenshots that expose personal accounts.
       </p>
     </main>
   );

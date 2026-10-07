@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { articles, type Article } from "@/lib/articles";
+import type { Article } from "@/lib/articles";
+import { guides } from "@/lib/guides";
 import { Breadcrumbs } from "./structured-data";
 
 export function ArticlePage({
@@ -9,6 +10,9 @@ export function ArticlePage({
   slug: string;
   article: Article;
 }) {
+  const related = [...new Set(article.related)]
+    .filter((id) => id !== slug && Object.hasOwn(guides, id))
+    .slice(0, 5);
   return (
     <main id="main" className="prose">
       <Breadcrumbs name={article.title} path={`/${slug}/`} />
@@ -41,16 +45,17 @@ export function ArticlePage({
         </nav>
       </article>
       <nav aria-label="Related guides">
-        <h2>More export guides</h2>
+        <h2>Related guides</h2>
         <ul>
-          {Object.entries(articles)
-            .filter(([path]) => path !== slug)
-            .map(([path, guide]) => (
-              <li key={path}>
-                <Link href={`/${path}/`}>{guide.title}</Link>
-              </li>
-            ))}
+          {related.map((id) => (
+            <li key={id}>
+              <Link href={guides[id].href}>{guides[id].title}</Link>
+            </li>
+          ))}
         </ul>
+        <p>
+          <Link href="/guides/">Browse all guides by topic</Link>
+        </p>
       </nav>
     </main>
   );
