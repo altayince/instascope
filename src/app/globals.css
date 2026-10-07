@@ -638,9 +638,10 @@ footer p {
   font-size: 11px;
   margin: 0;
 }
-footer > div {
+footer > nav {
   margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   font-size: 11px;
 }
@@ -648,6 +649,10 @@ footer > small {
   width: 100%;
   font-size: 9px;
   color: var(--muted);
+}
+footer > nav a {
+  padding: 4px 0;
+  text-decoration: underline;
 }
 .tool-hero {
   max-width: 800px;
@@ -1481,6 +1486,28 @@ footer > small {
 .prose a:not(.button) {
   text-decoration: underline;
 }
+.guide-topic-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  padding: 0;
+}
+.guide-directory {
+  list-style: none;
+  padding: 0;
+}
+.guide-directory li {
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0;
+}
+.guide-directory h3 {
+  font-size: 18px;
+  margin: 0;
+}
+.guide-directory p {
+  margin: 6px 0 0;
+}
 .profile-viewer {
   max-width: 760px;
   margin: 35px auto;
@@ -1813,7 +1840,7 @@ footer > small {
     padding: 25px 20px;
     gap: 15px;
   }
-  footer > div {
+  footer > nav {
     margin: 0;
     width: 100%;
   }

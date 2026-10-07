@@ -288,6 +288,14 @@ export const toolContent: Partial<Record<ToolSlug, Content>> = {
         ],
       },
       {
+        title: "Optional 1080px AI enhancement",
+        paragraphs: [
+          "After a public photo loads, choose Enhance to 1080 to run AI super resolution locally in your browser. A square image produces a 1080 by 1080 output; other shapes keep their aspect ratio with a 1080px long edge. The first use downloads the model from InstaScope. Processing can take longer on smaller devices, and you can cancel while keeping the original photo.",
+          "The model estimates detail. Faces, hair and other details can change, and source quality still limits the result. Enhanced output is not Instagram's original HD image and does not recover a higher-resolution original that Instagram did not supply.",
+          "Use Original and Enhance to 1080 to compare the original with the enhanced preview, then choose Save enhanced PNG if you want the result on your device. Zoom, fullscreen and the circular preview also let you inspect the available photo; preview zoom itself adds no source detail. No photo is uploaded to an AI service for enhancement.",
+        ],
+      },
+      {
         title: "Separate from your private export workspace",
         paragraphs: [
           "A lookup submits the username you entered to a separate photo service, when configured. A returned photo loads from Instagram's image servers. This is different from archive analysis, which reads your own files locally without uploading them.",

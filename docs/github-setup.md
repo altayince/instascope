@@ -1,6 +1,6 @@
 # GitHub repository setup
 
-- Private repository: https://github.com/altayince/instascope
+- Public repository: https://github.com/altayince/instascope (visibility and open Issues verified for INS-85). Public problem reports use the `bug_report.yml` issue form; the INS Project below remains private.
 - Private Project: https://github.com/users/altayince/projects/3 (`INS`)
 - Implementation issue: #1, assigned to `altayince`, in INS.
 - Branch: `feature/INS-1-privacy-first-mvp`, created from updated `main`.
