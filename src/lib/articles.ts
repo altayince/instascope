@@ -6,6 +6,113 @@ export type Article = {
 };
 
 export const articles: Record<string, Article> = {
+  "how-to-find-oldest-instagram-followers": {
+    title: "How to Find Your Oldest Instagram Followers",
+    description:
+      "Find your oldest recorded Instagram followers by sorting the dates in your own export. Explore incoming follower dates privately, without an Instagram password.",
+    sections: [
+      {
+        heading: "Sort the dates recorded for accounts that follow you",
+        paragraphs: [
+          "To find your oldest Instagram followers, open your own export in Followers Analyzer, select Followers and choose Oldest recorded followers in Sort accounts. InstaScope puts usable dates in order, with undated accounts at the end. The earliest dated result is the oldest recorded follower in that supplied list, not proof that this person was your first-ever follower.",
+          "Followers are accounts that follow you; Following contains accounts you follow. Sorting Following answers who you followed earliest instead. Even for a mutual connection, the dates in those two directions can differ.",
+        ],
+      },
+      {
+        heading: "Get the complete set of available follower records",
+        paragraphs: [
+          "Request Followers and Following through Instagram's Accounts Center, choosing All time coverage when available. Open the downloaded ZIP in InstaScope. If you select extracted files, include every numbered followers part as well as the following file; an omitted part can omit an early follower.",
+          "InstaScope reads supported JSON timestamps and visible dates in supported HTML records. JSON dates are displayed using UTC; HTML dates preserve their recorded calendar date without an inferred timezone. A missing or malformed date stays unavailable, and the account remains visible.",
+          "Your archive is analyzed locally in your browser. InstaScope does not ask for your Instagram password or send the archive away for analysis.",
+        ],
+      },
+      {
+        heading: "Search one follower or explore the incoming timeline",
+        paragraphs: [
+          "In Followers, use Search accounts to find a specific username and inspect its recorded date. Clear the search before looking for the earliest dated account across the full loaded list. Newest recorded followers reverses the date order without switching to accounts you follow.",
+          "The Explore oldest recorded followers link below opens Relationship Timeline with Accounts that follow you already selected. Load your export there to browse the oldest dated records or group the incoming relationships by year or month. Those groups count dated records in this export, not your follower total at each past date.",
+        ],
+      },
+      {
+        heading:
+          "Why the oldest recorded follower may not be your first follower",
+        paragraphs: [
+          "A current export does not reconstruct everyone who ever followed you. Earlier followers may no longer be present, some records may lack dates, and limited export coverage can leave relationships out. An account that unfollowed and followed again may have a different recorded date.",
+          "A recorded date also does not establish uninterrupted following from that day. One export cannot reveal every intervening follow and unfollow or reconstruct historical follower totals. Use two comparable exports when your question is which usernames changed between snapshots.",
+        ],
+      },
+      {
+        heading: "FAQ: Can I date an account that says Date unavailable?",
+        paragraphs: [
+          "There is no usable source date for that record in the imported files. List position, account age and the date you downloaded the ZIP are not substitutes. InstaScope keeps the account undated rather than inventing a place for it in your history.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/relationship-timeline/?direction=followers",
+        label: "Explore oldest recorded followers",
+      },
+      { href: "/followers-analyzer/", label: "Sort and search your Followers" },
+      {
+        href: "/how-to-see-when-someone-followed-you-on-instagram/",
+        label: "Check the recorded date for one follower",
+      },
+      {
+        href: "/oldest-instagram-follows/",
+        label: "Find the oldest accounts you follow instead",
+      },
+    ],
+  },
+  "how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram": {
+    title: "How to See Who Follows You but You Don't Follow Back on Instagram",
+    description:
+      "Open the Fans category to find followers you do not follow back in your Instagram export. Compare both lists privately, without an Instagram password.",
+    sections: [
+      {
+        heading: "Use Fans for followers you do not follow back",
+        paragraphs: [
+          "Open your Instagram export in Followers Analyzer and select Fans to see accounts in Followers but absent from Following. These people appear to follow you in the supplied snapshot, while you do not appear to follow them. This is the reverse of Not Following Back, which lists accounts you follow that are absent from your Followers.",
+          "Followers means accounts following you. Following means accounts you follow. Mutuals appear in both lists. Fans is the product's name for Followers minus Following; it is a relationship category, not a claim about how interested someone is in you.",
+        ],
+      },
+      {
+        heading: "Open both exported lists, then select the right category",
+        paragraphs: [
+          "Request Followers and Following from Instagram's Accounts Center with All time coverage when available. Open the ZIP in Followers Analyzer, or select all extracted followers parts together with the following file. Both lists are needed: Followers alone cannot establish which accounts you follow back.",
+          "After the overview appears, select the Fans category. Use Search accounts to check a username or browse the results. For example, if sample.cedar and sample.fern are followers but you follow only sample.fern, sample.cedar belongs in Fans and sample.fern is a mutual.",
+          "InstaScope normalizes usernames and removes duplicates before comparing the sets. A repeated record does not create an extra fan. A missing file is different from an explicitly empty Following list, and incomplete or date-limited coverage can change which accounts appear in the result.",
+        ],
+      },
+      {
+        heading: "Read the result as a snapshot, then review it yourself",
+        paragraphs: [
+          "The result describes the files you supplied, not live Instagram state. A relationship may have changed after the export was prepared, and a username change can affect matching. Check Instagram before deciding whether to follow someone; InstaScope does not follow accounts automatically.",
+          "The analysis runs locally in your browser without an Instagram password. Your archive is not sent to a server for comparison. Opening a real account's profile is a separate visit to Instagram that you choose to make.",
+        ],
+      },
+      {
+        heading: "FAQ: Why is this different from who doesn't follow me back?",
+        paragraphs: [
+          "Fans are incoming one-way relationships: they follow you, and you do not follow them. Not Following Back is outgoing: you follow them, and they are absent from your followers. Neither result proves an unfollow, shows profile visitors or tells you why the relationship is one-way.",
+        ],
+      },
+    ],
+    links: [
+      {
+        href: "/followers-analyzer/",
+        label: "Open Followers Analyzer and select Fans",
+      },
+      {
+        href: "/how-to-see-who-doesnt-follow-you-back-on-instagram/",
+        label: "Looking for people who don't follow you back instead?",
+      },
+      {
+        href: "/not-following-back/",
+        label: "Review outgoing one-way follows",
+      },
+    ],
+  },
   "how-to-see-when-someone-followed-you-on-instagram": {
     title: "How to See When Someone Followed You on Instagram",
     description:
@@ -84,6 +191,10 @@ export const articles: Record<string, Article> = {
       {
         href: "/followers-analyzer/",
         label: "Check your recorded follower dates in Followers Analyzer",
+      },
+      {
+        href: "/how-to-find-oldest-instagram-followers/",
+        label: "Find your oldest recorded incoming followers",
       },
       {
         href: "/how-to-see-when-you-followed-someone-on-instagram/",
@@ -262,6 +373,10 @@ export const articles: Record<string, Article> = {
       },
       { href: "/instagram-cleaner/", label: "Review old connections manually" },
       {
+        href: "/how-to-find-oldest-instagram-followers/",
+        label: "Looking for your oldest incoming followers instead?",
+      },
+      {
         href: "/how-to-see-when-you-followed-someone-on-instagram/",
         label: "Check what a recorded follow date means",
       },
@@ -324,8 +439,16 @@ export const articles: Record<string, Article> = {
       {
         heading: "Presence is visible; the reason is not",
         paragraphs: [
-          "If a username occurs in the older Followers list but not the newer one, the precise finding is that it is missing from the newer export. The files do not establish who initiated a change, exactly when it happened or why. A rename, deactivation or incomplete export can also affect the comparison.",
+          "If a username occurs in the older Followers list but not the newer one, the precise finding is that it is missing from the newer export. The files do not establish who initiated a change, exactly when it happened or why. A rename, account deletion, deactivation or incomplete export can also affect the comparison.",
           "Use comparable All time exports with both Followers and Following. Import time is not the export date, so check which file is older before loading it; reversing them reverses the direction of every change.",
+        ],
+      },
+      {
+        heading: "Separate added and missing accounts from the net change",
+        paragraphs: [
+          "One export is one snapshot; two exports let you compare the usernames present at those two points. Added followers appear only in the newer Followers list. Missing followers appear only in the older one. Newly followed accounts and removed following use the same comparison in the outgoing direction; new and lost mutuals reflect changes in accounts present in both lists.",
+          "Net follower count difference is the newer count minus the older count. Five added followers and two missing followers produce a net increase of three. Reading only that total hides the two missing accounts, so review additions and absences separately.",
+          "Comparing exports does not provide live tracking or continuous relationship history. A person who left and returned between the snapshots might appear in both. Differences in export coverage can also look like relationship changes; compare files from the same account with the same categories and date range.",
         ],
       },
       {
@@ -347,6 +470,10 @@ export const articles: Record<string, Article> = {
       {
         href: "/can-you-see-who-unfollowed-you-on-instagram/",
         label: "Understand what an unfollower comparison can prove",
+      },
+      {
+        href: "/instagram-unfollowers-without-password/",
+        label: "Compare follower snapshots without sharing a password",
       },
     ],
   },
@@ -427,6 +554,10 @@ export const articles: Record<string, Article> = {
       { href: "/not-following-back/", label: "Find one-way follows" },
       { href: "/instagram-cleaner/", label: "Review your following list" },
       { href: "/snapshot-comparison/", label: "Compare two exports" },
+      {
+        href: "/how-to-see-who-follows-you-but-you-dont-follow-back-on-instagram/",
+        label: "Find followers you don't follow back instead",
+      },
     ],
   },
   "instagram-unfollowers-without-password": {
