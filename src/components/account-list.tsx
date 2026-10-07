@@ -182,7 +182,7 @@ export function AccountList({
                         .filter((a) => activeSelection.has(a.username))
                         .map(
                           (a) =>
-                            `${a.username},${usableInstagramProfileHref(a) ?? ""}`,
+                            `${a.username},${profileHref(a) ?? ""}`,
                         )
                         .join("\n"),
                   ],
@@ -205,7 +205,10 @@ export function AccountList({
             ? "account"
             : "record"
           : countLabel}{" "}
-        {selectable && "· Review manually on Instagram"}
+        {selectable &&
+          (demo
+            ? "· Fictional accounts for demo review only"
+            : "· Review manually on Instagram")}
       </p>
       {!filtered.length ? (
         <div className="empty-state">

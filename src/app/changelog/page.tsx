@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 87,
+    title: "Keep fictional demo review exports free of real profile links",
+    summary:
+      "Demo review CSVs leave profile URLs blank, matching the non-clickable fictional accounts in the app. Demo list captions now describe fictional review. Real imported accounts keep their existing profile links and deleted-account exclusions.",
+  },
+  {
     issue: 85,
     title: "Find focused guides and report problems safely",
     summary:
