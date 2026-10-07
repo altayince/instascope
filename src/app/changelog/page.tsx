@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 83,
+    title: "Explain oldest followers and incoming one-way connections",
+    summary:
+      "New guides show how to find oldest recorded incoming followers and use Fans for followers you do not follow back. The existing follower-changes guide now explains net changes and snapshot limits, with focused links between related questions and tools.",
+  },
+  {
     issue: 80,
     title: "Fit the complete profile photo in fullscreen without cropping",
     summary:
