@@ -340,7 +340,7 @@ export function ProfileViewer() {
             <div className="photo-enhancement">
               <p>
                 {enhancedActive && enhanced
-                  ? `AI-enhanced · ${enhanced.width} × ${enhanced.height}`
+                  ? `AI-upscaled · ${enhanced.width} × ${enhanced.height}`
                   : `Original public photo · ${dimensions.width} × ${dimensions.height}`}
               </p>
               <div className="photo-controls">
@@ -365,23 +365,27 @@ export function ProfileViewer() {
                   }
                   onClick={() => void enhance()}
                 >
-                  {enhancing ? "Enhancing…" : "Enhance to 1080"}
+                  {enhancing ? "Upscaling…" : "AI upscale 4×"}
                 </button>
                 {enhancedActive && enhanced && (
                   <a
                     className="text-link"
                     href={enhanced.url}
-                    download={`instascope-${username}-ai-1080.png`}
+                    download={`instascope-${username}-ai-${enhanced.width}x${enhanced.height}.png`}
                   >
-                    Save enhanced PNG
+                    Save upscaled PNG
                   </a>
                 )}
               </div>
               <p>
-                AI super resolution runs in your browser. It estimates detail
-                and can change facial features; this is not Instagram&apos;s
-                original HD photo. The first use downloads the model and may
-                take a little longer.
+                General-purpose AI upscaling runs in your browser and keeps the
+                model&apos;s actual 4× output size. Face-specific restoration is
+                not available. Small faces may remain soft. Details are
+                AI-estimated and can change facial features; this is not
+                Instagram&apos;s original HD photo or an authentic
+                higher-resolution original. The first use downloads about 19 MB
+                of model and runtime files. Processing may take longer on
+                phones.
               </p>
               {enhancing && (
                 <>

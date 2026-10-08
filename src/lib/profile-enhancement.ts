@@ -1,4 +1,5 @@
 import { verifiedPublicImageUrl } from "./profile-lookup";
+import { PROFILE_SCALE } from "./profile-ai-tiles";
 
 export async function enhancePublicPhoto(
   url: string,
@@ -39,9 +40,9 @@ export async function enhancePublicPhoto(
   if (width < 1 || height < 1 || Math.max(width, height) > 1024)
     throw new Error("Image outside enhancement size limits");
   const canvas = document.createElement("canvas");
-  const inputScale = Math.min(1, 270 / Math.max(width, height));
-  canvas.width = Math.max(1, Math.round(width * inputScale));
-  canvas.height = Math.max(1, Math.round(height * inputScale));
+  // Preserve source pixels. The worker bounds inference memory with tiles.
+  canvas.width = width;
+  canvas.height = height;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas unavailable");
   context.imageSmoothingEnabled = true;
@@ -86,7 +87,13 @@ export async function enhancePublicPhoto(
         return;
       }
       finish();
-      if (event.data.error) reject(new Error("AI enhancement unavailable"));
+      if (
+        event.data.error ||
+        event.data.width !== width * PROFILE_SCALE ||
+        event.data.height !== height * PROFILE_SCALE ||
+        event.data.pixels?.length !== width * height * PROFILE_SCALE ** 2 * 4
+      )
+        reject(new Error("AI enhancement unavailable"));
       else
         resolve(
           new ImageData(
@@ -103,24 +110,11 @@ export async function enhancePublicPhoto(
         [image.data.buffer],
       );
   });
-  const restoredCanvas = document.createElement("canvas");
-  restoredCanvas.width = restored.width;
-  restoredCanvas.height = restored.height;
-  const restoredContext = restoredCanvas.getContext("2d");
-  if (!restoredContext) throw new Error("Canvas unavailable");
-  restoredContext.putImageData(restored, 0, 0);
-  // The learned model restores at 4x; final resampling sets the 1080px long edge.
-  canvas.width = Math.max(
-    1,
-    Math.round((1080 * width) / Math.max(width, height)),
-  );
-  canvas.height = Math.max(
-    1,
-    Math.round((1080 * height) / Math.max(width, height)),
-  );
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = "high";
-  context.drawImage(restoredCanvas, 0, 0, canvas.width, canvas.height);
+  // Encode the learned output at its native resolution; never manufacture HD
+  // dimensions by interpolating after inference.
+  canvas.width = restored.width;
+  canvas.height = restored.height;
+  context.putImageData(restored, 0, 0);
   const blob = await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
       (value) =>

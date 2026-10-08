@@ -394,7 +394,7 @@ test("shared capacity countdown uses Retry-After and blocks a different profile 
   expect(calls).toBe(2);
 });
 
-test("local AI inference produces a 1080px PNG and preserves original comparison", async ({
+test("local AI inference produces a 128px PNG and preserves original comparison", async ({
   page,
 }) => {
   let calls = 0;
@@ -428,35 +428,35 @@ test("local AI inference produces a 1080px PNG and preserves original comparison
   await submit(page);
   await expect(page.getByText("Original public photo · 32 × 32")).toBeVisible();
   expect(modelRequests).toHaveLength(0);
-  await page.getByRole("button", { name: "Enhance to 1080" }).click();
-  await expect(page.getByText("AI-enhanced · 1080 × 1080")).toBeVisible({
+  await page.getByRole("button", { name: "AI upscale 4×" }).click();
+  await expect(page.getByText("AI-upscaled · 128 × 128")).toBeVisible({
     timeout: 20000,
   });
   const photo = page.locator(".photo-preview img");
   await expect(photo).toHaveAttribute("src", /^blob:/);
   expect(
     await photo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
-  ).toBe(1080);
+  ).toBe(128);
   await checkFullscreenFit(page);
   await expect(
     page.getByText("can change facial features", { exact: false }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Save enhanced PNG" }),
-  ).toHaveAttribute("download", "instascope-sample.account-ai-1080.png");
+    page.getByRole("link", { name: "Save upscaled PNG" }),
+  ).toHaveAttribute("download", "instascope-sample.account-ai-128x128.png");
   expect(modelRequests.some((url) => url.endsWith(".onnx"))).toBe(true);
   expect(modelRequests.some((url) => url.endsWith(".wasm"))).toBe(true);
   for (const url of modelRequests)
     expect(new URL(url).origin).toBe(new URL(page.url()).origin);
   const downloading = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Save enhanced PNG" }).click();
+  await page.getByRole("link", { name: "Save upscaled PNG" }).click();
   const downloaded = await downloading;
   const saved = await readFile((await downloaded.path())!);
-  expect((await sharp(saved).metadata()).width).toBe(1080);
-  expect((await sharp(saved).metadata()).height).toBe(1080);
+  expect((await sharp(saved).metadata()).width).toBe(128);
+  expect((await sharp(saved).metadata()).height).toBe(128);
   // The learned output must differ from simply resizing the source PNG.
   const naive = await sharp(neuralPng)
-    .resize(1080, 1080)
+    .resize(128, 128)
     .removeAlpha()
     .raw()
     .toBuffer();
@@ -467,7 +467,7 @@ test("local AI inference produces a 1080px PNG and preserves original comparison
   expect(difference / naive.length).toBeGreaterThan(0.5);
   await page.getByRole("button", { name: "Original", exact: true }).click();
   await expect(photo).toHaveAttribute("src", imageUrl);
-  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await page.getByRole("button", { name: "AI upscale 4×" }).click();
   await expect(photo).toHaveAttribute("src", /^blob:/);
   expect(calls).toBe(1);
   expect(
@@ -476,6 +476,110 @@ test("local AI inference produces a 1080px PNG and preserves original comparison
     ),
   ).toBe(true);
 });
+
+for (const fixture of [
+  { name: "portrait-150", file: "portrait.svg", width: 150, height: 150 },
+  { name: "portrait-320", file: "portrait.svg", width: 320, height: 320 },
+  { name: "non-face-logo", file: "logo.svg", width: 48, height: 32 },
+]) {
+  test(`native learned output preserves ${fixture.name} source resolution`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180000);
+    const source = await sharp(`tests/fixtures/profile/${fixture.file}`)
+      .resize(fixture.width, fixture.height)
+      .png()
+      .toBuffer();
+    const outgoing: string[] = [];
+    page.on("request", (request) => {
+      if (!["GET", "HEAD"].includes(request.method()))
+        outgoing.push(request.url());
+    });
+    await page.route(endpoint, (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ username: "sample.account", imageUrl }),
+      }),
+    );
+    await page.route(imageUrl, (route) =>
+      route.fulfill({
+        contentType: "image/png",
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: source,
+      }),
+    );
+    await open(page);
+    await submit(page);
+    await expect(
+      page.getByText(
+        `Original public photo · ${fixture.width} × ${fixture.height}`,
+      ),
+    ).toBeVisible();
+    const started = Date.now();
+    await page.getByRole("button", { name: "AI upscale 4×" }).click();
+    await expect(
+      page.getByText(
+        `AI-upscaled · ${fixture.width * 4} × ${fixture.height * 4}`,
+      ),
+    ).toBeVisible({ timeout: 150000 });
+    const elapsed = Date.now() - started;
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("link", { name: "Save upscaled PNG" }).click();
+    const downloaded = await downloadPromise;
+    const output = await readFile((await downloaded.path())!);
+    const metadata = await sharp(output).metadata();
+    expect([metadata.width, metadata.height]).toEqual([
+      fixture.width * 4,
+      fixture.height * 4,
+    ]);
+    expect(metadata.width).not.toBe(1080);
+    expect(outgoing).toEqual([]); // Photos never leave the browser for inference.
+    await expect(
+      page
+        .getByText("Face-specific restoration is not available.", {
+          exact: false,
+        })
+        .last(),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await testInfo.attach("source.png", {
+      body: source,
+      contentType: "image/png",
+    });
+    await testInfo.attach("upscaled.png", {
+      body: output,
+      contentType: "image/png",
+    });
+    await testInfo.attach("timing.json", {
+      body: Buffer.from(
+        JSON.stringify(
+          {
+            fixture: fixture.name,
+            project: testInfo.project.name,
+            totalMs: elapsed,
+            output: [metadata.width, metadata.height],
+            note: "Local download included; device emulation is not physical phone measurement.",
+          },
+          null,
+          2,
+        ),
+      ),
+      contentType: "application/json",
+    });
+    await page
+      .locator(".photo-enhancement")
+      .screenshot({ path: testInfo.outputPath("controls.png") });
+    await page.getByRole("button", { name: "Original", exact: true }).click();
+    await expect(page.locator(".photo-preview img")).toHaveAttribute(
+      "src",
+      imageUrl,
+    );
+  });
+}
 
 test("untrusted model bytes fail closed and leave the original available", async ({
   page,
@@ -498,7 +602,7 @@ test("untrusted model bytes fail closed and leave the original available", async
   );
   await open(page);
   await submit(page);
-  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await page.getByRole("button", { name: "AI upscale 4×" }).click();
   await expect(page.getByRole("status")).toContainText(
     "AI enhancement is unavailable",
   );
@@ -507,7 +611,7 @@ test("untrusted model bytes fail closed and leave the original available", async
     imageUrl,
   );
   await expect(
-    page.getByRole("link", { name: "Save enhanced PNG" }),
+    page.getByRole("link", { name: "Save upscaled PNG" }),
   ).toHaveCount(0);
 });
 
@@ -530,20 +634,20 @@ test("AI model loading can be cancelled while the original controls remain respo
   await page.route("**/profile-ai/*.onnx", () => {});
   await open(page);
   await submit(page);
-  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await page.getByRole("button", { name: "AI upscale 4×" }).click();
   await expect(page.getByRole("status")).toContainText("Loading the AI model");
   await page.getByLabel("Circular preview").check();
   await expect(page.locator(".photo-preview")).toHaveClass(/circle/);
   await page.getByRole("button", { name: "Cancel enhancement" }).click();
   await expect(
-    page.getByRole("button", { name: "Enhance to 1080" }),
+    page.getByRole("button", { name: "AI upscale 4×" }),
   ).toBeEnabled();
   await expect(page.locator(".photo-preview img")).toHaveAttribute(
     "src",
     imageUrl,
   );
   await expect(
-    page.getByRole("link", { name: "Save enhanced PNG" }),
+    page.getByRole("link", { name: "Save upscaled PNG" }),
   ).toHaveCount(0);
 });
 
@@ -568,7 +672,7 @@ test("a CDN that disallows enhancement still leaves the original photo usable", 
   await open(page);
   await submit(page);
   await expect(page.getByText("Original public photo · 1 × 1")).toBeVisible();
-  await page.getByRole("button", { name: "Enhance to 1080" }).click();
+  await page.getByRole("button", { name: "AI upscale 4×" }).click();
   await expect(page.getByRole("status")).toContainText(
     "AI enhancement is unavailable",
   );
