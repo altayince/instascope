@@ -19,16 +19,33 @@ export default function Privacy() {
         browser storage. Current results stay in this tab’s memory until you
         clear active data, reload, or close the tab.
       </p>
-      <h2>Saved snapshots are your choice.</h2>
+      <h2>Snapshot Vault stays in this browser.</h2>
       <p>
-        If you choose “Save this snapshot for next time”, InstaScope stores only
-        follower and following usernames plus the export date you enter in this
-        browser’s site storage. It does not save the ZIP, other connection lists
-        or relationship dates. You can replace or delete the saved snapshot in
-        the workspace. Clearing browser/site data may also remove it. Nothing is
-        compared with a later export until you choose the older snapshot and
-        confirm the dates and that both exports belong to the same Instagram
-        account. InstaScope does not automatically verify account identity.
+        If you choose “Save snapshot”, InstaScope stores only follower and
+        following usernames plus the export date you enter and local snapshot
+        metadata (an ID, format version and time saved) in this browser’s
+        IndexedDB site storage. It does not save the raw ZIP, private connection
+        lists, relationship timestamps, messages, media, passwords or session
+        cookies. No Vault data is stored on InstaScope servers. You can browse,
+        replace or delete saved snapshots in Snapshot Vault. Deleting saved
+        history does not clear the active export; clearing active data does not
+        delete saved history.
+      </p>
+      <p>
+        An older single saved snapshot is automatically migrated once. Its
+        original local copy is kept for compatibility with an older deployment
+        until you delete that snapshot or all saved history. Clearing
+        browser/site data may remove your Vault. There is no cloud backup.
+        “Export Vault backup” downloads a private JSON file containing
+        usernames; keep it safe. Import validates and previews this specific
+        backup format before you confirm a local merge. Existing dates are kept.
+      </p>
+      <p>
+        Nothing is compared automatically. Choose the snapshots and confirm the
+        dates and that both exports belong to the same Instagram account.
+        InstaScope does not automatically verify account identity. Saved totals
+        describe individual exports, not continuous monitoring or a complete
+        relationship history.
       </p>
       <h2>No Instagram credentials.</h2>
       <p>

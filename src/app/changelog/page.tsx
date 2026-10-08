@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 90,
+    title: "Keep a private history in Snapshot Vault",
+    summary:
+      "Save multiple dated follower/following snapshots locally, compare any two after confirming the same account, and review recorded totals over time. The earlier saved copy migrates automatically. Private JSON backups, confirmed replacements and deletion keep you in control; archives and private connection lists are never saved.",
+  },
+  {
     issue: 82,
     title: "Show native AI upscale dimensions without manufacturing HD",
     summary:

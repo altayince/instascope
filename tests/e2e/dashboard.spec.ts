@@ -269,15 +269,17 @@ test("follower-only dates do not promise Wrapped date stories and saved snapshot
     "Date stories need usable recorded following dates",
   );
   await card(page, "followers-analyzer").click();
-  const saver = page.getByRole("region", { name: "Save a local snapshot" });
+  const saver = page
+    .locator(".workspace")
+    .getByRole("region", { name: "Save a local snapshot" });
   await saver.getByLabel("Date this export represents").fill("2024-01-15");
   await saver
-    .getByRole("button", { name: "Save this snapshot for next time" })
+    .getByRole("button", { name: "Save snapshot", exact: true })
     .click();
-  await expect(saver).toContainText("Saved local snapshot · 2024-01-15");
+  await expect(saver).toContainText("Snapshot saved locally · 15 Jan 2024");
   await dashboard(page);
   await expect(card(page, "snapshot-comparison")).toContainText(
-    "A saved local snapshot is available",
+    "Saved local snapshots are available",
   );
   await expect(card(page, "snapshot-comparison")).not.toContainText(
     "Two snapshots are loaded",
@@ -290,7 +292,7 @@ test("follower-only dates do not promise Wrapped date stories and saved snapshot
   ).toBeVisible();
   await upload(page);
   await expect(card(page, "snapshot-comparison")).toContainText(
-    "Confirm its date and the same account",
+    "confirm the same account",
   );
 });
 
