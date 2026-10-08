@@ -6,6 +6,7 @@ import { useData } from "./data-provider";
 import { Upload } from "./upload";
 import { AccountList } from "./account-list";
 import { Wrapped } from "./wrapped";
+import { SnapshotComparisonResults } from "./snapshot-comparison-results";
 import {
   SavedComparisonChoice,
   SavedSnapshotNotice,
@@ -33,14 +34,6 @@ export const categories = {
   fans: ["Fans", "They follow you. You do not follow them back."],
 } as const;
 export type Category = keyof typeof categories;
-const changeLabels = {
-  newFollowers: "Added followers",
-  lostFollowers: "Missing followers",
-  newFollowing: "Newly followed",
-  removedFollowing: "No longer following",
-  newMutuals: "New mutuals",
-  lostMutuals: "No longer mutual",
-} as const;
 
 let pendingWorkspaceAnchor: { path: string; viewportY: number } | null = null;
 
@@ -126,8 +119,6 @@ export function Workspace({
   const pathname = usePathname();
   const tabsRef = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState<Category>(initialCategory);
-  const [change, setChange] =
-    useState<keyof typeof changeLabels>("newFollowers");
   const analysis = useMemo(
     () => (dataset ? analyze(dataset) : null),
     [dataset],
@@ -144,7 +135,8 @@ export function Workspace({
       return;
     }
     pendingWorkspaceAnchor = null;
-    const difference = tabsRef.current.getBoundingClientRect().top - anchor.viewportY;
+    const difference =
+      tabsRef.current.getBoundingClientRect().top - anchor.viewportY;
     if (Math.abs(difference) < 1) return;
     const root = document.documentElement;
     const previousBehavior = root.style.scrollBehavior;
@@ -228,7 +220,9 @@ export function Workspace({
             <Link
               href="/pending-follow-requests/"
               scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/pending-follow-requests/")}
+              onNavigate={() =>
+                rememberWorkspaceAnchor("/pending-follow-requests/")
+              }
               aria-current={mode === "pending" ? "page" : undefined}
             >
               Pending requests
@@ -252,7 +246,9 @@ export function Workspace({
             <Link
               href="/relationship-timeline/"
               scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/relationship-timeline/")}
+              onNavigate={() =>
+                rememberWorkspaceAnchor("/relationship-timeline/")
+              }
               aria-current={mode === "timeline" ? "page" : undefined}
             >
               Relationship timeline
@@ -268,7 +264,9 @@ export function Workspace({
             <Link
               href="/snapshot-comparison/"
               scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/snapshot-comparison/")}
+              onNavigate={() =>
+                rememberWorkspaceAnchor("/snapshot-comparison/")
+              }
               aria-current={mode === "comparison" ? "page" : undefined}
             >
               Compare snapshots
@@ -284,6 +282,13 @@ export function Workspace({
           </div>
           {mode === "comparison" ? (
             <>
+              <p>
+                <Link className="text-link" href="/snapshot-vault/">
+                  Open Snapshot Vault
+                </Link>{" "}
+                to browse saved history or compare two saved snapshots without
+                uploading again.
+              </p>
               <div className="snapshot-status">
                 <p>
                   <strong>Current uploaded export · newer snapshot</strong> ·{" "}
@@ -337,35 +342,10 @@ export function Workspace({
                 />
               )}
               {comparison && (
-                <>
-                  <p className="notice">
-                    Follower change: {comparison.followerDelta >= 0 ? "+" : ""}
-                    {comparison.followerDelta} · Following change:{" "}
-                    {comparison.followingDelta >= 0 ? "+" : ""}
-                    {comparison.followingDelta}. Differences show presence or
-                    absence between exports, not why or exactly when a
-                    relationship changed.
-                  </p>
-                  <div className="category-tabs">
-                    {Object.entries(changeLabels).map(([key, label]) => (
-                      <button
-                        key={key}
-                        aria-pressed={change === key}
-                        onClick={() => setChange(key as typeof change)}
-                      >
-                        {label}{" "}
-                        <strong>
-                          {comparison[key as typeof change].length}
-                        </strong>
-                      </button>
-                    ))}
-                  </div>
-                  <AccountList
-                    key={change}
-                    accounts={comparison[change]}
-                    demo={dataset.metadata.demo}
-                  />
-                </>
+                <SnapshotComparisonResults
+                  comparison={comparison}
+                  demo={dataset.metadata.demo}
+                />
               )}
             </>
           ) : mode === "pending" ? (
@@ -456,7 +436,7 @@ export function Workspace({
               The current export stays in this tab’s memory until you clear it,
               reload, or close the tab.{" "}
               {saved
-                ? "Your saved local snapshot contains only follower and following usernames in this browser. You can delete it from the snapshot controls in Overview."
+                ? "Snapshot Vault keeps only follower and following usernames and snapshot metadata in this browser. Manage or back up your saved history in the Vault."
                 : "No snapshot is stored unless you choose to save one."}
             </p>
           </details>

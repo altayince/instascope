@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useData } from "./data-provider";
 import { Upload } from "./upload";
 import { SavedSnapshotNotice } from "./snapshot-return";
+import { SnapshotSaver } from "./snapshot-return";
+import { formatSnapshotDate } from "@/lib/snapshot-vault";
 import { analyze } from "@/lib/analysis/relationships";
 import { relationshipTimeline } from "@/lib/analysis/insights";
 import { tools, type ToolSlug } from "@/lib/site";
@@ -48,7 +50,17 @@ function optionalRecords(list: ConnectionList | undefined, label: string) {
 }
 
 export function Dashboard() {
-  const { dataset, older, saved, setDataset, startDemo, clear } = useData();
+  const {
+    dataset,
+    older,
+    saved,
+    vault,
+    storageReady,
+    storageError,
+    setDataset,
+    startDemo,
+    clear,
+  } = useData();
   const analysis = useMemo(
     () => (dataset ? analyze(dataset) : null),
     [dataset],
@@ -105,7 +117,7 @@ export function Dashboard() {
         return older
           ? "Two snapshots are loaded. Review added and missing relationships, without guessing when or why they changed."
           : saved && !dataset.metadata.demo
-            ? "A saved local snapshot is available. Confirm its date and the same account in Compare snapshots before using it."
+            ? "Saved local snapshots are available. Choose an older date and confirm the same account in Compare snapshots before using one."
             : "Add an older export from the same account to compare it with this one. One export alone cannot show changes.";
       case "instagram-cleaner":
         return "Build a private review shortlist from your connections. You decide what to change on Instagram.";
@@ -142,6 +154,31 @@ export function Dashboard() {
         Your export is processed in this browser. No Instagram password
         required.
       </p>
+      <section className="dashboard-vault" aria-label="Snapshot Vault">
+        <div>
+          <h2>Snapshot Vault</h2>
+          {!storageReady ? (
+            <p>Opening your local history…</p>
+          ) : vault.length ? (
+            <p>
+              {vault.length} saved{" "}
+              {vault.length === 1 ? "snapshot" : "snapshots"} · Latest:{" "}
+              {formatSnapshotDate(vault[0].exportDate)}
+            </p>
+          ) : (
+            <>
+              <strong>Build a history</strong>
+              <p>
+                Save your current export and compare it with future exports.
+              </p>
+            </>
+          )}
+          {storageError && <p role="status">{storageError}</p>}
+        </div>
+        <Link href="/snapshot-vault/" className="button secondary">
+          Open Vault
+        </Link>
+      </section>
       {!dataset && (
         <section aria-label="Open your export" className="dashboard-welcome">
           <SavedSnapshotNotice />
@@ -257,14 +294,15 @@ export function Dashboard() {
             </p>
             <p>
               {saved
-                ? "A saved local snapshot remains in this browser until you delete it. Clearing active data keeps that saved copy."
+                ? "Your saved local history remains in this browser until you delete it. Clearing active data keeps those saved copies."
                 : "No snapshot is stored unless you choose to save one."}{" "}
               Manage saved snapshots in{" "}
-              <Link href="/followers-analyzer/">Followers analyzer</Link>.
+              <Link href="/snapshot-vault/">Snapshot Vault</Link>.
             </p>
           </details>
         </>
       )}
+      <SnapshotSaver />
       <div className="dashboard-tools">
         {groups.map((group) => (
           <section key={group.title} aria-label={group.title}>
