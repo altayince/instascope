@@ -167,7 +167,7 @@ test("crawlable viewer and Privacy copy explain local enhancement and actual bui
 }) => {
   // Read the generated HTTP HTML: the explanation must exist without running the tool.
   const html = await (await request.get("/profile-picture-viewer/")).text();
-  expect(html).toContain("Optional 1080px AI enhancement");
+  expect(html).toContain("Optional browser-local AI upscaling");
   expect(html).toContain("The model estimates detail.");
   expect(html).toContain(
     "No photo is uploaded to an AI service for enhancement.",
@@ -181,11 +181,11 @@ test("crawlable viewer and Privacy copy explain local enhancement and actual bui
   );
   const explainer = page.locator(".tool-explainer");
   for (const text of [
-    "locally in your browser",
+    "in your browser",
     "Faces, hair and other details can change",
     "source quality still limits",
     "not Instagram's original HD image",
-    "Save enhanced PNG",
+    "Save upscaled PNG",
     "fullscreen",
     "circular",
     "does not ask for Instagram credentials",

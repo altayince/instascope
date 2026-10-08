@@ -1,0 +1,23 @@
+<!-- Synthetic illustration, created locally for inference regression tests.
+     Not a real person or evidence of photographic face-restoration quality. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="skin"><stop stop-color="#f5d2b2"/><stop offset="1" stop-color="#b97959"/></radialGradient>
+    <linearGradient id="background" x2="1" y2="1"><stop stop-color="#426578"/><stop offset="1" stop-color="#b8ccc1"/></linearGradient>
+    <linearGradient id="hair" x2="1" y2="1"><stop stop-color="#201d27"/><stop offset="1" stop-color="#54403e"/></linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#background)"/>
+  <path d="M37 320 Q44 245 110 237 L210 237 Q278 252 286 320Z" fill="#28384d"/>
+  <path d="M134 205 L132 246 Q160 273 189 246 L185 205Z" fill="#c68f6c"/>
+  <ellipse cx="160" cy="147" rx="76" ry="98" fill="url(#skin)"/>
+  <path d="M86 143 Q57 51 129 33 Q214 12 244 105 L235 152 L222 89 Q151 110 109 78 L94 149Z" fill="url(#hair)"/>
+  <path d="M104 126 Q122 113 140 126 M178 126 Q196 113 214 126" stroke="#45322d" stroke-width="5" fill="none"/>
+  <path d="M106 140 Q122 128 141 142 Q123 151 106 140 M179 142 Q196 128 213 140 Q197 151 179 142" fill="#f2e7db"/>
+  <ellipse cx="126" cy="140" rx="5" ry="7" fill="#34383c"/><ellipse cx="194" cy="140" rx="5" ry="7" fill="#34383c"/>
+  <circle cx="127" cy="138" r="1.5" fill="white"/><circle cx="195" cy="138" r="1.5" fill="white"/>
+  <path d="M160 143 L149 175 Q161 181 170 174" fill="none" stroke="#ae795c" stroke-width="3"/>
+  <path d="M133 197 Q160 211 187 197 Q160 225 133 197Z" fill="#9d5c53"/>
+  <path d="M142 200 L179 200" stroke="#edcfc1" stroke-width="3"/>
+  <path d="M102 71 Q151 39 217 67 M104 59 Q151 32 202 49 M89 95 Q87 57 121 43" fill="none" stroke="#796158" stroke-width="2"/>
+  <circle cx="116" cy="163" r="1" fill="#b27c60"/><circle cx="124" cy="169" r="1" fill="#b27c60"/><circle cx="195" cy="166" r="1" fill="#b27c60"/>
+</svg>

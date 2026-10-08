@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 82,
+    title: "Show native AI upscale dimensions without manufacturing HD",
+    summary:
+      "Optional general-purpose AI upscaling keeps its actual 4× learned output and preserves source detail with bounded tiles. Original comparison, cancellation and PNG saving remain. Face restoration is explicitly unavailable: the evaluated browser model is too large for a safe mobile default, and AI estimates are never described as an authentic HD original.",
+  },
+  {
     issue: 87,
     title: "Keep fictional demo review exports free of real profile links",
     summary:

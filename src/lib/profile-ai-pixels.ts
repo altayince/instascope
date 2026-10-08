@@ -26,6 +26,7 @@ export function profilePixels(
   width: number,
   height: number,
 ) {
+  // This bound is for a single inference tile, not the assembled image size.
   const size = width * height;
   if (
     !Number.isInteger(width) ||
