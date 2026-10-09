@@ -7,42 +7,18 @@ import {
 } from "@/lib/instagram/normalize";
 import {
   accountHistory,
-  historyTransitions,
-  relationshipHistoryIndex,
-  relationshipStateLabels,
   type RelationshipHistoryPoint,
-  type RelationshipHistoryIndex,
 } from "@/lib/analysis/relationship-history";
 import {
   mutualOrigins,
   mutualOriginLabels,
   MUTUAL_ORIGIN_CAVEAT,
 } from "@/lib/analysis/mutual-origins";
-import { formatSnapshotDate, type VaultSnapshot } from "@/lib/snapshot-vault";
+import { type VaultSnapshot } from "@/lib/snapshot-vault";
+import { AccountHistoryDetails } from "./account-history-details";
+import { useVaultHistoryIndex } from "./use-vault-history";
 import { vaultStorageMessage } from "@/lib/vault-storage";
 
-export function useVaultHistoryIndex(fictional?: readonly VaultSnapshot[]) {
-  const { vault, readVaultHistory } = useData();
-  const signature = `${fictional ? "demo" : "real"}:${(fictional ?? vault).map((s) => `${s.id}:${s.createdAt}:${s.exportDate}`).join("|")}`;
-  const cache = useRef<{
-    signature: string;
-    promise: Promise<RelationshipHistoryIndex>;
-  } | null>(null);
-  async function load() {
-    if (cache.current?.signature === signature) return cache.current.promise;
-    const promise = fictional
-      ? Promise.resolve(relationshipHistoryIndex(fictional))
-      : readVaultHistory().then(relationshipHistoryIndex);
-    cache.current = { signature, promise };
-    try {
-      return await promise;
-    } catch (error) {
-      if (cache.current?.promise === promise) cache.current = null;
-      throw error;
-    }
-  }
-  return { signature, load };
-}
 const display = (name: string) =>
   isDeletedInstagramAccount(name) ? "Deleted account" : `@${name}`;
 export function VaultAccountHistory({
@@ -175,57 +151,7 @@ export function VaultAccountHistory({
       {shown?.selected && (
         <>
           <h3>{display(shown.selected)}</h3>
-          <table>
-            <caption>Observed state in each saved snapshot</caption>
-            <thead>
-              <tr>
-                <th scope="col">Snapshot date</th>
-                <th scope="col">Observed state</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.points.map((point) => (
-                <tr key={point.snapshotId}>
-                  <th scope="row">{formatSnapshotDate(point.exportDate)}</th>
-                  <td>{relationshipStateLabels[point.state]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p>
-            Absent means absent from Followers and Following in that snapshot.
-            It does not establish an unfollow, block, deletion or cause.
-          </p>
-          {shown.points.length < 2 ? (
-            <p>At least two saved snapshots are needed to observe changes.</p>
-          ) : shown.points.filter((p) => p.state !== "absent").length === 1 ? (
-            <p>
-              This username appears in only one saved snapshot; its history is
-              limited.
-            </p>
-          ) : null}
-          <h3>Observed transitions</h3>
-          {historyTransitions(shown.points).length ? (
-            <ul className="history-transitions">
-              {historyTransitions(shown.points).map((transition) => (
-                <li key={`${transition.olderDate}:${transition.newerDate}`}>
-                  <strong>
-                    Observed between {formatSnapshotDate(transition.olderDate)}{" "}
-                    and {formatSnapshotDate(transition.newerDate)}
-                  </strong>
-                  {transition.observations.map((text) => (
-                    <p key={text}>{text}</p>
-                  ))}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No state change observed in these saved snapshots.</p>
-          )}
-          <p>
-            These observations do not establish exact change times,
-            uninterrupted relationships or what happened between snapshots.
-          </p>
+          <AccountHistoryDetails points={shown.points} />
           {activeMatchesSource && (
             <aside className="notice" aria-label="Current export origin">
               <h3>Current export · recorded origin</h3>

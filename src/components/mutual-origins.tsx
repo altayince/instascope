@@ -45,7 +45,9 @@ export function MutualOrigins({ dataset }: { dataset: Dataset }) {
   );
   return (
     <section className="mutual-origins" aria-label="Mutual Origins">
-      <h3>Who followed first?</h3>
+      <h3 id="mutual-origins" tabIndex={-1}>
+        Who followed first?
+      </h3>
       <p>
         Compare both sides&apos; recorded dates for current mutuals. An earlier
         date suggests who was recorded first, not social intent or the

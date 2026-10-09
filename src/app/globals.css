@@ -2085,6 +2085,139 @@ footer > nav a {
 .history-transitions {
   padding-left: 20px;
 }
+.workspace-insights {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+}
+.workspace-insights > span {
+  color: var(--muted);
+}
+.workspace-insights a,
+.timeline-account a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.workspace-insights a:hover {
+  color: #49672d;
+}
+.timeline-account {
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.timeline-account h4,
+.timeline-account h5 {
+  font-size: 1rem;
+  margin: 18px 0 10px;
+  overflow-wrap: anywhere;
+}
+.timeline-coverage,
+.relationship-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.timeline-coverage > div,
+.relationship-summary > div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  overflow-wrap: anywhere;
+}
+.timeline-coverage dt,
+.relationship-summary dt {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.timeline-coverage dd,
+.relationship-summary dd {
+  margin: 4px 0 0;
+}
+.timeline-coverage dd {
+  font-size: 1.2rem;
+}
+.timeline-account-search,
+.timeline-matches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.timeline-account-search label {
+  flex: 1 1 220px;
+}
+.timeline-account-search label,
+.timeline-example {
+  display: grid;
+  gap: 6px;
+}
+.timeline-account-search input,
+.timeline-example select {
+  width: 100%;
+  min-width: 0;
+}
+.timeline-example {
+  max-width: 360px;
+  margin-bottom: 16px;
+}
+.timeline-history-options {
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.timeline-history-options summary {
+  cursor: pointer;
+}
+.timeline-history-options p,
+.timeline-history-options label {
+  display: block;
+  margin: 12px 0;
+}
+.timeline-history-options input[type="date"] {
+  display: block;
+  margin-top: 6px;
+  max-width: 100%;
+}
+.timeline-matches button {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.timeline-matches p {
+  width: 100%;
+}
+.context-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.context-facts li {
+  padding: 5px 10px;
+  background: #eef2e9;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .relationship-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .workspace-insights {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
 .history-transitions p {
   margin: 8px 0;
 }

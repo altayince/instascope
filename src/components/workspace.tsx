@@ -397,14 +397,11 @@ export function Workspace({
               <div className="list-heading">
                 <h3>{categories[category][0]}</h3>
                 <p>{categories[category][1]}</p>
-                {(category === "followers" || category === "following") && (
-                  <button
-                    type="button"
-                    className="button secondary"
-                    onClick={() => setCategory("mutuals")}
-                  >
-                    Explore who followed first
-                  </button>
+                {category === "mutuals" && (
+                  <div className="workspace-insights">
+                    <span>Insights</span>
+                    <a href="#mutual-origins">Explore who followed first</a>
+                  </div>
                 )}
                 {category === "followers" && (
                   <>
@@ -414,12 +411,12 @@ export function Workspace({
                       only where Instagram supplied them; missing dates stay
                       unavailable.
                     </p>
-                    <Link
-                      href="/relationship-timeline/?direction=followers"
-                      className="button secondary"
-                    >
-                      Explore follower dates
-                    </Link>
+                    <div className="workspace-insights">
+                      <span>Insights</span>
+                      <Link href="/relationship-timeline/?direction=followers">
+                        Explore follower dates
+                      </Link>
+                    </div>
                   </>
                 )}
               </div>

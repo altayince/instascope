@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import type { Dataset } from "@/lib/instagram/types";
 import { relationshipTimeline, utcDate } from "@/lib/analysis/insights";
 import { AccountList } from "./account-list";
+import { TimelineAccount } from "./timeline-account";
 
 export function RelationshipTimeline({ dataset }: { dataset: Dataset | null }) {
   return (
@@ -72,6 +73,7 @@ function Timeline({
   const missing = dataset[direction].length - timeline.coverage[direction];
   return (
     <section aria-label="Relationship date timeline">
+      <TimelineAccount dataset={dataset} />
       <div className="list-heading">
         <h3>The dates in your circle</h3>
         <p>

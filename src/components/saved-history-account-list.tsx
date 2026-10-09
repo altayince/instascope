@@ -8,7 +8,7 @@ import {
 } from "react";
 import { AccountList } from "./account-list";
 import { useData } from "./data-provider";
-import { useVaultHistoryIndex } from "./vault-account-history";
+import { useVaultHistoryIndex } from "./use-vault-history";
 import { demoVaultSnapshots } from "@/lib/demo";
 import type { Dataset } from "@/lib/instagram/types";
 import {
