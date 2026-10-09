@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { AccountList } from "./account-list";
+import { SavedHistoryAccountList } from "./saved-history-account-list";
 import { Unavailable } from "./connection-insights";
 import {
   filterRequests,
@@ -217,8 +217,10 @@ export function RelationshipReview({
       {unavailable ? (
         <Unavailable list={unavailable} />
       ) : (
-        <AccountList
-          key={group}
+        <SavedHistoryAccountList
+          dataset={dataset}
+          kind="review"
+          listKey={group}
           accounts={accounts[group]}
           selectionScope={review.selectionScope}
           selectedUsernames={selected}

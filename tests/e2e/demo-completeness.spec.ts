@@ -351,7 +351,12 @@ test("Dashboard and every export tool keep meaningful fictional data, missing da
       const sort = page.getByLabel("Sort accounts", { exact: true });
       await sort.selectOption("oldest");
       const first = await page.locator(".accounts li").first().innerText();
-      expect(first).toContain("@demo.mutual.0001");
+      // Incoming dates now intentionally differ to demonstrate both origins.
+      expect(first).toContain(
+        slug === "followers-analyzer"
+          ? "@demo.mutual.0002"
+          : "@demo.mutual.0001",
+      );
       await sort.selectOption("newest");
       expect(await page.locator(".accounts li").first().innerText()).not.toBe(
         first,

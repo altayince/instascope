@@ -6,6 +6,7 @@ import { demoVaultSnapshots } from "@/lib/demo";
 import { useData } from "./data-provider";
 import { SnapshotSaver } from "./snapshot-return";
 import { VaultConfirmation } from "./vault-confirmation";
+import { VaultAccountHistory } from "./vault-account-history";
 import {
   SnapshotComparisonResults,
   type SnapshotComparison,
@@ -462,6 +463,7 @@ function VaultContents({
             </section>
           )}
           {vault.length > 0 && <SnapshotHistory snapshots={vault} />}
+          {vault.length > 0 && <VaultAccountHistory fictional={fictional} />}
           {demo ? (
             <section className="vault-backup" aria-label="Demo storage safety">
               <h2>Fictional history stays in memory</h2>

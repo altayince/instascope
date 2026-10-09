@@ -19,6 +19,8 @@ import {
 } from "./connection-insights";
 import { RelationshipTimeline } from "./relationship-timeline";
 import { RelationshipReview } from "./relationship-review";
+import { MutualOrigins } from "./mutual-origins";
+import { SavedHistoryAccountList } from "./saved-history-account-list";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
@@ -395,6 +397,15 @@ export function Workspace({
               <div className="list-heading">
                 <h3>{categories[category][0]}</h3>
                 <p>{categories[category][1]}</p>
+                {(category === "followers" || category === "following") && (
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => setCategory("mutuals")}
+                  >
+                    Explore who followed first
+                  </button>
+                )}
                 {category === "followers" && (
                   <>
                     <p>
@@ -412,16 +423,29 @@ export function Workspace({
                   </>
                 )}
               </div>
-              <AccountList
-                demo={dataset.metadata.demo}
-                key={`${dataset.metadata.parsedAt}-${mode}`}
-                accounts={analysis[category]}
-                dateDirection={
-                  category === "followers" || category === "fans"
-                    ? "followers"
-                    : "following"
-                }
-              />
+              {category === "mutuals" ? (
+                <MutualOrigins dataset={dataset} />
+              ) : category === "notFollowingBack" || category === "fans" ? (
+                <SavedHistoryAccountList
+                  dataset={dataset}
+                  kind={category === "fans" ? "fans" : "one-way"}
+                  listKey={`${dataset.metadata.parsedAt}-${category}`}
+                  accounts={analysis[category]}
+                  demo={dataset.metadata.demo}
+                  dateDirection={
+                    category === "fans" ? "followers" : "following"
+                  }
+                />
+              ) : (
+                <AccountList
+                  demo={dataset.metadata.demo}
+                  key={`${dataset.metadata.parsedAt}-${mode}`}
+                  accounts={analysis[category]}
+                  dateDirection={
+                    category === "followers" ? "followers" : "following"
+                  }
+                />
+              )}
             </>
           )}
           {(mode === "cleaner" ||

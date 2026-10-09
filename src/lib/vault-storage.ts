@@ -327,7 +327,13 @@ export class SnapshotVaultStorage {
       return "Vault deletion completed, but the legacy saved copy could not be removed. Clear this site's browser storage to remove that copy too.";
     }
   }
-  async backup() {
+  history() {
+    return this.readSnapshots(false);
+  }
+  backup() {
+    return this.readSnapshots(true);
+  }
+  private readSnapshots(forBackup: boolean) {
     return this.run<VaultSnapshot[]>(
       [VAULT_STORE],
       "readonly",
@@ -351,8 +357,9 @@ export class SnapshotVaultStorage {
           }
           usernames += snapshot.followers.length + snapshot.following.length;
           if (
-            snapshots.length >= MAX_BACKUP_SNAPSHOTS ||
-            usernames > MAX_BACKUP_USERNAMES
+            forBackup &&
+            (snapshots.length >= MAX_BACKUP_SNAPSHOTS ||
+              usernames > MAX_BACKUP_USERNAMES)
           )
             throw new VaultStorageError(
               "This Vault is too large for a single V1 backup. Your saved snapshots have not been changed.",

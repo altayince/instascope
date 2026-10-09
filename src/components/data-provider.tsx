@@ -53,6 +53,7 @@ type State = {
     revision: number,
   ) => Promise<string | null>;
   readSnapshot: (id: string) => Promise<VaultSnapshot>;
+  readVaultHistory: () => Promise<VaultSnapshot[]>;
   removeSnapshot: (id?: string) => Promise<void>;
   exportVault: () => Promise<string>;
   importVault: (
@@ -76,6 +77,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [storageWarning, setWarning] = useState("");
   const [store] = useState(() => new SnapshotVaultStorage());
   const selected = useRef<Pick<VaultSummary, "id" | "createdAt"> | null>(null);
+  const readVaultHistory = useCallback(() => store.history(), [store]);
   const current = useRef(dataset);
 
   const refreshVault = useCallback(async () => {
@@ -241,6 +243,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         saveCurrent,
         chooseSavedAsOlder,
         readSnapshot: (id) => store.get(id),
+        readVaultHistory,
         removeSnapshot,
         exportVault: async () => {
           const snapshots = await store.backup();

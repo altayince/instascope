@@ -28,7 +28,15 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
     ],
   };
   const newer: Dataset = {
-    followers: withMissingDates([...mutuals, ...entries("fan", 542, 50)]),
+    followers: withMissingDates([
+      ...mutuals.map((entry, index) => ({
+        ...entry,
+        timestamp:
+          entry.timestamp! +
+          (index % 3 === 0 ? 6 : index % 3 === 1 ? -6 : 0) * 86400,
+      })),
+      ...entries("fan", 542, 50),
+    ]),
     following: withMissingDates([
       ...mutuals.map((a) => ({ ...a })),
       ...entries("oneway", 190, 100),
@@ -92,19 +100,41 @@ export function demoVaultSnapshots(): VaultSnapshot[] {
           { length: count },
           (_, n) => `demo.${prefix}.${String(n + start + 1).padStart(4, "0")}`,
         );
+      const followers = new Set([
+        ...names("mutual", 700 + index * 14, index * 4),
+        ...names("fan", 410 + index * 44, index * 20),
+      ]);
+      const following = new Set([
+        ...names("mutual", 700 + index * 14, index * 4),
+        ...names("oneway", 170 + index * 6, index * 10),
+      ]);
+      const followerCount = followers.size,
+        followingCount = following.size;
+      const changing = "demo.oneway.0001",
+        incoming = "demo.fan.0001";
+      followers.delete(changing);
+      following.delete(changing);
+      if (index < 2) followers.add(changing);
+      if (index < 3) following.add(changing);
+      followers.add(incoming);
+      if (index > 0) following.add(incoming);
+      const protectedNames = new Set([changing, incoming, "demo.mutual.0100"]);
+      const balance = (set: Set<string>, count: number, prefix: string) => {
+        for (const name of [...set].reverse()) {
+          if (set.size <= count) break;
+          if (!protectedNames.has(name)) set.delete(name);
+        }
+        for (let n = 0; set.size < count; n++)
+          set.add(`demo.${prefix}.${String(n + 1).padStart(4, "0")}`);
+        return [...set].sort();
+      };
       return {
         id: `demo-vault-${exportDate}`,
         version: 1 as const,
         exportDate,
         createdAt: Date.parse(`${exportDate}T12:00:00Z`),
-        followers: [
-          ...names("mutual", 700 + index * 14, index * 4),
-          ...names("fan", 410 + index * 44, index * 20),
-        ].sort(),
-        following: [
-          ...names("mutual", 700 + index * 14, index * 4),
-          ...names("oneway", 170 + index * 6, index * 10),
-        ].sort(),
+        followers: balance(followers, followerCount, `vaultfan${index}`),
+        following: balance(following, followingCount, `vaultfollow${index}`),
       };
     })
     .reverse();
