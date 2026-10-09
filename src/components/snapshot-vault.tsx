@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useId, useMemo, useRef, useState } from "react";
+import { demoVaultSnapshots } from "@/lib/demo";
 import { useData } from "./data-provider";
 import { SnapshotSaver } from "./snapshot-return";
 import { VaultConfirmation } from "./vault-confirmation";
@@ -15,6 +17,8 @@ import {
   parseVaultBackup,
   previewVaultImport,
   vaultComparisonError,
+  vaultSummary,
+  type VaultSnapshot,
   type VaultBackup,
   type VaultSummary,
 } from "@/lib/snapshot-vault";
@@ -90,9 +94,33 @@ type Comparison = {
   result: SnapshotComparison;
 };
 export function SnapshotVault() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const demo = params.get("demo") === "true";
+  const fictional = useMemo(() => demoVaultSnapshots(), []);
+  return (
+    <VaultContents
+      key={demo ? "demo" : "real"}
+      fictional={demo ? fictional : undefined}
+      onToggleDemo={() =>
+        router.replace(
+          demo ? "/snapshot-vault/" : "/snapshot-vault/?demo=true",
+          { scroll: false },
+        )
+      }
+    />
+  );
+}
+function VaultContents({
+  fictional,
+  onToggleDemo,
+}: {
+  fictional?: VaultSnapshot[];
+  onToggleDemo: () => void;
+}) {
   const {
     dataset,
-    vault,
+    vault: realVault,
     storageReady,
     storageError,
     storageWarning,
@@ -104,6 +132,8 @@ export function SnapshotVault() {
     exportVault,
     importVault,
   } = useData();
+  const demo = !!fictional;
+  const vault = fictional ? fictional.map(vaultSummary) : realVault;
   const [olderId, setOlderId] = useState("");
   const [newerId, setNewerId] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -171,8 +201,12 @@ export function SnapshotVault() {
     setBusy(true);
     try {
       const [first, second] = await Promise.all([
-        readSnapshot(older.id),
-        readSnapshot(newer.id),
+        fictional
+          ? Promise.resolve(fictional.find((s) => s.id === older.id)!)
+          : readSnapshot(older.id),
+        fictional
+          ? Promise.resolve(fictional.find((s) => s.id === newer.id)!)
+          : readSnapshot(newer.id),
       ]);
       if (
         first.createdAt !== older.createdAt ||
@@ -212,20 +246,36 @@ export function SnapshotVault() {
         <Link href="/snapshot-comparison/">Compare with a current export</Link>
         <Link href="/privacy/">Privacy</Link>
       </div>
-      <SnapshotSaver />
-      {dataset?.metadata.demo && (
+      <button
+        type="button"
+        className="button secondary"
+        disabled={busy || importing || !!deletion}
+        onClick={onToggleDemo}
+      >
+        {demo ? "Exit demo" : "Try Vault demo"}
+      </button>
+      {demo && (
+        <p className="notice" role="status">
+          Demo data · Fictional history. Your real saved snapshots are
+          unchanged.
+        </p>
+      )}
+      {!demo && <SnapshotSaver />}
+      {!demo && dataset?.metadata.demo && (
         <p className="notice">
           Demo data · Fictional example. Demo exports cannot be saved. Your real
           saved history remains separate.
         </p>
       )}
-      <p className="muted">
-        Clearing browser/site data may delete this history. There is no cloud
-        backup. Export a private backup before moving browsers or clearing
-        storage.
-      </p>
-      {!storageReady && <p role="status">Opening local history…</p>}
-      {storageError && (
+      {!demo && (
+        <p className="muted">
+          Clearing browser/site data may delete this history. There is no cloud
+          backup. Export a private backup before moving browsers or clearing
+          storage.
+        </p>
+      )}
+      {!demo && !storageReady && <p role="status">Opening local history…</p>}
+      {!demo && storageError && (
         <div className="notice" role="alert">
           <p>{storageError}</p>
           <button
@@ -242,8 +292,8 @@ export function SnapshotVault() {
           </button>
         </div>
       )}
-      {storageWarning && <p role="status">{storageWarning}</p>}
-      {corruptSnapshots > 0 && (
+      {!demo && storageWarning && <p role="status">{storageWarning}</p>}
+      {!demo && corruptSnapshots > 0 && (
         <p role="alert">
           {corruptSnapshots} unreadable saved record
           {corruptSnapshots === 1 ? " was" : "s were"} skipped, without deleting
@@ -257,7 +307,7 @@ export function SnapshotVault() {
         </p>
       )}
       {message && <p role="status">{message}</p>}
-      {storageReady && !storageError && (
+      {(demo || (storageReady && !storageError)) && (
         <>
           <section className="vault-list" aria-label="Saved snapshots">
             <h2>
@@ -285,7 +335,7 @@ export function SnapshotVault() {
                         following
                       </p>
                       <small className="muted">
-                        Saved{" "}
+                        {demo ? "Fictional snapshot · " : "Saved "}
                         {new Intl.DateTimeFormat("en-GB", {
                           dateStyle: "medium",
                           timeStyle: "short",
@@ -303,6 +353,7 @@ export function SnapshotVault() {
                       </button>
                       <button
                         type="button"
+                        disabled={demo}
                         onClick={(event) => {
                           modalTrigger.current = event.currentTarget;
                           setDeletion(snapshot);
@@ -324,9 +375,15 @@ export function SnapshotVault() {
             >
               <h2 id={`${id}-compare`}>Compare two saved snapshots</h2>
               <p>
-                You are responsible for confirming both snapshots belong to the
-                same Instagram account. InstaScope cannot verify account
-                identity.
+                {demo ? (
+                  "These four fictional snapshots represent one example account. Confirm this to try the same-account comparison flow."
+                ) : (
+                  <>
+                    You are responsible for confirming both snapshots belong to
+                    the same Instagram account. InstaScope cannot verify account
+                    identity.
+                  </>
+                )}
               </p>
               {vault.length < 2 && (
                 <p>
@@ -379,7 +436,9 @@ export function SnapshotVault() {
                     setComparison(null);
                   }}
                 />
-                These exports are from the same Instagram account.
+                {demo
+                  ? "These fictional snapshots represent the same example account."
+                  : "These exports are from the same Instagram account."}
               </label>
               <button
                 type="button"
@@ -396,140 +455,157 @@ export function SnapshotVault() {
                   </p>
                   <SnapshotComparisonResults
                     comparison={displayedComparison.result}
+                    demo={demo}
                   />
                 </div>
               )}
             </section>
           )}
           {vault.length > 0 && <SnapshotHistory snapshots={vault} />}
-          <section className="vault-backup" aria-labelledby={`${id}-backup`}>
-            <h2 id={`${id}-backup`}>Keep a private backup</h2>
-            <p>
-              This JSON file contains follower and following usernames. Keep it
-              private. Import accepts only InstaScope Vault V1 backups up to 32
-              MB; existing export dates are kept and skipped, never silently
-              overwritten.
-            </p>
-            <div className="vault-actions">
-              <button
-                type="button"
-                disabled={busy || !vault.length}
-                onClick={async () => {
-                  setError("");
-                  setBusy(true);
-                  try {
-                    const raw = await exportVault(),
-                      url = URL.createObjectURL(
-                        new Blob([raw], { type: "application/json" }),
-                      );
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = "instascope-snapshot-vault.json";
-                    link.click();
-                    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    setMessage("Private Vault backup exported locally.");
-                  } catch (error) {
-                    setError(vaultStorageMessage(error));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Export Vault backup
-              </button>
-              <label className="vault-import">
-                Import Vault backup
-                <input
-                  ref={input}
-                  type="file"
-                  accept=".json,application/json"
-                  disabled={busy}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    setBackup(null);
+          {demo ? (
+            <section className="vault-backup" aria-label="Demo storage safety">
+              <h2>Fictional history stays in memory</h2>
+              <p>
+                Backup, import and deletion are disabled in this demo. Exit demo
+                to manage your real saved history.
+              </p>
+              <div className="vault-actions">
+                <button disabled>Export Vault backup</button>
+                <button disabled>Import Vault backup</button>
+                <button disabled>Delete all saved snapshots</button>
+              </div>
+            </section>
+          ) : (
+            <section className="vault-backup" aria-labelledby={`${id}-backup`}>
+              <h2 id={`${id}-backup`}>Keep a private backup</h2>
+              <p>
+                This JSON file contains follower and following usernames. Keep
+                it private. Import accepts only InstaScope Vault V1 backups up
+                to 32 MB; existing export dates are kept and skipped, never
+                silently overwritten.
+              </p>
+              <div className="vault-actions">
+                <button
+                  type="button"
+                  disabled={busy || !vault.length}
+                  onClick={async () => {
                     setError("");
-                    setMessage("");
-                    if (!file) return;
                     setBusy(true);
                     try {
-                      if (file.size > MAX_BACKUP_BYTES)
-                        throw new Error(
-                          "Vault backups must be 32 MB or smaller.",
+                      const raw = await exportVault(),
+                        url = URL.createObjectURL(
+                          new Blob([raw], { type: "application/json" }),
                         );
-                      setBackup(parseVaultBackup(await file.text()));
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = "instascope-snapshot-vault.json";
+                      link.click();
+                      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                      setMessage("Private Vault backup exported locally.");
                     } catch (error) {
-                      setError(
-                        error instanceof Error
-                          ? error.message
-                          : "This backup could not be read.",
-                      );
+                      setError(vaultStorageMessage(error));
                     } finally {
                       setBusy(false);
                     }
                   }}
-                />
-              </label>
-            </div>
-            {backup && preview && (
-              <div className="notice" aria-label="Backup import preview">
-                <h3>Preview before importing</h3>
-                <p>
-                  {preview.added.length} new snapshot
-                  {preview.added.length === 1 ? "" : "s"} · {preview.skipped}{" "}
-                  existing date{preview.skipped === 1 ? "" : "s"} skipped.
-                  Nothing has been saved yet.
-                </p>
-                <ul>
-                  {backup.snapshots.map((s) => (
-                    <li key={s.id}>
-                      {formatSnapshotDate(s.exportDate)} · {s.followers.length}{" "}
-                      followers · {s.following.length} following
-                      {vault.some(
-                        (existing) => existing.exportDate === s.exportDate,
-                      )
-                        ? " · already saved, kept"
-                        : " · new"}
-                    </li>
-                  ))}
-                </ul>
-                <div className="vault-actions">
-                  <button
-                    type="button"
-                    disabled={busy || !preview.added.length}
-                    onClick={(event) => {
-                      modalTrigger.current = event.currentTarget;
-                      setImporting(true);
-                    }}
-                  >
-                    Import snapshots
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
+                >
+                  Export Vault backup
+                </button>
+                <label className="vault-import">
+                  Import Vault backup
+                  <input
+                    ref={input}
+                    type="file"
+                    accept=".json,application/json"
+                    disabled={busy}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
                       setBackup(null);
-                      if (input.current) input.current.value = "";
+                      setError("");
+                      setMessage("");
+                      if (!file) return;
+                      setBusy(true);
+                      try {
+                        if (file.size > MAX_BACKUP_BYTES)
+                          throw new Error(
+                            "Vault backups must be 32 MB or smaller.",
+                          );
+                        setBackup(parseVaultBackup(await file.text()));
+                      } catch (error) {
+                        setError(
+                          error instanceof Error
+                            ? error.message
+                            : "This backup could not be read.",
+                        );
+                      } finally {
+                        setBusy(false);
+                      }
                     }}
-                  >
-                    Cancel import
-                  </button>
-                </div>
+                  />
+                </label>
               </div>
-            )}
-            <button
-              className="vault-delete-all"
-              type="button"
-              disabled={!vault.length && !corruptSnapshots}
-              onClick={(event) => {
-                modalTrigger.current = event.currentTarget;
-                setDeletion("all");
-              }}
-            >
-              Delete all saved snapshots
-            </button>
-          </section>
+              {backup && preview && (
+                <div className="notice" aria-label="Backup import preview">
+                  <h3>Preview before importing</h3>
+                  <p>
+                    {preview.added.length} new snapshot
+                    {preview.added.length === 1 ? "" : "s"} · {preview.skipped}{" "}
+                    existing date{preview.skipped === 1 ? "" : "s"} skipped.
+                    Nothing has been saved yet.
+                  </p>
+                  <ul>
+                    {backup.snapshots.map((s) => (
+                      <li key={s.id}>
+                        {formatSnapshotDate(s.exportDate)} ·{" "}
+                        {s.followers.length} followers · {s.following.length}{" "}
+                        following
+                        {vault.some(
+                          (existing) => existing.exportDate === s.exportDate,
+                        )
+                          ? " · already saved, kept"
+                          : " · new"}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="vault-actions">
+                    <button
+                      type="button"
+                      disabled={busy || !preview.added.length}
+                      onClick={(event) => {
+                        modalTrigger.current = event.currentTarget;
+                        setImporting(true);
+                      }}
+                    >
+                      Import snapshots
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBackup(null);
+                        if (input.current) input.current.value = "";
+                      }}
+                    >
+                      Cancel import
+                    </button>
+                  </div>
+                </div>
+              )}
+              <button
+                className="vault-delete-all"
+                type="button"
+                disabled={!vault.length && !corruptSnapshots}
+                onClick={(event) => {
+                  modalTrigger.current = event.currentTarget;
+                  setDeletion("all");
+                }}
+              >
+                Delete all saved snapshots
+              </button>
+            </section>
+          )}
         </>
       )}
-      {deletion && (
+      {!demo && deletion && (
         <VaultConfirmation
           returnFocus={modalTrigger}
           title={
@@ -561,7 +637,7 @@ export function SnapshotVault() {
           </p>
         </VaultConfirmation>
       )}
-      {importing && backup && preview && (
+      {!demo && importing && backup && preview && (
         <VaultConfirmation
           returnFocus={modalTrigger}
           title="Merge this Vault backup?"

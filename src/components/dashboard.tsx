@@ -126,7 +126,7 @@ export function Dashboard() {
       case "connection-privacy":
         return `${includedPrivacy} of 4 privacy categories can be reviewed. ${4 - includedPrivacy - unreadablePrivacy} not included in this export.${unreadablePrivacy ? ` ${unreadablePrivacy} included but could not be read.` : ""}`;
       case "profile-picture-viewer":
-        return "A separate public-photo lookup; no export needed. Public access restrictions apply.";
+        return "Try with a local sample photo, separately from export demo data. Public Instagram lookup is also available, subject to access restrictions.";
     }
   }
 
@@ -157,7 +157,12 @@ export function Dashboard() {
       <section className="dashboard-vault" aria-label="Snapshot Vault">
         <div>
           <h2>Snapshot Vault</h2>
-          {!storageReady ? (
+          {dataset?.metadata.demo ? (
+            <p>
+              Explore four fictional snapshots and compare any two. Your real
+              saved history stays separate.
+            </p>
+          ) : !storageReady ? (
             <p>Opening your local history…</p>
           ) : vault.length ? (
             <p>
@@ -173,10 +178,19 @@ export function Dashboard() {
               </p>
             </>
           )}
-          {storageError && <p role="status">{storageError}</p>}
+          {!dataset?.metadata.demo && storageError && (
+            <p role="status">{storageError}</p>
+          )}
         </div>
-        <Link href="/snapshot-vault/" className="button secondary">
-          Open Vault
+        <Link
+          href={
+            dataset?.metadata.demo
+              ? "/snapshot-vault/?demo=true"
+              : "/snapshot-vault/"
+          }
+          className="button secondary"
+        >
+          {dataset?.metadata.demo ? "Try Vault demo" : "Open Vault"}
         </Link>
       </section>
       {!dataset && (

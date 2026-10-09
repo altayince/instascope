@@ -151,9 +151,14 @@ test("real snapshots persist separately, dates sort correctly, trends show only 
   ).toHaveCount(0);
   await page
     .getByRole("region", { name: "Snapshot Vault" })
-    .getByRole("link", { name: "Open Vault" })
+    .getByRole("link", { name: "Try Vault demo" })
     .click();
+  await expect(page.getByText(/Demo data · Fictional history/)).toBeVisible();
+  await expect(page.locator(".vault-row")).toHaveCount(4);
+  expect(await savedRecords(page)).toEqual(records);
+  await page.getByRole("button", { name: "Exit demo", exact: true }).click();
   await expect(page.getByText(/Demo data · Fictional example/)).toBeVisible();
+  await expect(page.locator(".vault-row")).toHaveCount(2);
   expect(await savedRecords(page)).toHaveLength(2);
 });
 

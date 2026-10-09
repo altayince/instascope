@@ -63,7 +63,11 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
 }) => {
   const external: string[] = [];
   page.on("request", (r) => {
-    if (r.method() === "POST" || !r.url().startsWith("http://127.0.0.1:3000"))
+    // WebKit reports local blob downloads as requests; their origin is still local.
+    if (
+      r.method() === "POST" ||
+      new URL(r.url()).origin !== "http://127.0.0.1:3000"
+    )
       external.push(r.url());
   });
   await page.addInitScript(() => {
