@@ -164,7 +164,7 @@ test("story navigation supports buttons, keyboard and mobile swipes without leak
   await page.getByRole("button", { name: "Try demo", exact: true }).click();
   const card = page.locator(".wrapped-card");
   const picker = page.getByRole("group", { name: "Wrapped stories" });
-  await expect(picker.getByRole("button")).toHaveCount(8);
+  await expect(picker.getByRole("button")).toHaveCount(9);
   await expect(
     page.getByRole("button", { name: "Previous story" }),
   ).toBeDisabled();
@@ -213,7 +213,7 @@ test("story navigation supports buttons, keyboard and mobile swipes without leak
       page.getByRole("button", { name: "Share my card" }),
     ).toBeEnabled();
   }
-  expect(colors.size).toBe(8);
+  expect(colors.size).toBe(9);
   await expect(page.getByRole("button", { name: "Next story" })).toBeDisabled();
   expect(
     await page.evaluate(

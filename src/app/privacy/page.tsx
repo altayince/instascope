@@ -47,6 +47,14 @@ export default function Privacy() {
         describe individual exports, not continuous monitoring or a complete
         relationship history.
       </p>
+      <p>
+        Account history is derived locally from usernames in saved snapshots.
+        Mutual Origins compares both recorded relationship dates in the active
+        export, in memory. These dates and results are not uploaded or added to
+        Vault storage. Snapshot presence does not establish exact event times;
+        recorded dates may reflect refollows rather than uninterrupted
+        following.
+      </p>
       <h2>No Instagram credentials.</h2>
       <p>
         We do not ask for a password or session cookie. No Instagram account

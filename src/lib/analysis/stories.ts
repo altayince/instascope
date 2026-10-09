@@ -1,6 +1,11 @@
 import type { Dataset } from "../instagram/types";
 import type { Analysis, compareSnapshots } from "./relationships";
 import { relationshipTimeline, utcDate } from "./insights";
+import {
+  mutualOrigins,
+  mutualOriginSummary,
+  MIN_ORIGIN_STORY_MUTUALS,
+} from "./mutual-origins";
 
 export type Story = {
   id:
@@ -11,7 +16,8 @@ export type Story = {
     | "discovery"
     | "timecapsule"
     | "changes"
-    | "turnover";
+    | "turnover"
+    | "origins";
   name: string;
   bars?: { label: string; value: number }[];
   label: string;
@@ -322,5 +328,40 @@ export function buildStories(
         story.note += " HTML dates have no timezone.";
     }
   }
+  const origins = mutualOriginSummary(mutualOrigins(analysis));
+  if (origins.dated >= MIN_ORIGIN_STORY_MUTUALS)
+    stories.push({
+      id: "origins",
+      name: "Recorded first",
+      label: "RECORDED FIRST",
+      title: "Who was recorded first?",
+      lead: "Two recorded dates. One mutual relationship.",
+      heroValue: `${origins.theyFirstPercent}%`,
+      heroLabel: "of dated mutuals have an earlier recorded follower date",
+      bars: [
+        { label: "They first", value: origins.counts["they-first"] },
+        { label: "You first", value: origins.counts["you-first"] },
+        { label: "Same day", value: origins.counts["same-recorded-day"] },
+      ],
+      facts: [
+        {
+          value: count(origins.counts["they-first"]),
+          label: "earlier follower date",
+        },
+        {
+          value: count(origins.counts["you-first"]),
+          label: "earlier following date",
+        },
+        {
+          value: count(origins.counts["same-recorded-day"]),
+          label: "same recorded day",
+        },
+        {
+          value: count(origins.counts.unknown),
+          label: "unknown, excluded from percentage",
+        },
+      ],
+      note: "Based on recorded follower/following dates in this export. Refollows and missing dates can change the picture; recorded dates do not prove uninterrupted following or a first-ever follow. HTML dates have no timezone; only calendar days are compared.",
+    });
   return stories;
 }

@@ -10,6 +10,12 @@ export const storyStyles: Record<
     motif: "rings" | "rays" | "steps";
   }
 > = {
+  origins: {
+    background: "#163f3e",
+    ink: "#fff6e5",
+    accent: "#f5d88e",
+    motif: "rings",
+  },
   circle: {
     background: "#3020a0",
     ink: "#fff6e5",

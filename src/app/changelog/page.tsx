@@ -8,6 +8,13 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 94,
+    title:
+      "Relationship context: account history across Vault and recorded mutual origins",
+    summary:
+      "Search observed relationship states across local Vault snapshots, add optional earlier-history context to review lists, and compare both recorded dates of current mutuals. A new aggregate Wrapped story excludes unknown dates. Observations do not establish intent, exact change times or uninterrupted following; no relationship dates are added to Vault storage.",
+  },
+  {
     issue: 92,
     title: "Explore every tool with fictional data or a local sample",
     summary:
