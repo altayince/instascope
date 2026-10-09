@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 92,
+    title: "Explore every tool with fictional data or a local sample",
+    summary:
+      "Snapshot Vault now has four in-memory fictional snapshots, isolated from your real saved history. The photo viewer offers a local synthetic sample with the same controls and native AI upscaling. A small portion of core demo dates is intentionally unavailable to show export limits honestly.",
+  },
+  {
     issue: 90,
     title: "Keep a private history in Snapshot Vault",
     summary:

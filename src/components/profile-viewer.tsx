@@ -10,6 +10,7 @@ import {
   profileRetryDelay,
 } from "@/lib/profile-lookup";
 import { enhancePublicPhoto } from "@/lib/profile-enhancement";
+import { PROFILE_SAMPLE_URL } from "@/lib/profile-sample";
 const endpoint = process.env.NEXT_PUBLIC_PROFILE_ENDPOINT;
 export function ProfileViewer() {
   const [input, setInput] = useState(""),
@@ -33,6 +34,7 @@ export function ProfileViewer() {
     [enhancementProgress, setEnhancementProgress] = useState(""),
     [zoom, setZoom] = useState(1),
     [circle, setCircle] = useState(false);
+  const [sample, setSample] = useState(false);
   const preview = useRef<HTMLDivElement>(null);
   const enhancementRequest = useRef<AbortController | null>(null);
   const succeededImage = useRef("");
@@ -59,12 +61,38 @@ export function ProfileViewer() {
       setLoadingPhoto(false);
       setImage("");
       setError(
-        "The public photo took too long to load. Try opening the profile.",
+        sample
+          ? "The local sample could not load. Please try again."
+          : "The public photo took too long to load. Try opening the profile.",
       );
-      track("profile_failed");
+      if (!sample) track("profile_failed");
     }, 12000);
     return () => clearTimeout(timer);
-  }, [loadingPhoto]);
+  }, [loadingPhoto, sample]);
+  function resetPreview() {
+    enhancementRequest.current?.abort();
+    setEnhancing(false);
+    setEnhanced(null);
+    setEnhancedActive(false);
+    setEnhancementError("");
+    setDimensions({ width: 0, height: 0 });
+    setImage("");
+    setLoadingPhoto(false);
+    setUsername("");
+    setError("");
+    setZoom(1);
+    setCircle(false);
+    succeededImage.current = "";
+  }
+  function toggleSample() {
+    if (loading || enhancing) return;
+    resetPreview();
+    setSample(!sample);
+    if (!sample) {
+      setImage(PROFILE_SAMPLE_URL);
+      setLoadingPhoto(true);
+    }
+  }
   function lookupError(response: Response, code: unknown) {
     setError(profileErrorMessage(code, response.status));
     if (response.status === 429) {
@@ -126,6 +154,7 @@ export function ProfileViewer() {
   async function lookup(event: React.FormEvent) {
     event.preventDefault();
     if (loading || Date.now() < retryUntil) return;
+    setSample(false);
     enhancementRequest.current?.abort();
     setEnhancing(false);
     setEnhanced(null);
@@ -253,6 +282,19 @@ export function ProfileViewer() {
           retrieval.
         </p>
       </form>
+      <button
+        type="button"
+        className="button secondary"
+        disabled={loading || enhancing}
+        onClick={toggleSample}
+      >
+        {sample ? "Exit sample" : "Try with sample photo"}
+      </button>
+      {sample && (
+        <p className="notice" role="status">
+          Sample image · No Instagram lookup performed.
+        </p>
+      )}
       {loading && (
         <div className="profile-loading" role="status">
           <span className="profile-loading-orbit" aria-hidden="true">
@@ -260,9 +302,17 @@ export function ProfileViewer() {
           </span>
           <div>
             <strong>
-              {loadingPhoto ? "Loading your photo" : "Finding the public photo"}
+              {sample
+                ? "Loading the local sample"
+                : loadingPhoto
+                  ? "Loading your photo"
+                  : "Finding the public photo"}
             </strong>
-            <p>This usually takes a few seconds. No Instagram login needed.</p>
+            <p>
+              {sample
+                ? "A synthetic illustration loaded from this site."
+                : "This usually takes a few seconds. No Instagram login needed."}
+            </p>
           </div>
         </div>
       )}
@@ -280,7 +330,7 @@ export function ProfileViewer() {
           )}
         </p>
       )}
-      {username && (
+      {!sample && username && (
         <a
           className="text-link"
           href={`https://www.instagram.com/${username}/`}
@@ -299,7 +349,11 @@ export function ProfileViewer() {
           >
             <img
               src={enhancedActive && enhanced ? enhanced.url : image}
-              alt={`Public profile photo for ${username}`}
+              alt={
+                sample
+                  ? "Synthetic sample portrait, not a real person"
+                  : `Public profile photo for ${username}`
+              }
               referrerPolicy="no-referrer"
               style={{ transform: `scale(${zoom})` }}
               onLoad={(event) => {
@@ -309,7 +363,7 @@ export function ProfileViewer() {
                     width: event.currentTarget.naturalWidth,
                     height: event.currentTarget.naturalHeight,
                   });
-                  if (succeededImage.current !== image) {
+                  if (!sample && succeededImage.current !== image) {
                     succeededImage.current = image;
                     track("profile_succeeded");
                   }
@@ -326,22 +380,30 @@ export function ProfileViewer() {
                 }
                 setImage("");
                 setError(
-                  "The public photo is no longer available. Try opening the profile.",
+                  sample
+                    ? "The local sample could not load. Please try again."
+                    : "The public photo is no longer available. Try opening the profile.",
                 );
-                track("profile_failed");
+                if (!sample) track("profile_failed");
               }}
             />
           </div>
           <p>
-            Enlarging the preview does not add detail. Image quality depends on
-            the photo Instagram makes publicly available.
+            {sample ? (
+              "This synthetic illustration demonstrates the viewer; it is not a real person or evidence of photographic restoration quality. Enlarging the preview alone does not add detail."
+            ) : (
+              <>
+                Enlarging the preview does not add detail. Image quality depends
+                on the photo Instagram makes publicly available.
+              </>
+            )}
           </p>
           {dimensions.width > 0 && (
             <div className="photo-enhancement">
               <p>
                 {enhancedActive && enhanced
                   ? `AI-upscaled · ${enhanced.width} × ${enhanced.height}`
-                  : `Original public photo · ${dimensions.width} × ${dimensions.height}`}
+                  : `${sample ? "Original sample" : "Original public photo"} · ${dimensions.width} × ${dimensions.height}`}
               </p>
               <div className="photo-controls">
                 <button
@@ -371,7 +433,7 @@ export function ProfileViewer() {
                   <a
                     className="text-link"
                     href={enhanced.url}
-                    download={`instascope-${username}-ai-${enhanced.width}x${enhanced.height}.png`}
+                    download={`instascope-${sample ? "sample" : username}-ai-${enhanced.width}x${enhanced.height}.png`}
                   >
                     Save upscaled PNG
                   </a>
@@ -425,13 +487,15 @@ export function ProfileViewer() {
               Circular preview
             </label>
             <button
-              onClick={() =>
-                void preview.current
-                  ?.requestFullscreen()
-                  .catch(() =>
-                    setError("Fullscreen is not available in this browser."),
-                  )
-              }
+              onClick={async () => {
+                try {
+                  if (!preview.current?.requestFullscreen)
+                    throw new Error("Fullscreen unavailable");
+                  await preview.current.requestFullscreen();
+                } catch {
+                  setError("Fullscreen is not available in this browser.");
+                }
+              }}
             >
               Fullscreen
             </button>

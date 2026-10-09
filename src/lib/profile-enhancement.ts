@@ -1,12 +1,14 @@
 import { verifiedPublicImageUrl } from "./profile-lookup";
 import { PROFILE_SCALE } from "./profile-ai-tiles";
+import { PROFILE_SAMPLE_URL } from "./profile-sample";
 
 export async function enhancePublicPhoto(
   url: string,
   signal: AbortSignal,
   progress: (message: string) => void = () => {},
 ) {
-  if (!verifiedPublicImageUrl(url)) throw new Error("Untrusted image");
+  if (url !== PROFILE_SAMPLE_URL && !verifiedPublicImageUrl(url))
+    throw new Error("Untrusted image");
   const photo = new Image();
   photo.crossOrigin = "anonymous";
   photo.referrerPolicy = "no-referrer";

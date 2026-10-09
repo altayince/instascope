@@ -1,5 +1,6 @@
 import type { Dataset } from "./instagram/types";
 import { account } from "./instagram/normalize";
+import type { VaultSnapshot } from "./snapshot-vault";
 // Deterministic fictional identities; generated locally without network access.
 const entries = (prefix: string, count: number, offset = 0) =>
   Array.from({ length: count }, (_, index) =>
@@ -12,6 +13,10 @@ const privacyEntries = (prefix: string, count: number, offset: number) =>
   entries(prefix, count, offset).map((entry, index) =>
     index === count - 1 ? { ...entry, timestamp: undefined } : entry,
   );
+const withMissingDates = (accounts: Dataset["followers"]) =>
+  accounts.map((entry, index) =>
+    index % 32 === 31 ? { ...entry, timestamp: undefined } : entry,
+  );
 export function demoSnapshots(): { newer: Dataset; older: Dataset } {
   const mutuals = entries("mutual", 742);
   const metadata = {
@@ -23,11 +28,11 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
     ],
   };
   const newer: Dataset = {
-    followers: [...mutuals, ...entries("fan", 542, 50)],
-    following: [
+    followers: withMissingDates([...mutuals, ...entries("fan", 542, 50)]),
+    following: withMissingDates([
       ...mutuals.map((a) => ({ ...a })),
       ...entries("oneway", 190, 100),
-    ],
+    ]),
     connections: {
       pendingRequests: {
         status: "available",
@@ -76,4 +81,31 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
     },
   };
   return { newer, older };
+}
+
+// In-memory teaching fixtures only; never pass these to Vault persistence/backup.
+export function demoVaultSnapshots(): VaultSnapshot[] {
+  return ["2025-01-15", "2025-04-15", "2025-07-15", "2025-10-15"]
+    .map((exportDate, index) => {
+      const names = (prefix: string, count: number, start = 0) =>
+        Array.from(
+          { length: count },
+          (_, n) => `demo.${prefix}.${String(n + start + 1).padStart(4, "0")}`,
+        );
+      return {
+        id: `demo-vault-${exportDate}`,
+        version: 1 as const,
+        exportDate,
+        createdAt: Date.parse(`${exportDate}T12:00:00Z`),
+        followers: [
+          ...names("mutual", 700 + index * 14, index * 4),
+          ...names("fan", 410 + index * 44, index * 20),
+        ].sort(),
+        following: [
+          ...names("mutual", 700 + index * 14, index * 4),
+          ...names("oneway", 170 + index * 6, index * 10),
+        ].sort(),
+      };
+    })
+    .reverse();
 }

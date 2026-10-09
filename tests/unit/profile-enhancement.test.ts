@@ -115,10 +115,13 @@ it("rejects oversized, malformed and nonfinite model data", () => {
   expect(() => profilePixels(new Float32Array(3), 1081, 1)).toThrow();
 });
 it("rejects untrusted image URLs before browser APIs or model downloads", async () => {
-  await expect(
-    enhancePublicPhoto(
-      "https://evil.test/photo.jpg",
-      new AbortController().signal,
-    ),
-  ).rejects.toThrow("Untrusted image");
+  for (const url of [
+    "https://evil.test/photo.jpg",
+    "/demo/arbitrary.png",
+    "/demo/profile-sample.png?url=https://evil.test",
+    "https://evil.test/demo/profile-sample.png",
+  ])
+    await expect(
+      enhancePublicPhoto(url, new AbortController().signal),
+    ).rejects.toThrow("Untrusted image");
 });
