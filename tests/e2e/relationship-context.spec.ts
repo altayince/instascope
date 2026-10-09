@@ -243,8 +243,9 @@ test("current mutual origins retains both dates, filters accessibly and excludes
 }) => {
   await page.goto("/followers-analyzer/");
   await upload(page, exports);
+  await page.getByRole("button", { name: /^Mutuals / }).click();
   await page
-    .getByRole("button", { name: "Explore who followed first", exact: true })
+    .getByRole("link", { name: "Explore who followed first", exact: true })
     .click();
   const view = page.getByRole("region", {
     name: "Mutual Origins",
@@ -326,8 +327,9 @@ test("HTML mutual origins compares recorded days, never timezone-less hours", as
       buffer: Buffer.from(zip),
     },
   ]);
+  await page.getByRole("button", { name: /^Mutuals / }).click();
   await page
-    .getByRole("button", { name: "Explore who followed first", exact: true })
+    .getByRole("link", { name: "Explore who followed first", exact: true })
     .click();
   const view = page.getByRole("region", {
     name: "Mutual Origins",
@@ -448,8 +450,9 @@ test("demo origins covers every category and the aggregate Wrapped PNG excludes 
   });
   await page.goto("/followers-analyzer/");
   await page.getByRole("button", { name: "Try demo", exact: true }).click();
+  await page.getByRole("button", { name: /^Mutuals / }).click();
   await page
-    .getByRole("button", { name: "Explore who followed first", exact: true })
+    .getByRole("link", { name: "Explore who followed first", exact: true })
     .click();
   const view = page.getByRole("region", {
     name: "Mutual Origins",

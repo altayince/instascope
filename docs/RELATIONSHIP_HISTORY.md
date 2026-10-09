@@ -1,4 +1,4 @@
-# Relationship context (INS-94)
+# Relationship context (INS-94, INS-96)
 
 ## Observed history
 
@@ -21,6 +21,22 @@ Exact JSON dates use their UTC calendar labels, consistent with existing date di
 The existing Mutuals category exposes aggregate counts, accessible origin filters, and each account's follower date, following date and recorded origin. Percentages include only mutuals with two usable dates, including same-day records; unknowns are excluded. Vault can show the active export's origin separately after real same-account confirmation. It never reconstructs old origin dates from saved presence.
 
 Wrapped appends one aggregate `origins` story only at **10 or more** usable dated mutuals. Every previous story remains unchanged. The new card includes recorded-date/refollow/HTML caveats and no usernames or private categories/counts.
+
+## Relationship Timeline inspection (INS-96)
+
+The existing Timeline route retains its date-direction, year/month chart, period filters, account search, oldest/newest sorting and missing-date handling. Before account selection, four compact facts show dated followers, dated following, mutuals with both dates and available saved snapshots. Followers keeps only **Explore follower dates**; Mutuals owns the compact **Explore who followed first** insight link.
+
+`analysis/timeline-context.ts` builds an in-memory normalized account index from the active export and calls the existing Mutual Origins calculation. Search submits locally, accepts the existing username/profile-URL normalization and returns at most 20 partial matches. Available optional-category usernames are searchable; saved-only names become searchable after explicitly loading history. Nothing performs an Instagram lookup.
+
+- **Summary** separates the active export's observed state and two recorded dates from saved presence. It shows recorded origin, readable/containing snapshot counts, adjacent state-change count, and first/latest saved dates where the username was present. A saved-only or private-only username is not described as live “Absent”. Unknown dates stay unknown; HTML uses recorded calendar dates without hour/timezone inference.
+- **Saved History** uses the unchanged `relationship-history.ts` index and transitions. `use-vault-history.ts` extracts the existing cached reader; `account-history-details.tsx` shares the existing table and conservative transition copy with Vault. No-snapshot, one-readable-snapshot and corrupt-record states are explicit. Corrupt records never manufacture absent rows.
+- **Context** shows active-export relationship/origin facts and matching sent-request, own-unfollow, Close Friends, blocked, restricted and story-hidden records. Only `available` categories supply facts; missing/unsupported/empty categories never invent membership or absence. Previously mutual/follower/following facts reuse `savedHistoryContext`, never a new history engine.
+
+Combining real saved history with the active export requires explicit same-account confirmation. InstaScope cannot verify identity. The confirmation and loaded result are bound to the dataset and Vault revision. To describe any snapshot as “previously”, the user must also supply the active export date; only strictly earlier snapshots contribute. Import time is not an export date. Replacing the dataset invalidates confirmation and its manually entered date. Unchecking confirmation hides combined history. Inspection never writes Vault records or changes the backup/schema; private categories, timestamps, origins and derived summaries remain in memory and cannot affect Wrapped or share output.
+
+The Timeline demo's native example selector reuses all eight existing fictional examples: stable mutual, mutual→you-follow→absent, follows-you→mutual, they-first, you-first, same-day, unknown dates, and sent request. Fictional history auto-loads from the four in-memory snapshots; it never reads real Vault records. Core export and saved examples remain separate, so earlier context still needs an explicit example export date. No fictional username becomes a profile link.
+
+`timeline-context.test.ts` covers summaries, source precision, origin reuse, normalized search indexing, readable/present counts, transitions, corruption, explicit date/confirmation guards, all optional-category states and the eight unchanged demo examples. `timeline-context.spec.ts` covers CTA placement and keyboard focus, Summary/date controls, confirmed read-only saved history, saved-only search, one-snapshot handling, all six active optional sources, source-change invalidation and demo isolation on desktop/mobile. Existing history, origins, Wrapped, storage, parsing and SEO tests remain enabled.
 
 ## Storage and demo boundaries
 

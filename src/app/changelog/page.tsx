@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 96,
+    title: "Clean up insight CTAs and enrich Relationship Timeline",
+    summary:
+      "Followers keeps its follower-date insight; mutual origins is discovered from Mutuals. Inspect one account’s active-export summary, observed saved history and supported optional context inside Timeline. Dates, same-account confirmation and source labels keep claims factual; Vault fields and shared stories are unchanged.",
+  },
+  {
     issue: 94,
     title:
       "Relationship context: account history across Vault and recorded mutual origins",
