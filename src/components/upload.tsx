@@ -61,7 +61,9 @@ export function Upload({
         ↑
       </span>
       <h3>
-        {busy ? "Connecting the dots…" : "Your export. Your discoveries."}
+        {busy
+          ? "Reading your export locally…"
+          : "Your export. Your discoveries."}
       </h3>
       <p>
         Drop your Instagram ZIP here, or select both
@@ -106,9 +108,16 @@ export function Upload({
         ZIP up to 2 GB · JSON / HTML up to 20 MB per file · All time export
       </small>
       {busy && (
-        <p role="status">
-          Reading locally. Large archives can take a few seconds.
-        </p>
+        <div className="upload-progress" role="status" aria-live="polite">
+          <span className="upload-progress-indicator" aria-hidden="true" />
+          <div>
+            <strong>Preparing your relationship workspace</strong>
+            <p>
+              Reading and checking relationship files in your browser. Large
+              archives can take a few seconds. Your files stay on this device.
+            </p>
+          </div>
+        </div>
       )}
       {error && (
         <p role="alert" className="error">

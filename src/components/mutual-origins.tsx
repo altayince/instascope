@@ -82,6 +82,7 @@ export function MutualOrigins({ dataset }: { dataset: Dataset }) {
       </div>
       <p>{MUTUAL_ORIGIN_CAVEAT}</p>
       <AccountList
+        relationshipDataset={dataset}
         key={origin}
         accounts={accounts.filter((a) => selected.has(a.username))}
         context={context}

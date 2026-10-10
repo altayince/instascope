@@ -1,0 +1,63 @@
+/* Shared actions: submission, navigation, inspection and deletion have distinct weight. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 10px 17px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  text-align: center;
+}
+.primary {
+  background: var(--ink);
+  color: var(--white);
+}
+.primary:hover {
+  background: #3c5242;
+}
+.secondary {
+  border-color: #b9c5b8;
+  background: var(--white);
+}
+.secondary:hover {
+  border-color: var(--ink);
+  background: #f1f4ec;
+}
+.tertiary {
+  background: transparent;
+  color: var(--muted);
+  font-weight: 400;
+}
+.tertiary:hover {
+  background: #edf0e7;
+  color: var(--ink);
+}
+.danger {
+  border-color: #ddb5ac;
+  background: #fff7f4;
+  color: #8d3220;
+}
+.danger:hover {
+  background: #f7e5de;
+  border-color: #8d3220;
+}
+.insight-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+.insight-link:hover {
+  text-decoration: underline;
+}
+.insight-link > span {
+  color: #536d39;
+}

@@ -17,7 +17,7 @@ export function AccountHistoryDetails({
   const transitions = historyTransitions(points);
   return (
     <>
-      <table>
+      <table className="history-observations">
         <caption>Observed state in each saved snapshot</caption>
         <thead>
           <tr>
@@ -29,7 +29,11 @@ export function AccountHistoryDetails({
           {points.map((point) => (
             <tr key={point.snapshotId}>
               <th scope="row">{formatSnapshotDate(point.exportDate)}</th>
-              <td>{relationshipStateLabels[point.state]}</td>
+              <td>
+                <span className="history-state" data-state={point.state}>
+                  {relationshipStateLabels[point.state]}
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>

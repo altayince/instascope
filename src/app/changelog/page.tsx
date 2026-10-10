@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 98,
+    title: "Product UI refresh for a coherent relationship workspace",
+    summary:
+      "Grouped navigation, supported Dashboard insights and a local Relationship Drawer make the existing tools easier to explore. Clearer account rows, review controls, Vault actions and truthful upload feedback preserve browser-local processing, saved-history confirmation and all existing analysis and SEO behavior.",
+  },
+  {
     issue: 96,
     title: "Clean up insight CTAs and enrich Relationship Timeline",
     summary:

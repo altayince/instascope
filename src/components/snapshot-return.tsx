@@ -82,13 +82,14 @@ export function SnapshotSaver() {
         </label>
         <button
           ref={saveButton}
+          className="button primary"
           type="button"
           disabled={!storageReady || !!storageError || busy}
           onClick={() => void save()}
         >
           {busy ? "Saving locally…" : "Save snapshot"}
         </button>
-        <Link className="text-link" href="/snapshot-vault/">
+        <Link className="button secondary" href="/snapshot-vault/">
           Open Vault
         </Link>
       </div>
@@ -197,6 +198,7 @@ export function SavedComparisonChoice() {
           />
         </label>
         <button
+          className="button primary"
           disabled={!confirmed || busy}
           onClick={async () => {
             setBusy(true);
@@ -212,7 +214,7 @@ export function SavedComparisonChoice() {
         >
           {busy ? "Opening saved snapshot…" : "Compare with saved snapshot"}
         </button>
-        <Link href="/snapshot-vault/" className="text-link">
+        <Link href="/snapshot-vault/" className="button secondary">
           Open Vault
         </Link>
       </div>

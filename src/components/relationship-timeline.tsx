@@ -1,10 +1,27 @@
 "use client";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Dataset } from "@/lib/instagram/types";
+import { normalizeUsername } from "@/lib/instagram/normalize";
 import { relationshipTimeline, utcDate } from "@/lib/analysis/insights";
 import { AccountList } from "./account-list";
 import { TimelineAccount } from "./timeline-account";
+
+function subscribeToAccountFragment(listener: () => void) {
+  window.addEventListener("hashchange", listener);
+  window.addEventListener("popstate", listener);
+  return () => {
+    window.removeEventListener("hashchange", listener);
+    window.removeEventListener("popstate", listener);
+  };
+}
+function accountFragment() {
+  return (
+    normalizeUsername(
+      new URLSearchParams(window.location.hash.slice(1)).get("account"),
+    ) ?? ""
+  );
+}
 
 export function RelationshipTimeline({ dataset }: { dataset: Dataset | null }) {
   return (
@@ -18,6 +35,11 @@ function TimelineEntry({ dataset }: { dataset: Dataset | null }) {
   const params = useSearchParams();
   const initialDirection =
     params.get("direction") === "followers" ? "followers" : "following";
+  const initialAccount = useSyncExternalStore(
+    subscribeToAccountFragment,
+    accountFragment,
+    () => "",
+  );
   if (!dataset)
     return initialDirection === "followers" ? (
       <div className="list-heading">
@@ -31,9 +53,10 @@ function TimelineEntry({ dataset }: { dataset: Dataset | null }) {
     ) : null;
   return (
     <Timeline
-      key={initialDirection}
+      key={`${initialDirection}:${initialAccount}`}
       dataset={dataset}
       initialDirection={initialDirection}
+      initialAccount={initialAccount}
     />
   );
 }
@@ -41,9 +64,11 @@ function TimelineEntry({ dataset }: { dataset: Dataset | null }) {
 function Timeline({
   dataset,
   initialDirection,
+  initialAccount,
 }: {
   dataset: Dataset;
   initialDirection: "followers" | "following";
+  initialAccount: string;
 }) {
   const [granularity, setGranularity] = useState<"year" | "month">("year");
   const [direction, setDirection] = useState<"following" | "followers">(
@@ -73,7 +98,7 @@ function Timeline({
   const missing = dataset[direction].length - timeline.coverage[direction];
   return (
     <section aria-label="Relationship date timeline">
-      <TimelineAccount dataset={dataset} />
+      <TimelineAccount dataset={dataset} initialUsername={initialAccount} />
       <div className="list-heading">
         <h3>The dates in your circle</h3>
         <p>
@@ -183,6 +208,7 @@ function Timeline({
             : "All relationships in this direction"}
       </h3>
       <AccountList
+        relationshipDataset={dataset}
         demo={dataset.metadata.demo}
         key={`${direction}:${period}`}
         accounts={accounts}

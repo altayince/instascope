@@ -41,7 +41,17 @@ function SnapshotHistory({ snapshots }: { snapshots: VaultSummary[] }) {
         <span>● Followers</span>
         <span>● Following</span>
       </div>
-      <svg className="vault-trend" viewBox="0 0 600 160" aria-hidden="true">
+      <svg className="vault-trend" viewBox="0 0 600 180" aria-hidden="true">
+        {[20, 80, 140].map((y) => (
+          <line
+            key={y}
+            className="vault-trend-grid"
+            x1="20"
+            x2="580"
+            y1={y}
+            y2={y}
+          />
+        ))}
         {history.map((s) => {
           const x =
             last === first
@@ -65,6 +75,19 @@ function SnapshotHistory({ snapshots }: { snapshots: VaultSummary[] }) {
             </g>
           );
         })}
+        <text
+          className="vault-trend-date"
+          x={first === last ? 300 : 20}
+          y="170"
+          textAnchor={first === last ? "middle" : "start"}
+        >
+          {formatSnapshotDate(history[0].exportDate)}
+        </text>
+        {first !== last && (
+          <text className="vault-trend-date" x="580" y="170" textAnchor="end">
+            {formatSnapshotDate(history.at(-1)!.exportDate)}
+          </text>
+        )}
       </svg>
       <table>
         <caption>Totals recorded in each saved export</caption>
@@ -243,13 +266,19 @@ function VaultContents({
         connection lists.
       </p>
       <div className="vault-actions">
-        <Link href="/dashboard/">Back to Dashboard</Link>
-        <Link href="/snapshot-comparison/">Compare with a current export</Link>
-        <Link href="/privacy/">Privacy</Link>
+        <Link className="button secondary" href="/dashboard/">
+          Back to Dashboard
+        </Link>
+        <Link className="button secondary" href="/snapshot-comparison/">
+          Compare with a current export
+        </Link>
+        <Link className="button tertiary" href="/privacy/">
+          Privacy
+        </Link>
       </div>
       <button
         type="button"
-        className="button secondary"
+        className="button tertiary"
         disabled={busy || importing || !!deletion}
         onClick={onToggleDemo}
       >
@@ -310,24 +339,48 @@ function VaultContents({
       {message && <p role="status">{message}</p>}
       {(demo || (storageReady && !storageError)) && (
         <>
+          <dl className="vault-overview" aria-label="Vault at a glance">
+            <div>
+              <dt>Saved snapshots</dt>
+              <dd>{vault.length.toLocaleString("en-US")}</dd>
+            </div>
+            <div>
+              <dt>Latest export date</dt>
+              <dd>
+                {vault[0]
+                  ? formatSnapshotDate(vault[0].exportDate)
+                  : "No saved history yet"}
+              </dd>
+            </div>
+            <div>
+              <dt>Comparison</dt>
+              <dd>
+                {vault.length >= 2
+                  ? "Choose two saved dates"
+                  : "Save a newer export next"}
+              </dd>
+            </div>
+          </dl>
           <section className="vault-list" aria-label="Saved snapshots">
             <h2>
               Saved snapshots <span className="muted">({vault.length})</span>
             </h2>
             {!vault.length ? (
-              <div className="notice">
+              <div className="empty-state">
                 <h3>No snapshots saved yet.</h3>
                 <p>
                   Save an export today, then return with a newer export to see
                   what changed.
                 </p>
-                <Link href="/dashboard/">Upload an export in Dashboard</Link>
+                <Link className="button secondary" href="/dashboard/">
+                  Upload an export in Dashboard
+                </Link>
               </div>
             ) : (
               <ul>
                 {vault.map((snapshot) => (
                   <li className="vault-row" key={snapshot.id}>
-                    <div>
+                    <div className="vault-row-meta">
                       <h3>{formatSnapshotDate(snapshot.exportDate)}</h3>
                       <p>
                         {snapshot.followersCount.toLocaleString("en-US")}{" "}
@@ -345,6 +398,7 @@ function VaultContents({
                     </div>
                     <div className="vault-actions">
                       <button
+                        className="button secondary"
                         type="button"
                         disabled={busy || vault.length < 2}
                         onClick={() => choosePair(snapshot)}
@@ -353,6 +407,7 @@ function VaultContents({
                         Compare
                       </button>
                       <button
+                        className="button danger"
                         type="button"
                         disabled={demo}
                         onClick={(event) => {
@@ -393,7 +448,12 @@ function VaultContents({
               )}
               <div className="vault-date-pair">
                 <div>
-                  <label htmlFor={`${id}-older`}>Older snapshot</label>
+                  <div className="vault-step-heading">
+                    <span className="vault-step-number" aria-hidden="true">
+                      1
+                    </span>
+                    <label htmlFor={`${id}-older`}>Older snapshot</label>
+                  </div>
                   <select
                     id={`${id}-older`}
                     value={olderId}
@@ -409,7 +469,12 @@ function VaultContents({
                   </select>
                 </div>
                 <div>
-                  <label htmlFor={`${id}-newer`}>Newer snapshot</label>
+                  <div className="vault-step-heading">
+                    <span className="vault-step-number" aria-hidden="true">
+                      2
+                    </span>
+                    <label htmlFor={`${id}-newer`}>Newer snapshot</label>
+                  </div>
                   <select
                     id={`${id}-newer`}
                     value={newerId}
@@ -442,6 +507,7 @@ function VaultContents({
                   : "These exports are from the same Instagram account."}
               </label>
               <button
+                className="button primary"
                 type="button"
                 disabled={busy || !sameAccountConfirmed || !older || !newer}
                 onClick={compare}
@@ -472,13 +538,22 @@ function VaultContents({
                 to manage your real saved history.
               </p>
               <div className="vault-actions">
-                <button disabled>Export Vault backup</button>
-                <button disabled>Import Vault backup</button>
-                <button disabled>Delete all saved snapshots</button>
+                <button className="button secondary" disabled>
+                  Export Vault backup
+                </button>
+                <button className="button secondary" disabled>
+                  Import Vault backup
+                </button>
+                <button className="button danger" disabled>
+                  Delete all saved snapshots
+                </button>
               </div>
             </section>
           ) : (
-            <section className="vault-backup" aria-labelledby={`${id}-backup`}>
+            <section
+              className="vault-backup vault-maintenance"
+              aria-labelledby={`${id}-backup`}
+            >
               <h2 id={`${id}-backup`}>Keep a private backup</h2>
               <p>
                 This JSON file contains follower and following usernames. Keep
@@ -488,6 +563,7 @@ function VaultContents({
               </p>
               <div className="vault-actions">
                 <button
+                  className="button secondary"
                   type="button"
                   disabled={busy || !vault.length}
                   onClick={async () => {
@@ -571,6 +647,7 @@ function VaultContents({
                   </ul>
                   <div className="vault-actions">
                     <button
+                      className="button primary"
                       type="button"
                       disabled={busy || !preview.added.length}
                       onClick={(event) => {
@@ -581,6 +658,7 @@ function VaultContents({
                       Import snapshots
                     </button>
                     <button
+                      className="button tertiary"
                       type="button"
                       onClick={() => {
                         setBackup(null);
@@ -592,17 +670,26 @@ function VaultContents({
                   </div>
                 </div>
               )}
-              <button
-                className="vault-delete-all"
-                type="button"
-                disabled={!vault.length && !corruptSnapshots}
-                onClick={(event) => {
-                  modalTrigger.current = event.currentTarget;
-                  setDeletion("all");
-                }}
-              >
-                Delete all saved snapshots
-              </button>
+              <div className="vault-danger-zone">
+                <div>
+                  <h3>Remove local history</h3>
+                  <p>
+                    Deletion removes saved snapshots from this browser. Your
+                    active export stays available.
+                  </p>
+                </div>
+                <button
+                  className="button danger vault-delete-all"
+                  type="button"
+                  disabled={!vault.length && !corruptSnapshots}
+                  onClick={(event) => {
+                    modalTrigger.current = event.currentTarget;
+                    setDeletion("all");
+                  }}
+                >
+                  Delete all saved snapshots
+                </button>
+              </div>
             </section>
           )}
         </>
@@ -619,6 +706,7 @@ function VaultContents({
             deletion === "all" ? "Delete all snapshots" : "Delete snapshot"
           }
           strong={deletion === "all"}
+          danger
           onCancel={() => setDeletion(null)}
           onConfirm={async () => {
             await removeSnapshot(deletion === "all" ? undefined : deletion.id);
