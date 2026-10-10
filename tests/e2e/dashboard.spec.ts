@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { strToU8, zipSync } from "fflate";
 import { tools } from "../../src/lib/site";
 import { syntheticConnections } from "../helpers/connection-export";
+import { savedRecords, seedRecords } from "../helpers/vault";
 
 async function upload(
   page: Page,
@@ -79,6 +80,10 @@ test("dashboard welcomes without data, keeps application SEO separate and links 
     page.getByRole("button", { name: "Try demo", exact: true }),
   ).toBeEnabled();
   await expect(page.locator(".dashboard-metrics")).toHaveCount(0);
+  await expect(page.locator(".dashboard-insights")).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Snapshot Vault", exact: true }),
+  ).toContainText("No saved history yet");
   await expect(
     page.getByRole("link", {
       name: "Need your export? Follow the download guide",
@@ -111,13 +116,13 @@ test("dashboard welcomes without data, keeps application SEO separate and links 
 
 test("real upload populates counts and coverage, persists through tools and opens incoming follower dates", async ({
   page,
+  baseURL,
 }) => {
   const outbound: string[] = [];
+  const origin = new URL(baseURL!).origin;
   page.on("request", (request) => {
-    if (
-      request.method() === "POST" ||
-      !request.url().startsWith("http://127.0.0.1:3000")
-    )
+    // WebKit reports browser-local blob reads as requests; they keep our origin.
+    if (request.method() === "POST" || new URL(request.url()).origin !== origin)
       outbound.push(request.url());
   });
   await page.addInitScript(() => {
@@ -147,6 +152,31 @@ test("real upload populates counts and coverage, persists through tools and open
   await expect(page.locator(".dashboard-coverage")).toContainText(
     "1 of 2 following relationships",
   );
+  const insights = page.getByRole("region", {
+    name: "Worth a look",
+    exact: true,
+  });
+  await expect(
+    insights.locator('[data-insight="follower-dates"]'),
+  ).toContainText("67%");
+  await expect(
+    insights.locator('[data-insight="mutual-origins"]'),
+  ).toContainText("0%");
+  await expect(
+    insights.locator('[data-insight="one-way-follows"]'),
+  ).toContainText("1");
+  await expect(insights.locator('[data-insight="sent-requests"]')).toHaveCount(
+    0,
+  );
+  await expect(
+    insights.locator('[data-insight="saved-snapshots"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Explore follower dates", exact: true }),
+  ).toHaveCount(1);
+  await expect(page.locator(".dashboard-recorded-dates")).not.toHaveAttribute(
+    "open",
+  );
   await expect(card(page, "pending-follow-requests")).toContainText(
     "Not included in this export",
   );
@@ -167,6 +197,25 @@ test("real upload populates counts and coverage, persists through tools and open
   await expect(
     page.getByRole("button", { name: /Following 2/ }),
   ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    await page.locator(".workspace").evaluate((workspace) => {
+      const sections = [
+        workspace.querySelector(".stats-grid"),
+        workspace.querySelector('[aria-label="Save a local snapshot"]'),
+        workspace.querySelector(".account-list"),
+        workspace.querySelector(".review-next"),
+      ];
+      return sections.every(
+        (section, index) =>
+          section &&
+          (index === sections.length - 1 ||
+            !!(
+              section.compareDocumentPosition(sections[index + 1]!) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+            )),
+      );
+    }),
+  ).toBe(true);
   await dashboard(page);
   await expect(card(page, "followers-analyzer")).toContainText("3 followers");
   await page
@@ -183,6 +232,18 @@ test("real upload populates counts and coverage, persists through tools and open
     "@sample.earliest",
   );
   await dashboard(page);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as unknown as { dashboardEvents: { event: string }[] }
+          ).dashboardEvents.filter(
+            (entry) => entry.event === "dashboard_opened",
+          ).length,
+      ),
+    )
+    .toBe(3);
   const events = await page.evaluate(
     () =>
       (window as unknown as { dashboardEvents: { event: string }[] })
@@ -241,6 +302,9 @@ test("optional empty, included and unreadable categories stay distinct and missi
     "1 included but could not be read",
   );
   await expect(page.locator(".dashboard-coverage")).toContainText("0 of 3");
+  await expect(page.locator('[data-insight="follower-dates"]')).toHaveCount(0);
+  await expect(page.locator('[data-insight="mutual-origins"]')).toHaveCount(0);
+  await expect(page.locator('[data-insight="sent-requests"]')).toHaveCount(0);
   await expect(card(page, "instagram-wrapped")).toContainText(
     "Date stories need usable recorded following dates",
   );
@@ -257,6 +321,137 @@ test("optional empty, included and unreadable categories stay distinct and missi
   await expect(
     page.getByRole("status").filter({ hasText: "Could not read this list" }),
   ).toBeVisible();
+});
+
+test("unavailable local storage is not presented as empty history and fictional Dashboard history stays independent", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const state = { attempts: 0 };
+    Object.assign(window, { dashboardStorage: state });
+    Object.defineProperty(window, "indexedDB", {
+      get() {
+        state.attempts++;
+        throw new DOMException("Blocked", "SecurityError");
+      },
+    });
+  });
+  await page.goto("/dashboard/");
+  const vault = page.getByRole("region", {
+    name: "Snapshot Vault",
+    exact: true,
+  });
+  await expect(vault).toContainText("Local history could not be opened");
+  await expect(vault).toContainText("Browser storage is unavailable");
+  await expect(vault).not.toContainText("No saved history yet");
+  await expect(
+    vault.getByRole("link", { name: "Open Vault", exact: true }),
+  ).toHaveAttribute("href", "/snapshot-vault/");
+  await upload(page);
+  await expect(page.locator(".dashboard-metrics")).toContainText("Followers");
+  await expect(vault).not.toContainText("No saved history yet");
+  await expect(page.locator('[data-insight="saved-snapshots"]')).toHaveCount(0);
+  const attempts = await page.evaluate(
+    () =>
+      (window as unknown as { dashboardStorage: { attempts: number } })
+        .dashboardStorage.attempts,
+  );
+  await page
+    .getByRole("button", {
+      name: "Clear active data & start over",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Try demo", exact: true }).click();
+  await expect(vault).toContainText("4 fictional snapshots");
+  await expect(vault).not.toContainText("Local history could not be opened");
+  await expect(vault).not.toContainText("Browser storage is unavailable");
+  await expect(
+    page.locator('[data-insight="saved-snapshots"]'),
+  ).toHaveAttribute("href", "/snapshot-vault/?demo=true");
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { dashboardStorage: { attempts: number } })
+          .dashboardStorage.attempts,
+    ),
+  ).toBe(attempts);
+  await fits(page);
+});
+
+test("Dashboard offers saved-count insights without joining accounts and keeps demo Vault history separate", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/");
+  const records = ["2024-01-15", "2024-04-15", "2024-07-15"].map(
+    (exportDate, index) => ({
+      id: `dashboard-${index}`,
+      version: 1,
+      createdAt: index + 1,
+      exportDate,
+      followers: ["sample.other.account"],
+      following: ["sample.other.account"],
+    }),
+  );
+  await seedRecords(page, records);
+  await page.reload();
+  await upload(page, syntheticConnections);
+  const savedInsight = page.locator('[data-insight="saved-snapshots"]');
+  await expect(savedInsight).toContainText("3");
+  await expect(savedInsight).toContainText("nothing is matched automatically");
+  await expect(savedInsight).toHaveAttribute("href", "/snapshot-vault/");
+  await expect(page.locator(".dashboard-insights")).not.toContainText(
+    "sample.other.account",
+  );
+  await expect(page.locator(".dashboard-insights")).not.toContainText(
+    /previously mutual/i,
+  );
+  await expect(page.locator('[data-insight="sent-requests"]')).toContainText(
+    "3",
+  );
+  await expect(page.locator('[data-insight="sent-requests"]')).toContainText(
+    "does not prove they are still pending",
+  );
+  await page
+    .getByRole("button", {
+      name: "Clear active data & start over",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Try demo", exact: true }).click();
+  await expect(savedInsight).toContainText("4");
+  await expect(savedInsight).toContainText("Fictional saved snapshots");
+  await expect(savedInsight).toHaveAttribute(
+    "href",
+    "/snapshot-vault/?demo=true",
+  );
+  await expect(page.locator(".dashboard-insights .insight-card")).toHaveCount(
+    4,
+  );
+  await expect(page.locator(".dashboard-vault")).toContainText(
+    "4 fictional snapshots",
+  );
+  expect(await savedRecords(page)).toEqual(records);
+  await fits(page);
+  const historyMenu = page
+    .getByRole("navigation", { name: "Main navigation" })
+    .locator('details[data-section="history"]');
+  await historyMenu.locator("summary").click();
+  const vaultLink = historyMenu.getByRole("link", {
+    name: "Snapshot Vault",
+    exact: true,
+  });
+  await expect(vaultLink).toHaveAttribute("href", "/snapshot-vault/?demo=true");
+  await vaultLink.click();
+  await expect(page).toHaveURL(/\/snapshot-vault\/\?demo=true$/);
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Demo data · Fictional history" }),
+  ).toBeVisible();
+  await expect(page.locator(".vault-overview")).toContainText("4");
+  expect(await savedRecords(page)).toEqual(records);
+  await fits(page);
 });
 
 test("follower-only dates do not promise Wrapped date stories and saved snapshots are never selected automatically", async ({

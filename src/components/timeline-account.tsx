@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Account, Dataset } from "@/lib/instagram/types";
 import {
@@ -47,8 +47,22 @@ const date = (account?: Account) =>
         timeZone: "UTC",
       });
 type View = "Summary" | "Saved History" | "Context";
+export const RELATIONSHIP_INSPECTION_EVENT = "instascope:inspect-relationship";
 
-export function TimelineAccount({ dataset }: { dataset: Dataset }) {
+export function TimelineAccount({
+  dataset,
+  username,
+  initialUsername = "",
+  presentation = "timeline",
+}: {
+  dataset: Dataset;
+  username?: string;
+  initialUsername?: string;
+  presentation?: "timeline" | "drawer";
+}) {
+  const drawer = presentation === "drawer";
+  const ContextHeading = drawer ? "h3" : "h5";
+  const preset = username ?? initialUsername;
   const { vault, currentExportDate } = useData();
   const fictional = useMemo(
     () => (dataset.metadata.demo ? demoVaultSnapshots() : undefined),
@@ -69,8 +83,9 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
     }),
     [index],
   );
-  const [query, setQuery] = useState(""),
-    [selected, setSelected] = useState("");
+  const [query, setQuery] = useState(initialUsername),
+    [chosen, setSelected] = useState(initialUsername);
+  const selected = username ?? chosen;
   const [matches, setMatches] = useState<string[] | null>(null);
   const [view, setView] = useState<View>("Summary");
   const [confirmedDataset, setConfirmedDataset] = useState<Dataset | null>(
@@ -103,6 +118,20 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
     saved?.dataset === dataset && saved.signature === signature && confirmed
       ? saved.index
       : undefined;
+  useEffect(() => {
+    if (!preset || !fictional) return;
+    let active = true;
+    load()
+      .then((result) => {
+        if (active) setSaved({ dataset, signature, index: result });
+      })
+      .catch((error) => {
+        if (active) setError(vaultStorageMessage(error));
+      });
+    return () => {
+      active = false;
+    };
+  }, [dataset, fictional, load, signature, preset]);
   const snapshotCount = (fictional ?? vault).length;
   const summary = useMemo(
     () => (selected ? timelineAccountSummary(selected, index, history) : null),
@@ -127,7 +156,7 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
       : summary?.origin
         ? mutualOriginLabels[summary.origin.origin]
         : "";
-  async function includeHistory() {
+  const includeHistory = useCallback(async () => {
     if (!confirmed || busy) return;
     setBusy(true);
     setError("");
@@ -139,15 +168,29 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
     } finally {
       if (alive.current) setBusy(false);
     }
-  }
-  function choose(name: string) {
-    setSelected(name);
-    setQuery(name);
-    setMatches(null);
-    setView("Summary");
-    setError("");
-    if (fictional && !history) void includeHistory();
-  }
+  }, [busy, confirmed, dataset, load, signature]);
+  const choose = useCallback(
+    (name: string) => {
+      setSelected(name);
+      setQuery(name);
+      setMatches(null);
+      setView("Summary");
+      setError("");
+      if (fictional && !history) void includeHistory();
+    },
+    [fictional, history, includeHistory],
+  );
+  useEffect(() => {
+    if (drawer) return;
+    const inspect = (event: Event) => {
+      const name = normalizeUsername((event as CustomEvent<unknown>).detail);
+      if (name && (index.names.has(name) || history?.names.has(name)))
+        choose(name);
+    };
+    window.addEventListener(RELATIONSHIP_INSPECTION_EVENT, inspect);
+    return () =>
+      window.removeEventListener(RELATIONSHIP_INSPECTION_EVENT, inspect);
+  }, [choose, drawer, history, index]);
   function search(event: React.FormEvent) {
     event.preventDefault();
     const name = normalizeUsername(query);
@@ -168,13 +211,20 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
     if (found.length === 1) choose(found[0]);
   }
   return (
-    <section className="timeline-account" aria-label="Inspect a relationship">
-      <h3>Understand one relationship</h3>
-      <p>
-        Search locally for an account in this export. Recorded dates, saved
-        observations and optional export context stay distinct.
-      </p>
-      {!selected && (
+    <section
+      className={`timeline-account${drawer ? " drawer-inspector" : ""}`}
+      aria-label="Inspect a relationship"
+    >
+      {!drawer && (
+        <>
+          <h3>Understand one relationship</h3>
+          <p>
+            Search locally for an account in this export. Recorded dates, saved
+            observations and optional export context stay distinct.
+          </p>
+        </>
+      )}
+      {!drawer && !selected && (
         <dl className="timeline-coverage" aria-label="Relationship coverage">
           <div>
             <dt>Dated followers</dt>
@@ -198,20 +248,22 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
           </div>
         </dl>
       )}
-      <form className="timeline-account-search" onSubmit={search}>
-        <label>
-          Search relationship account
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            maxLength={200}
-            required
-          />
-        </label>
-        <button type="submit">Inspect account</button>
-      </form>
-      {fictional && (
+      {!drawer && (
+        <form className="timeline-account-search" onSubmit={search}>
+          <label>
+            Search relationship account
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              maxLength={200}
+              required
+            />
+          </label>
+          <button type="submit">Inspect account</button>
+        </form>
+      )}
+      {!drawer && fictional && (
         <label className="timeline-example">
           Fictional example
           <select
@@ -311,11 +363,11 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
             aria-pressed={view === label}
             onClick={() => setView(label)}
           >
-            {label}
+            {drawer && label === "Saved History" ? "History" : label}
           </button>
         ))}
       </div>
-      {selected && <h4>{display(selected)}</h4>}
+      {!drawer && selected && <h4>{display(selected)}</h4>}
       {view === "Summary" && (
         <section aria-label="Account summary">
           {!summary ? (
@@ -431,7 +483,7 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
             <AccountHistoryDetails
               points={summary.points!}
               singleSnapshotMessage="More than one saved snapshot is needed to observe changes."
-              transitionHeadingLevel={5}
+              transitionHeadingLevel={drawer ? 3 : 5}
             />
           )}
         </section>
@@ -445,7 +497,7 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
             </p>
           ) : (
             <>
-              <h5>Active export records</h5>
+              <ContextHeading>Active export records</ContextHeading>
               {context.current.length ? (
                 <ul className="context-facts">
                   {context.current.map((fact) => (
@@ -466,7 +518,7 @@ export function TimelineAccount({ dataset }: { dataset: Dataset }) {
                   absence.
                 </p>
               )}
-              <h5>Earlier saved observations</h5>
+              <ContextHeading>Earlier saved observations</ContextHeading>
               {!history ? (
                 <p>Saved history not loaded.</p>
               ) : !validExportDate(exportDate) ? (

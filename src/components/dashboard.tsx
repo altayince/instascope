@@ -8,38 +8,19 @@ import { SnapshotSaver } from "./snapshot-return";
 import { formatSnapshotDate } from "@/lib/snapshot-vault";
 import { analyze } from "@/lib/analysis/relationships";
 import { relationshipTimeline } from "@/lib/analysis/insights";
+import { dashboardInsights } from "@/lib/analysis/dashboard-insights";
+import { demoVaultSnapshots } from "@/lib/demo";
+import { productSections } from "@/lib/navigation";
+import { ActionButton, ActionLink, InsightLink } from "./actions";
 import { tools, type ToolSlug } from "@/lib/site";
 import { track } from "@/lib/analytics";
 import type { ConnectionList } from "@/lib/instagram/types";
 
-const groups: { title: string; description: string; slugs: ToolSlug[] }[] = [
-  {
-    title: "Understand your circle",
-    description: "Who follows you, who you follow and where you meet.",
-    slugs: ["followers-analyzer", "not-following-back", "following-analyzer"],
-  },
-  {
-    title: "Explore history",
-    description:
-      "Recorded dates, your own actions and changes between exports.",
-    slugs: [
-      "relationship-timeline",
-      "pending-follow-requests",
-      "unfollow-history",
-      "snapshot-comparison",
-    ],
-  },
-  {
-    title: "Review and share",
-    description: "Decide what to keep. Find a story worth sharing.",
-    slugs: ["instagram-cleaner", "instagram-wrapped"],
-  },
-  {
-    title: "Privacy and profiles",
-    description: "Review your boundaries or look up a public profile photo.",
-    slugs: ["connection-privacy", "profile-picture-viewer"],
-  },
-];
+const groups = productSections.map((section) => ({
+  ...section,
+  title: section.id === "more" ? "Public utilities" : section.label,
+  slugs: section.links.flatMap((link) => (link.tool ? [link.tool] : [])),
+}));
 
 function optionalRecords(list: ConnectionList | undefined, label: string) {
   if (!list || list.status === "missing")
@@ -68,6 +49,19 @@ export function Dashboard() {
   const timeline = useMemo(
     () => (analysis ? relationshipTimeline(analysis) : null),
     [analysis],
+  );
+  const fictional = useMemo(
+    () => (dataset?.metadata.demo ? demoVaultSnapshots() : []),
+    [dataset],
+  );
+  const snapshotCount = dataset?.metadata.demo
+    ? fictional.length
+    : storageReady && !storageError
+      ? vault.length
+      : 0;
+  const insights = useMemo(
+    () => (dataset ? dashboardInsights(dataset, snapshotCount) : []),
+    [dataset, snapshotCount],
   );
   useEffect(() => {
     track("dashboard_opened");
@@ -145,54 +139,15 @@ export function Dashboard() {
           </p>
         </div>
         {dataset && (
-          <button className="text-button" onClick={clear}>
+          <ActionButton variant="tertiary" onClick={clear}>
             Clear active data & start over
-          </button>
+          </ActionButton>
         )}
       </header>
       <p className="dashboard-privacy">
         Your export is processed in this browser. No Instagram password
         required.
       </p>
-      <section className="dashboard-vault" aria-label="Snapshot Vault">
-        <div>
-          <h2>Snapshot Vault</h2>
-          {dataset?.metadata.demo ? (
-            <p>
-              Explore four fictional snapshots and compare any two. Your real
-              saved history stays separate.
-            </p>
-          ) : !storageReady ? (
-            <p>Opening your local history…</p>
-          ) : vault.length ? (
-            <p>
-              {vault.length} saved{" "}
-              {vault.length === 1 ? "snapshot" : "snapshots"} · Latest:{" "}
-              {formatSnapshotDate(vault[0].exportDate)}
-            </p>
-          ) : (
-            <>
-              <strong>Build a history</strong>
-              <p>
-                Save your current export and compare it with future exports.
-              </p>
-            </>
-          )}
-          {!dataset?.metadata.demo && storageError && (
-            <p role="status">{storageError}</p>
-          )}
-        </div>
-        <Link
-          href={
-            dataset?.metadata.demo
-              ? "/snapshot-vault/?demo=true"
-              : "/snapshot-vault/"
-          }
-          className="button secondary"
-        >
-          {dataset?.metadata.demo ? "Try Vault demo" : "Open Vault"}
-        </Link>
-      </section>
       {!dataset && (
         <section aria-label="Open your export" className="dashboard-welcome">
           <SavedSnapshotNotice />
@@ -214,7 +169,9 @@ export function Dashboard() {
                 Invented accounts and two example snapshots. These results do
                 not describe your Instagram account.
               </p>
-              <button onClick={clear}>Use my own export</button>
+              <ActionButton variant="tertiary" onClick={clear}>
+                Use my own export
+              </ActionButton>
             </div>
           )}
           <section aria-labelledby="dashboard-summary">
@@ -261,25 +218,60 @@ export function Dashboard() {
               ))}
             </dl>
           </section>
-          <section
-            className="dashboard-dates"
-            aria-labelledby="dashboard-dates-title"
-          >
-            <div>
-              <span className="eyebrow">THE DATES BEHIND YOUR CIRCLE</span>
-              <h2 id="dashboard-dates-title">When did someone follow me?</h2>
+          {insights.length > 0 && (
+            <section
+              aria-labelledby="dashboard-insights-title"
+              className="dashboard-insights-section"
+            >
+              <div className="dashboard-section-heading">
+                <h2
+                  id="dashboard-insights-title"
+                  className="dashboard-section-title"
+                >
+                  Worth a look
+                </h2>
+                <p>A few supported facts to explore. No scores or guesses.</p>
+              </div>
+              <div className="dashboard-insights">
+                {insights.map((insight) => (
+                  <Link
+                    className="insight-card"
+                    href={insight.href}
+                    key={insight.id}
+                    data-insight={insight.id}
+                    aria-label={insight.action}
+                    aria-describedby={`dashboard-${insight.id}-value dashboard-${insight.id}-description`}
+                  >
+                    <h3>{insight.label}</h3>
+                    <strong id={`dashboard-${insight.id}-value`}>
+                      {insight.value}
+                    </strong>
+                    <p id={`dashboard-${insight.id}-description`}>
+                      {insight.description}
+                    </p>
+                    <span className="insight-card-action">
+                      {insight.action}
+                      <span aria-hidden="true"> ›</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+          {timeline.coverage.followers === 0 && (
+            <div className="dashboard-date-availability">
               <p>
-                Find your earliest recorded followers or search for someone
-                specific. Only dates supplied in your export can be shown;
-                missing dates stay unavailable.
+                No usable follower dates were supplied in this export. You can
+                still search its follower records; missing dates stay
+                unavailable.
               </p>
-              <Link
-                className="button primary"
-                href="/relationship-timeline/?direction=followers"
-              >
+              <InsightLink href="/relationship-timeline/?direction=followers">
                 Explore follower dates
-              </Link>
+              </InsightLink>
             </div>
+          )}
+          <details className="data-notes dashboard-recorded-dates">
+            <summary>Recorded-date coverage</summary>
             <div className="dashboard-coverage">
               <strong>
                 {format(timeline.coverage.followers)} of{" "}
@@ -296,7 +288,7 @@ export function Dashboard() {
                 history are not reconstructed.
               </small>
             </div>
-          </section>
+          </details>
           <details className="data-notes">
             <summary>About this export and local data</summary>
             {dataset.metadata.warnings.map((warning) => (
@@ -316,12 +308,73 @@ export function Dashboard() {
           </details>
         </>
       )}
+      <section className="dashboard-vault" aria-label="Snapshot Vault">
+        <div>
+          <span className="eyebrow">KEEP A HISTORY</span>
+          <h2>Snapshot Vault</h2>
+          {dataset?.metadata.demo ? (
+            <>
+              <strong>
+                {fictional.length} fictional snapshots · Latest:{" "}
+                {formatSnapshotDate(fictional.at(-1)!.exportDate)}
+              </strong>
+              <p>
+                Compare example snapshots. Your real saved history stays
+                separate.
+              </p>
+            </>
+          ) : storageError ? (
+            <>
+              <strong>Local history could not be opened.</strong>
+              <p role="status">{storageError}</p>
+            </>
+          ) : !storageReady ? (
+            <p>Opening your local history…</p>
+          ) : vault.length ? (
+            <>
+              <strong>
+                {vault.length} saved{" "}
+                {vault.length === 1 ? "snapshot" : "snapshots"} · Latest:{" "}
+                {formatSnapshotDate(vault[0].exportDate)}
+              </strong>
+              <p>
+                Choose two snapshots from the same account to compare recorded
+                changes.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>No saved history yet.</strong>
+              <p>
+                Save an export, then return with a newer one from the same
+                account to see changes.
+              </p>
+            </>
+          )}
+        </div>
+        <ActionLink
+          variant="secondary"
+          href={
+            dataset?.metadata.demo
+              ? "/snapshot-vault/?demo=true"
+              : "/snapshot-vault/"
+          }
+        >
+          {dataset?.metadata.demo ? "Try Vault demo" : "Open Vault"}
+        </ActionLink>
+      </section>
       <SnapshotSaver />
       <div className="dashboard-tools">
         {groups.map((group) => (
-          <section key={group.title} aria-label={group.title}>
-            <h2 className="dashboard-section-title">{group.title}</h2>
-            <p>{group.description}</p>
+          <section
+            key={group.title}
+            aria-label={group.title}
+            data-section={group.id}
+          >
+            <div className="dashboard-section-heading">
+              <h2 className="dashboard-section-title">{group.title}</h2>
+              <p>{group.description}</p>
+            </div>
             <div className="dashboard-tool-grid">
               {group.slugs.map((slug) => (
                 <Link

@@ -21,6 +21,8 @@ import { RelationshipTimeline } from "./relationship-timeline";
 import { RelationshipReview } from "./relationship-review";
 import { MutualOrigins } from "./mutual-origins";
 import { SavedHistoryAccountList } from "./saved-history-account-list";
+import { InsightLink } from "./actions";
+import { workspaceSections } from "@/lib/navigation";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { track } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
@@ -38,6 +40,18 @@ export const categories = {
 export type Category = keyof typeof categories;
 
 let pendingWorkspaceAnchor: { path: string; viewportY: number } | null = null;
+
+function rememberWorkspaceAnchor(
+  path: string,
+  pathname: string,
+  tabs: HTMLDivElement | null,
+) {
+  if (!tabs || path === pathname) return;
+  pendingWorkspaceAnchor = {
+    path,
+    viewportY: tabs.getBoundingClientRect().top,
+  };
+}
 
 function optionalSummary(list: ConnectionList | undefined, label: string) {
   if (!list || list.status === "missing")
@@ -147,13 +161,24 @@ export function Workspace({
     root.style.scrollBehavior = previousBehavior;
   }, [pathname]);
 
-  function rememberWorkspaceAnchor(path: string) {
-    if (!tabsRef.current || path === pathname) return;
-    pendingWorkspaceAnchor = {
-      path,
-      viewportY: tabsRef.current.getBoundingClientRect().top,
-    };
-  }
+  useLayoutEffect(() => {
+    const tabs = tabsRef.current;
+    const active = tabs?.querySelector<HTMLElement>('a[aria-current="page"]');
+    if (!tabs || !active || tabs.scrollWidth <= tabs.clientWidth) return;
+    const bounds = tabs.getBoundingClientRect();
+    const current = active.getBoundingClientRect();
+    const left = bounds.left + tabs.clientLeft;
+    const right = left + tabs.clientWidth;
+    const difference =
+      current.left < left
+        ? current.left - left
+        : current.right > right
+          ? current.right - right
+          : 0;
+    // Reveal the selected workspace view without moving the page vertically.
+    if (difference) tabs.scrollLeft += difference;
+  }, [pathname, mode, dataset]);
+
   useEffect(() => {
     track("landing_viewed");
     if (mode === "cleaner") track("cleaner_opened");
@@ -210,77 +235,36 @@ export function Workspace({
               Clear active data & start over
             </button>
           </div>
-          <div className="tool-tabs" ref={tabsRef}>
-            <Link
-              href="/followers-analyzer/"
-              scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/followers-analyzer/")}
-              aria-current={mode === "analyzer" ? "page" : undefined}
-            >
-              Overview
-            </Link>
-            <Link
-              href="/pending-follow-requests/"
-              scroll={false}
-              onNavigate={() =>
-                rememberWorkspaceAnchor("/pending-follow-requests/")
-              }
-              aria-current={mode === "pending" ? "page" : undefined}
-            >
-              Pending requests
-            </Link>
-            <Link
-              href="/connection-privacy/"
-              scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/connection-privacy/")}
-              aria-current={mode === "privacy" ? "page" : undefined}
-            >
-              Connection privacy
-            </Link>
-            <Link
-              href="/unfollow-history/"
-              scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/unfollow-history/")}
-              aria-current={mode === "history" ? "page" : undefined}
-            >
-              Your unfollow history
-            </Link>
-            <Link
-              href="/relationship-timeline/"
-              scroll={false}
-              onNavigate={() =>
-                rememberWorkspaceAnchor("/relationship-timeline/")
-              }
-              aria-current={mode === "timeline" ? "page" : undefined}
-            >
-              Relationship timeline
-            </Link>
-            <Link
-              href="/instagram-cleaner/"
-              scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/instagram-cleaner/")}
-              aria-current={mode === "cleaner" ? "page" : undefined}
-            >
-              InstaCleaner
-            </Link>
-            <Link
-              href="/snapshot-comparison/"
-              scroll={false}
-              onNavigate={() =>
-                rememberWorkspaceAnchor("/snapshot-comparison/")
-              }
-              aria-current={mode === "comparison" ? "page" : undefined}
-            >
-              Compare snapshots
-            </Link>
-            <Link
-              href="/instagram-wrapped/"
-              scroll={false}
-              onNavigate={() => rememberWorkspaceAnchor("/instagram-wrapped/")}
-              aria-current={mode === "wrapped" ? "page" : undefined}
-            >
-              My Wrapped
-            </Link>
+          <div
+            className="tool-tabs"
+            ref={tabsRef}
+            role="navigation"
+            aria-label="Workspace tools"
+          >
+            {workspaceSections.map((group) => (
+              <div className="workspace-nav-group" key={group.label}>
+                <span className="workspace-nav-label">{group.label}</span>
+                <div>
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      scroll={false}
+                      onNavigate={() =>
+                        rememberWorkspaceAnchor(
+                          link.href,
+                          pathname,
+                          tabsRef.current,
+                        )
+                      }
+                      aria-current={mode === link.mode ? "page" : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
           {mode === "comparison" ? (
             <>
@@ -368,8 +352,6 @@ export function Workspace({
             />
           ) : (
             <>
-              <ReviewNext dataset={dataset} />
-              <SnapshotSaver />
               <div className="stats-grid">
                 {(Object.keys(categories) as Category[]).map((key) => (
                   <button
@@ -394,13 +376,16 @@ export function Workspace({
                   </button>
                 ))}
               </div>
+              <SnapshotSaver />
               <div className="list-heading">
                 <h3>{categories[category][0]}</h3>
                 <p>{categories[category][1]}</p>
                 {category === "mutuals" && (
                   <div className="workspace-insights">
                     <span>Insights</span>
-                    <a href="#mutual-origins">Explore who followed first</a>
+                    <InsightLink href="#mutual-origins">
+                      Explore who followed first
+                    </InsightLink>
                   </div>
                 )}
                 {category === "followers" && (
@@ -413,9 +398,9 @@ export function Workspace({
                     </p>
                     <div className="workspace-insights">
                       <span>Insights</span>
-                      <Link href="/relationship-timeline/?direction=followers">
+                      <InsightLink href="/relationship-timeline/?direction=followers">
                         Explore follower dates
-                      </Link>
+                      </InsightLink>
                     </div>
                   </>
                 )}
@@ -435,6 +420,7 @@ export function Workspace({
                 />
               ) : (
                 <AccountList
+                  relationshipDataset={dataset}
                   demo={dataset.metadata.demo}
                   key={`${dataset.metadata.parsedAt}-${mode}`}
                   accounts={analysis[category]}
@@ -443,6 +429,7 @@ export function Workspace({
                   }
                 />
               )}
+              <ReviewNext dataset={dataset} />
             </>
           )}
           {(mode === "cleaner" ||

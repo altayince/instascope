@@ -177,9 +177,12 @@ test("guide opens follower Timeline before upload, with canonical URL and no par
   );
   expect(sitemap).not.toContain("?direction=");
   // Same-path query navigation must reset entry direction, including back/forward.
-  await page
+  const historyMenu = page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Timeline", exact: true })
+    .locator('details[data-section="history"]');
+  await historyMenu.locator("summary").click();
+  await historyMenu
+    .getByRole("link", { name: "Relationship timeline", exact: true })
     .click();
   await expect(page.getByLabel("Relationship direction")).toHaveValue(
     "following",

@@ -105,6 +105,7 @@ export function PendingRequests({ dataset }: { dataset: Dataset }) {
             age.
           </p>
           <AccountList
+            relationshipDataset={dataset}
             accounts={filtered}
             selectionScope={list.accounts}
             selectable
@@ -163,6 +164,7 @@ export function PrivacyLists({ dataset }: { dataset: Dataset }) {
       <Unavailable list={list} />
       {list.status === "available" && (
         <AccountList
+          relationshipDataset={dataset}
           key={kind}
           accounts={list.accounts}
           demo={dataset.metadata.demo}
@@ -191,6 +193,7 @@ export function UnfollowHistory({ dataset }: { dataset: Dataset }) {
       <Unavailable list={list} />
       {list.status === "available" && (
         <AccountList
+          relationshipDataset={dataset}
           accounts={list.accounts}
           demo={dataset.metadata.demo}
           dateLabel="Unfollow recorded"

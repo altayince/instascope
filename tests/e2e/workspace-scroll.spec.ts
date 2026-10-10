@@ -14,6 +14,19 @@ async function switchTab(page: Page, label: string, path: string) {
   await link.click();
   await expect(page).toHaveURL(new URL(path, page.url()).toString());
   await expect(link).toHaveAttribute("aria-current", "page");
+  const horizontal = await link.evaluate((element) => {
+    const active = element.getBoundingClientRect();
+    const tabs = element.closest(".tool-tabs")!;
+    const bounds = tabs.getBoundingClientRect();
+    return {
+      activeLeft: active.left,
+      activeRight: active.right,
+      left: bounds.left,
+      right: bounds.right,
+    };
+  });
+  expect(horizontal.activeLeft).toBeGreaterThanOrEqual(horizontal.left - 2);
+  expect(horizontal.activeRight).toBeLessThanOrEqual(horizontal.right + 2);
   await expect(page.locator(".demo-notice")).toContainText("Fictional example");
   const after = await page.evaluate(() => ({
     tabs: document.querySelector(".tool-tabs")!.getBoundingClientRect().top,
@@ -38,7 +51,9 @@ test("workspace chrome stays visually anchored across demo routes", async ({
   await page.evaluate(() => {
     const root = document.documentElement;
     root.style.scrollBehavior = "auto";
-    const top = document.querySelector(".tool-tabs")!.getBoundingClientRect().top;
+    const top = document
+      .querySelector(".tool-tabs")!
+      .getBoundingClientRect().top;
     window.scrollTo(0, window.scrollY + top - 160);
     root.style.scrollBehavior = "";
   });

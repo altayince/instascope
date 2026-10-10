@@ -7,6 +7,7 @@ export function VaultConfirmation({
   children,
   action,
   strong = false,
+  danger = false,
   returnFocus,
   onConfirm,
   onCancel,
@@ -15,6 +16,7 @@ export function VaultConfirmation({
   children: React.ReactNode;
   action: string;
   strong?: boolean;
+  danger?: boolean;
   returnFocus?: RefObject<HTMLElement | null>;
   onConfirm: () => Promise<void>;
   onCancel: () => void;
@@ -66,10 +68,17 @@ export function VaultConfirmation({
       )}
       {error && <p role="alert">{error}</p>}
       <div className="vault-actions">
-        <button type="button" autoFocus onClick={onCancel} disabled={busy}>
+        <button
+          className="button secondary"
+          type="button"
+          autoFocus
+          onClick={onCancel}
+          disabled={busy}
+        >
           Cancel
         </button>
         <button
+          className={`button ${danger ? "danger" : "primary"}`}
           type="button"
           disabled={busy || (strong && word !== "DELETE")}
           onClick={async () => {

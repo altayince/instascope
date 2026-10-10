@@ -280,7 +280,10 @@ test("current mutual origins retains both dates, filters accessibly and excludes
   await expect(row).toContainText("Follower date: Jan 1, 2021");
   await expect(row).toContainText("Following date: Jan 7, 2021");
   await expect(
-    row.getByRole("link", { name: "@sample.they", exact: true }),
+    row.getByRole("link", {
+      name: "Open sample.they on Instagram",
+      exact: true,
+    }),
   ).toHaveAttribute("href", "https://www.instagram.com/sample.they/");
   await expect(view).toContainText("may reflect refollows");
   await fits(page);

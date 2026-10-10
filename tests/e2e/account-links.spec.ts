@@ -65,8 +65,11 @@ for (const route of ["pending-follow-requests", "instagram-cleaner"]) {
       .locator(".accounts li")
       .filter({ hasText: "@sample.active" });
     await expect(
-      active.getByRole("link", { name: "@sample.active", exact: true }),
-    ).toHaveAttribute("href", "https://www.instagram.com/sample.active/");
+      active.getByRole("button", {
+        name: "Inspect relationship with @sample.active",
+        exact: true,
+      }),
+    ).toHaveAttribute("aria-haspopup", "dialog");
     await expect(
       active.getByRole("link", { name: "Open sample.active on Instagram" }),
     ).toHaveAttribute("href", "https://www.instagram.com/sample.active/");
@@ -92,7 +95,7 @@ for (const route of ["pending-follow-requests", "instagram-cleaner"]) {
   });
 }
 
-test("real account rows link both the username and profile action", async ({
+test("real account rows distinguish local relationship details from Instagram profile navigation", async ({
   page,
 }) => {
   await page.goto("/followers-analyzer/");
@@ -105,14 +108,22 @@ test("real account rows link both the username and profile action", async ({
   const expected = "https://www.instagram.com/alice/";
 
   await expect(
+    row.getByRole("button", {
+      name: "Inspect relationship with @alice",
+      exact: true,
+    }),
+  ).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(
     row.getByRole("link", { name: "@alice", exact: true }),
-  ).toHaveAttribute("href", expected);
+  ).toHaveCount(0);
   await expect(
     row.getByRole("link", { name: "Open alice on Instagram" }),
   ).toHaveAttribute("href", expected);
 });
 
-test("fictional demo usernames remain non-clickable", async ({ page }) => {
+test("fictional demo usernames remain local without external profile links", async ({
+  page,
+}) => {
   await page.goto("/followers-analyzer/");
   await page.getByRole("button", { name: "Try demo", exact: true }).click();
   await page.getByRole("searchbox").fill("demo.mutual.0001");
@@ -177,8 +188,10 @@ test("deleted export accounts stay visible without profile links", async ({
     .filter({ hasText: "@deleted.memories" });
   const expected = "https://www.instagram.com/deleted.memories/";
   await expect(
-    activeRow.getByRole("link", { name: "@deleted.memories" }),
-  ).toHaveAttribute("href", expected);
+    activeRow.getByRole("button", {
+      name: "Inspect relationship with @deleted.memories",
+    }),
+  ).toHaveAttribute("aria-haspopup", "dialog");
   await expect(
     activeRow.getByRole("link", {
       name: "Open deleted.memories on Instagram",

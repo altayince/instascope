@@ -1,0 +1,137 @@
+/* One local inspector, presented as a side panel on wide screens and a sheet on phones. */
+.relationship-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(620px, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 28px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: -12px 0 70px #14251d26;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.relationship-drawer[open] {
+  display: flex;
+  flex-direction: column;
+}
+.relationship-drawer-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.relationship-drawer-header,
+.relationship-drawer-description,
+.relationship-drawer-actions {
+  flex-shrink: 0;
+}
+.relationship-drawer::backdrop {
+  background: #14251d80;
+}
+.relationship-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.relationship-drawer-header > div {
+  min-width: 0;
+}
+.relationship-drawer-header h2 {
+  margin: 10px 0 14px;
+  font-size: 28px;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+}
+.relationship-drawer .eyebrow {
+  font-size: 11px;
+}
+.relationship-drawer .drawer-close {
+  flex: 0 0 auto;
+}
+.relationship-drawer-description {
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.drawer-inspector {
+  border-bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+.drawer-inspector h3 {
+  font-size: 18px;
+  letter-spacing: -0.4px;
+}
+.relationship-drawer .category-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--paper);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.relationship-drawer .relationship-summary {
+  gap: 8px;
+}
+.relationship-drawer .relationship-summary > div {
+  padding: 12px;
+}
+.relationship-drawer .relationship-summary dd {
+  font-size: 15px;
+}
+.relationship-drawer .timeline-history-options {
+  font-size: 14px;
+}
+.history-observations {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.history-observations caption {
+  text-align: left;
+  color: var(--muted);
+  padding: 10px 0;
+}
+.history-observations th,
+.history-observations td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.history-state {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid #d6dfcb;
+  border-radius: 6px;
+  background: #eef3e5;
+  font-weight: 500;
+}
+.history-state[data-state="absent"] {
+  background: #f3f2ed;
+  border-color: var(--line);
+}
+.relationship-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 24px 0 0;
+  padding: 16px 0 0;
+  max-width: none;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 600px) {
+  .relationship-drawer {
+    width: 100%;
+    padding: 20px;
+    border: 0;
+  }
+  .relationship-drawer-header h2 {
+    font-size: 24px;
+  }
+}

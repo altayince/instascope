@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useData } from "./data-provider";
 import {
   relationshipHistoryIndex,
@@ -13,7 +13,7 @@ export function useVaultHistoryIndex(fictional?: readonly VaultSnapshot[]) {
     signature: string;
     promise: Promise<RelationshipHistoryIndex>;
   } | null>(null);
-  async function load() {
+  const load = useCallback(async () => {
     if (cache.current?.signature === signature) return cache.current.promise;
     const promise = fictional
       ? Promise.resolve(relationshipHistoryIndex(fictional))
@@ -25,6 +25,6 @@ export function useVaultHistoryIndex(fictional?: readonly VaultSnapshot[]) {
       if (cache.current?.promise === promise) cache.current = null;
       throw error;
     }
-  }
+  }, [fictional, readVaultHistory, signature]);
   return { signature, load };
 }

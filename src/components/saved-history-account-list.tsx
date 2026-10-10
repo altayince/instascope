@@ -131,7 +131,12 @@ export function SavedHistoryAccountList({
           </p>
         )}
       </details>
-      <AccountList {...props} key={listKey} context={merged} />
+      <AccountList
+        {...props}
+        key={listKey}
+        context={merged}
+        relationshipDataset={dataset}
+      />
     </>
   );
 }

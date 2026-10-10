@@ -1,12 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { Account } from "@/lib/instagram/types";
+import type { Account, Dataset } from "@/lib/instagram/types";
 import {
   isDeletedInstagramAccount,
   usableInstagramProfileHref,
 } from "@/lib/instagram/normalize";
 import { download } from "@/lib/download";
 import { requestAge } from "@/lib/analysis/insights";
+import { RelationshipDrawer } from "./relationship-drawer";
 export function AccountList({
   accounts,
   selectable = false,
@@ -22,6 +23,7 @@ export function AccountList({
   showDate = true,
   sortDates = true,
   dateDirection,
+  relationshipDataset,
 }: {
   accounts: Account[];
   selectable?: boolean;
@@ -37,7 +39,13 @@ export function AccountList({
   showDate?: boolean;
   sortDates?: boolean;
   dateDirection?: "followers" | "following";
+  relationshipDataset?: Dataset;
 }) {
+  const [opened, setOpened] = useState<{
+    account: Account;
+    dataset: Dataset;
+    trigger: HTMLElement;
+  } | null>(null);
   const [query, setQuery] = useState(""),
     [sort, setSort] = useState(initialSort),
     [page, setPage] = useState(0),
@@ -100,6 +108,52 @@ export function AccountList({
   }
   function displayName(entry: Account) {
     return isDeleted(entry) ? "Deleted account" : `@${entry.username}`;
+  }
+  function details(a: Account, local: boolean) {
+    return (
+      <>
+        {!local && profileHref(a) ? (
+          <a
+            className="account-username"
+            href={profileHref(a)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerPolicy="no-referrer"
+          >
+            <strong>{displayName(a)}</strong>
+          </a>
+        ) : (
+          <strong>{displayName(a)}</strong>
+        )}
+        {showDate && (
+          <small>
+            {dateLabel && `${dateLabel}: `}
+            {a.timestamp
+              ? new Date(a.timestamp * 1000).toLocaleDateString("en-US", {
+                  dateStyle: "medium",
+                  timeZone: "UTC",
+                })
+              : "Date unavailable"}
+          </small>
+        )}
+        {context?.get(a.username)?.length ? (
+          <span className="account-signals">
+            {context.get(a.username)!.map((label) => (
+              <span key={label}>{label}</span>
+            ))}
+          </span>
+        ) : null}
+        {ageReference !== undefined && (
+          <small>
+            {requestAge(a.timestamp, ageReference) === null
+              ? a.timestamp === undefined
+                ? "Age unavailable"
+                : "Age unavailable for this reference date"
+              : `${requestAge(a.timestamp, ageReference)} days since recorded request`}
+          </small>
+        )}
+      </>
+    );
   }
   return (
     <div className="account-list">
@@ -180,10 +234,7 @@ export function AccountList({
                     "username,profile_url\n" +
                       selectionScope
                         .filter((a) => activeSelection.has(a.username))
-                        .map(
-                          (a) =>
-                            `${a.username},${profileHref(a) ?? ""}`,
-                        )
+                        .map((a) => `${a.username},${profileHref(a) ?? ""}`)
                         .join("\n"),
                   ],
                   { type: "text/csv;charset=utf-8" },
@@ -212,7 +263,9 @@ export function AccountList({
       </p>
       {!filtered.length ? (
         <div className="empty-state">
-          No accounts match this view. Try another filter or search.
+          {accounts.length
+            ? "No accounts match this view. Try another filter or search."
+            : "No account records in this view. Choose another category, or import an export containing these records."}
         </div>
       ) : (
         <ul className="accounts">
@@ -226,58 +279,41 @@ export function AccountList({
                   onChange={() => toggle(a.username)}
                 />
               )}
-              <span className="avatar" aria-hidden="true">
-                {isDeleted(a) ? "DA" : a.username.slice(0, 2).toUpperCase()}
-              </span>
-              <div>
-                {profileHref(a) ? (
-                  <a
-                    className="account-username"
-                    href={profileHref(a)!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    referrerPolicy="no-referrer"
-                  >
-                    <strong>{displayName(a)}</strong>
-                  </a>
-                ) : (
-                  <strong>{displayName(a)}</strong>
-                )}
-                {showDate && (
-                  <small>
-                    {dateLabel && `${dateLabel}: `}
-                    {a.timestamp
-                      ? new Date(a.timestamp * 1000).toLocaleDateString(
-                          "en-US",
-                          {
-                            dateStyle: "medium",
-                            timeZone: "UTC",
-                          },
-                        )
-                      : "Date unavailable"}
-                  </small>
-                )}
-                {context?.get(a.username)?.length ? (
-                  <span className="account-signals">
-                    {context.get(a.username)!.map((label) => (
-                      <span key={label}>{label}</span>
-                    ))}
+              {relationshipDataset ? (
+                <button
+                  type="button"
+                  className="account-open"
+                  aria-label={`Inspect relationship with ${displayName(a)}`}
+                  aria-haspopup="dialog"
+                  onClick={(event) =>
+                    setOpened({
+                      account: a,
+                      dataset: relationshipDataset,
+                      trigger: event.currentTarget,
+                    })
+                  }
+                >
+                  <span className="avatar" aria-hidden="true">
+                    {isDeleted(a) ? "DA" : a.username.slice(0, 2).toUpperCase()}
                   </span>
-                ) : null}
-                {ageReference !== undefined && (
-                  <small>
-                    {requestAge(a.timestamp, ageReference) === null
-                      ? a.timestamp === undefined
-                        ? "Age unavailable"
-                        : "Age unavailable for this reference date"
-                      : `${requestAge(a.timestamp, ageReference)} days since recorded request`}
-                  </small>
-                )}
-              </div>
+                  <span className="account-body">{details(a, true)}</span>
+                  <span className="account-inspect-hint" aria-hidden="true">
+                    Details
+                  </span>
+                </button>
+              ) : (
+                <>
+                  <span className="avatar" aria-hidden="true">
+                    {isDeleted(a) ? "DA" : a.username.slice(0, 2).toUpperCase()}
+                  </span>
+                  <div>{details(a, false)}</div>
+                </>
+              )}
               {demo ? (
                 <span className="demo-profile">Fictional profile</span>
               ) : profileHref(a) ? (
                 <a
+                  className="account-profile"
                   href={profileHref(a)!}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -309,6 +345,14 @@ export function AccountList({
             Next
           </button>
         </div>
+      )}
+      {opened && opened.dataset === relationshipDataset && (
+        <RelationshipDrawer
+          account={opened.account}
+          dataset={opened.dataset}
+          returnFocus={opened.trigger}
+          onClose={() => setOpened(null)}
+        />
       )}
     </div>
   );

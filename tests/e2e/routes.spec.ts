@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { primaryTools, tools } from "../../src/lib/site";
+import { primaryTools } from "../../src/lib/site";
 import { publicPaths } from "../../src/lib/public-paths";
 import { articles } from "../../src/lib/articles";
+import { productSections } from "../../src/lib/navigation";
 
 test("export guides link to valid tools and preserve a working demo journey", async ({
   page,
@@ -77,80 +78,107 @@ test("public routes render one heading, load assets and fit mobile screens", asy
   expect(failed).toEqual([]);
 });
 
-test("all primary tools are discoverable and the menu closes after navigation", async ({
+test("product sections expose every existing tool and identify the active section", async ({
   page,
 }) => {
   await page.goto("/");
-  for (const [name, href] of [
-    ["Requests", "/pending-follow-requests/"],
-    ["Timeline", "/relationship-timeline/"],
-    ["Your unfollows", "/unfollow-history/"],
-  ])
-    await expect(
-      page.locator(".site-header nav").getByRole("link", { name, exact: true }),
-    ).toHaveAttribute("href", href);
-  const navCenters = await page.locator(".site-header nav").evaluate((nav) =>
-    Array.from(nav.children, (child) => {
-      const rect = (
-        child.matches("details") ? child.querySelector("summary")! : child
-      ).getBoundingClientRect();
-      return rect.top + rect.height / 2;
-    }),
-  );
-  expect(Math.max(...navCenters) - Math.min(...navCenters)).toBeLessThan(4);
-  await page.locator(".tool-menu summary").click();
-  for (const slug of primaryTools)
-    await expect(
-      page
-        .locator(".tool-menu")
-        .getByRole("link", { name: tools[slug].name, exact: true }),
-    ).toBeVisible();
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(
+    navigation.getByRole("link", { name: "Dashboard", exact: true }),
+  ).toHaveAttribute("href", "/dashboard/");
+  await expect(
+    navigation.getByRole("link", { name: "Wrapped", exact: true }),
+  ).toHaveAttribute("href", "/instagram-wrapped/");
+  const discovered = new Set<string>(["instagram-wrapped"]);
+  for (const section of productSections.filter(
+    (section) => section.id !== "wrapped",
+  )) {
+    const menu = navigation.locator(`details[data-section="${section.id}"]`);
+    await menu.locator("summary").click();
+    await expect(menu).toHaveAttribute("open");
+    for (const destination of section.links) {
+      const link = menu.getByRole("link", {
+        name: destination.label,
+        exact: true,
+      });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", destination.href);
+      if (destination.tool) discovered.add(destination.tool);
+    }
+    expect(
+      await menu.evaluate((element) => {
+        const box = element
+          .querySelector(".tool-menu-links")!
+          .getBoundingClientRect();
+        return box.left >= 0 && box.right <= innerWidth;
+      }),
+    ).toBe(true);
+  }
+  expect([...discovered].sort()).toEqual([...primaryTools].sort());
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page
-    .locator(".tool-menu")
+  const circle = navigation.locator('details[data-section="circle"]');
+  await circle.locator("summary").click();
+  await circle
     .getByRole("link", { name: "Following analyzer", exact: true })
     .click();
   await expect(page).toHaveURL(/following-analyzer\/$/);
-  await expect(page.locator(".tool-menu")).not.toHaveAttribute("open");
+  await expect(navigation.locator("details[open]")).toHaveCount(0);
+  await expect(circle).toHaveAttribute("data-active", "true");
+  await circle.locator("summary").click();
+  await expect(
+    circle.getByRole("link", { name: "Following analyzer", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
 });
 
-test("All tools closes after sibling navigation, outside clicks and Escape", async ({
+test("product menus close after sibling navigation, outside clicks and Escape", async ({
   page,
 }) => {
   await page.goto("/");
-  const menu = page.locator(".tool-menu");
+  const menu = page.locator('.tool-menu[data-section="more"]');
   const summary = menu.locator("summary");
   const header = page.getByRole("navigation", { name: "Main navigation" });
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");
-  await header.getByRole("link", { name: "Requests", exact: true }).click();
-  await expect(page).toHaveURL(/\/pending-follow-requests\/$/);
+  await header.getByRole("link", { name: "Dashboard", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/$/);
   await expect(menu).not.toHaveAttribute("open");
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");
-  const timeline = header.getByRole("link", { name: "Timeline", exact: true });
-  await timeline.focus();
-  await timeline.press("Enter");
-  await expect(page).toHaveURL(/\/relationship-timeline\/$/);
+  const home = page.getByRole("link", { name: "InstaScope home", exact: true });
+  await home.focus();
+  await home.press("Enter");
+  await expect(page).toHaveURL(new URL("/", page.url()).toString());
   await expect(menu).not.toHaveAttribute("open");
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");
   await menu.locator(".tool-menu-links").click({ position: { x: 4, y: 4 } });
   await expect(menu).toHaveAttribute("open");
-  await page.mouse.click(5, 200);
-  await expect(page).toHaveURL(/\/relationship-timeline\/$/);
+  await page.mouse.click(4, 200);
   await expect(menu).not.toHaveAttribute("open");
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");
-  await summary.press("Escape");
+  const guide = menu.getByRole("link", { name: "Guides", exact: true });
+  await guide.focus();
+  await guide.press("Escape");
   await expect(menu).not.toHaveAttribute("open");
   await expect(summary).toBeFocused();
+  await summary.click();
+  const history = header.locator('.tool-menu[data-section="history"]');
+  await history.locator("summary").click();
+  await expect(menu).not.toHaveAttribute("open");
+  await expect(history).toHaveAttribute("open");
+  await history
+    .getByRole("link", { name: "Pending requests", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/pending-follow-requests\/$/);
+  await expect(history).not.toHaveAttribute("open");
+  await expect(history).toHaveAttribute("data-active", "true");
 });

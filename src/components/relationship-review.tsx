@@ -142,6 +142,23 @@ export function RelationshipReview({
         Choose a signal, build one private review list, then decide what to do
         yourself. InstaScope never changes your Instagram account.
       </p>
+      <div className="review-toolbar" aria-label="Your review shortlist">
+        <div className="review-shortlist">
+          <strong>
+            {selected.size} {selected.size === 1 ? "account" : "accounts"}{" "}
+            selected
+          </strong>
+          <span>One private list across every signal</span>
+        </div>
+        <button
+          className="button secondary"
+          type="button"
+          aria-pressed={group === "selected"}
+          onClick={() => setGroup("selected")}
+        >
+          Show review list
+        </button>
+      </div>
       <div className="review-groups" role="group" aria-label="Review signals">
         {groupLabels.map(({ id, label }) => (
           <button
