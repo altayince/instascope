@@ -5,6 +5,8 @@ import {
   validateVaultSnapshot,
 } from "../../src/lib/snapshot-vault";
 import { relationshipTimeline } from "../../src/lib/analysis/insights";
+import { circlePulse } from "../../src/lib/analysis/circle-pulse";
+import { relationshipHistoryIndex } from "../../src/lib/analysis/relationship-history";
 import {
   analyze,
   compareSnapshots,
@@ -93,6 +95,52 @@ it("provides four fresh fictional Vault records with meaningful changes for ever
   }
   snapshots[0].followers.length = 0;
   expect(demoVaultSnapshots().at(-1)!.followers.length).toBe(1110);
+});
+
+it("teaches Circle Pulse reappearance while preserving core and Vault follower/following totals", () => {
+  const snapshots = demoVaultSnapshots().reverse();
+  expect(
+    snapshots.map((snapshot) => [
+      snapshot.followers.length,
+      snapshot.following.length,
+    ]),
+  ).toEqual([
+    [1110, 870],
+    [1168, 890],
+    [1226, 910],
+    [1284, 930],
+  ]);
+  const pulse = circlePulse(relationshipHistoryIndex(snapshots));
+  expect(pulse.accounts.get("demo.mutual.0200")).toMatchObject({
+    observedSnapshots: 3,
+    reappeared: true,
+    stateChanges: 2,
+    firstPresent: "2025-01-15",
+    latestPresent: "2025-10-15",
+    latestState: "mutual",
+    absentIntervals: [
+      {
+        previousPresentDate: "2025-01-15",
+        firstAbsentDate: "2025-04-15",
+        lastAbsentDate: "2025-04-15",
+        nextPresentDate: "2025-07-15",
+      },
+    ],
+  });
+  const retained = pulse.summary.followerRetention!;
+  expect(retained.retained).toBeGreaterThan(0);
+  expect(retained.total).toBe(1110);
+  expect(retained.percentage).toBe((retained.retained / retained.total) * 100);
+  expect(
+    snapshots[0].followers.includes("demo.mutual.0200") &&
+      snapshots[3].followers.includes("demo.mutual.0200"),
+  ).toBe(true);
+  const core = analyze(demoSnapshots().newer);
+  expect([
+    core.followers.length,
+    core.following.length,
+    core.mutuals.length,
+  ]).toEqual([1284, 932, 742]);
 });
 
 const privacyLists = [

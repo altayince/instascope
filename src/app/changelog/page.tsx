@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 102,
+    title: "Circle Pulse and local Vault intelligence",
+    summary:
+      "Explore stable membership, observed state changes, reappeared accounts and retention across a selected saved-history range. Latest-interval facts, private relationship details and two optional aggregate Wrapped stories are derived locally without changing Vault backups or treating snapshots as continuous monitoring.",
+  },
+  {
     issue: 100,
     title: "Review Memory and Watch Circle with local-only persistence",
     summary:

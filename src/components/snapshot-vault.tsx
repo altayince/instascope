@@ -8,6 +8,7 @@ import { SnapshotSaver } from "./snapshot-return";
 import { VaultConfirmation } from "./vault-confirmation";
 import { VaultAccountHistory } from "./vault-account-history";
 import { ReviewMemoryManager } from "./review-memory-manager";
+import { CirclePulse } from "./circle-pulse";
 import {
   SnapshotComparisonResults,
   type SnapshotComparison,
@@ -362,6 +363,7 @@ function VaultContents({
               </dd>
             </div>
           </dl>
+          <CirclePulse fictional={fictional} />
           <section className="vault-list" aria-label="Saved snapshots">
             <h2>
               Saved snapshots <span className="muted">({vault.length})</span>

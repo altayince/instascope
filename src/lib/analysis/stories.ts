@@ -1,6 +1,8 @@
 import type { Dataset } from "../instagram/types";
 import type { Analysis, compareSnapshots } from "./relationships";
 import { relationshipTimeline, utcDate } from "./insights";
+import type { CirclePulseSummary } from "./circle-pulse";
+import { validExportDate } from "../snapshot-storage";
 import {
   mutualOrigins,
   mutualOriginSummary,
@@ -17,7 +19,9 @@ export type Story = {
     | "timecapsule"
     | "changes"
     | "turnover"
-    | "origins";
+    | "origins"
+    | "stable-core"
+    | "still-here";
   name: string;
   bars?: { label: string; value: number }[];
   label: string;
@@ -32,6 +36,80 @@ export type Story = {
 type Comparison = ReturnType<typeof compareSnapshots> | null;
 const count = (value: number) => value.toLocaleString("en-US");
 const signed = (value: number) => `${value > 0 ? "+" : ""}${count(value)}`;
+
+// Saved-only aggregate facts. No active export, account arrays, Review Memory
+// or optional/private categories enter this boundary or the resulting images.
+export function buildSavedSnapshotStories(
+  summary: CirclePulseSummary | null,
+): Story[] {
+  if (
+    !summary ||
+    !Number.isSafeInteger(summary.snapshotCount) ||
+    summary.snapshotCount < 2 ||
+    !summary.firstDate ||
+    !summary.latestDate ||
+    !validExportDate(summary.firstDate) ||
+    !validExportDate(summary.latestDate) ||
+    summary.firstDate >= summary.latestDate
+  )
+    return [];
+  const stories: Story[] = [];
+  const dates = [
+    { value: summary.firstDate, label: "first saved snapshot" },
+    { value: summary.latestDate, label: "latest saved snapshot" },
+  ];
+  const skipped = summary.skippedSnapshots
+    ? " Unreadable snapshots excluded."
+    : "";
+  if (Number.isSafeInteger(summary.stableMutuals) && summary.stableMutuals > 0)
+    stories.push({
+      id: "stable-core",
+      name: "Stable Core",
+      label: "MY SAVED STABLE CORE",
+      title: "Same state. Every snapshot.",
+      lead: "Mutual in every readable saved snapshot in this range.",
+      heroValue: count(summary.stableMutuals),
+      heroLabel: "mutual accounts recorded in every saved snapshot",
+      facts: [
+        {
+          value: count(summary.snapshotCount),
+          label: "readable saved snapshots",
+        },
+        ...dates,
+      ],
+      note: `Saved snapshots only. This does not prove uninterrupted following or friendship.${skipped}`,
+    });
+  const retention = summary.followerRetention;
+  if (
+    retention &&
+    Number.isSafeInteger(retention.total) &&
+    retention.total > 0 &&
+    Number.isSafeInteger(retention.retained) &&
+    retention.retained >= 0 &&
+    retention.retained <= retention.total
+  ) {
+    const percentage = (retention.retained / retention.total) * 100;
+    stories.push({
+      id: "still-here",
+      name: "Still Here",
+      label: "FIRST TO LATEST SAVED SNAPSHOT",
+      title: "Still in the picture.",
+      lead: "Followers in the first saved snapshot, also recorded in the latest.",
+      heroValue: `${percentage.toLocaleString("en-US", { maximumFractionDigits: 1 })}%`,
+      heroLabel: `${count(retention.retained)} of ${count(retention.total)} first-snapshot followers also present in the latest`,
+      facts: [
+        {
+          value: count(retention.retained),
+          label: "from first, present in latest",
+        },
+        { value: count(retention.total), label: "followers in first snapshot" },
+        ...dates,
+      ],
+      note: `Saved snapshots only. Presence in the latest does not prove uninterrupted following.${skipped}`,
+    });
+  }
+  return stories;
+}
 
 export function buildStories(
   analysis: Analysis,

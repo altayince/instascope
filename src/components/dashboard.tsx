@@ -16,6 +16,8 @@ import { ActionButton, ActionLink, InsightLink } from "./actions";
 import { tools, type ToolSlug } from "@/lib/site";
 import { track } from "@/lib/analytics";
 import type { ConnectionList } from "@/lib/instagram/types";
+import type { VaultSnapshot } from "@/lib/snapshot-vault";
+import { useCirclePulse } from "./use-circle-pulse";
 
 const groups = productSections.map((section) => ({
   ...section,
@@ -29,6 +31,95 @@ function optionalRecords(list: ConnectionList | undefined, label: string) {
   if (list.status === "unsupported")
     return "Included, but could not be read. Open the tool for details.";
   return `${list.accounts.length.toLocaleString("en-US")} ${label} recorded in this export.`;
+}
+
+function DashboardCirclePulse({
+  fictional,
+}: {
+  fictional?: readonly VaultSnapshot[];
+}) {
+  const { vault, storageReady, storageError } = useData();
+  const pulse = useCirclePulse(fictional);
+  const supported = fictional
+    ? fictional.length >= 2
+    : storageReady && !storageError && vault.length >= 2;
+  if (!supported) return null;
+  const summary = pulse.model?.summary;
+  const enough = summary && summary.snapshotCount >= 2;
+  const retention = enough ? summary.followerRetention : undefined;
+  return (
+    <section
+      className="dashboard-vault-pulse"
+      aria-label="Circle Pulse saved insights"
+    >
+      <h3>Circle Pulse</h3>
+      <p>
+        Saved Vault only; confirm these snapshots belong to one account. Active
+        export is not included.
+      </p>
+      {fictional && <p>Demo data · Fictional saved snapshots.</p>}
+      {pulse.error ? (
+        <p role="status">
+          {pulse.error}{" "}
+          <ActionButton
+            variant="tertiary"
+            onClick={() => void pulse.load().catch(() => undefined)}
+          >
+            Retry saved insights
+          </ActionButton>
+        </p>
+      ) : enough ? (
+        <dl className="dashboard-pulse-facts">
+          <div>
+            <dt>
+              Stable mutuals across {summary.snapshotCount} saved snapshots
+            </dt>
+            <dd>{summary.stableMutuals.toLocaleString("en-US")}</dd>
+          </div>
+          {retention &&
+            retention.total > 0 &&
+            retention.percentage !== undefined && (
+              <div>
+                <dt>First-to-latest follower retention</dt>
+                <dd>
+                  {retention.percentage.toLocaleString("en-US", {
+                    maximumFractionDigits: 1,
+                  })}
+                  %
+                  <small>
+                    {retention.retained.toLocaleString("en-US")} of{" "}
+                    {retention.total.toLocaleString("en-US")} first-snapshot
+                    followers
+                  </small>
+                </dd>
+              </div>
+            )}
+        </dl>
+      ) : pulse.busy ? (
+        <p role="status">Reading saved Circle Pulse insights…</p>
+      ) : (
+        <p>
+          At least two readable saved snapshots are needed for Pulse insights.
+        </p>
+      )}
+      {enough && (
+        <p className="list-caption">
+          {summary.firstDate} → {summary.latestDate}. Saved observations do not
+          prove uninterrupted following.
+          {!!summary.skippedSnapshots && " Unreadable snapshots excluded."}
+        </p>
+      )}
+      <InsightLink
+        href={
+          fictional
+            ? "/snapshot-vault/?demo=true#circle-pulse"
+            : "/snapshot-vault/#circle-pulse"
+        }
+      >
+        Explore Circle Pulse
+      </InsightLink>
+    </section>
+  );
 }
 
 export function Dashboard() {
@@ -353,6 +444,9 @@ export function Dashboard() {
               </p>
             </>
           )}
+          <DashboardCirclePulse
+            fictional={dataset?.metadata.demo ? fictional : undefined}
+          />
         </div>
         <ActionLink
           variant="secondary"

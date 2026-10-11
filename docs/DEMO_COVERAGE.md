@@ -30,6 +30,31 @@ Unit tests validate core counts/date coverage, all six chronological Vault pair 
 
 No production SEO URL, title, H1, canonical, parser, real-export missing-category semantics, or remote lookup infrastructure is changed.
 
+## Circle Pulse
+
+Snapshot Vault now has **Circle Pulse** above its saved-record list, including
+range controls, stable membership, changes, reappearance, retention and latest
+interval drilldowns. Its four fictional records stay in memory; real Vault is
+not read or changed. All existing snapshot totals and core export totals remain
+unchanged. The added reappearance example is `demo.mutual.0200`, observed Mutual
+in January, absent in April, then Mutual in July and October. Existing stable
+mutual `demo.mutual.0100`, stable incoming `demo.fan.0200`, stable outgoing
+`demo.oneway.0100` and changing/latest-absent `demo.oneway.0001` show the other
+patterns. Count-balancing replacements are deterministic and fictional.
+
+Pinned facts: 687 stable mutuals, 1 reappeared account, 396 accounts with observed
+state changes; follower retention 1,038 / 1,110 (93.5%), following retention
+828 / 870 (95.2%). Stable Followers/Following membership counts are 1,037 / 827.
+Latest July→October interval has 82 new / 24 missing followers and 35 new / 15
+missing following usernames, with 134 distinct observed state changes.
+
+Circle Pulse rows open the same private Drawer, labeled as saved-only history;
+they do not fabricate an active export or expose real Review Memory. Dashboard's
+demo Vault entry shows at most two saved-only facts. Wrapped's optional **Load
+saved stories** adds only **Stable Core** and **Still Here**, explicitly based on
+fictional saved snapshots. No usernames or private-list values enter shared cards.
+See [CIRCLE_PULSE.md](CIRCLE_PULSE.md) for definitions and limits.
+
 ## Relationship context
 
 Followers/Following → Mutuals → **Explore who followed first** demonstrates all four recorded origins, two separate dates per mutual, and unknown-date exclusion from percentages: 719 usable dated mutuals, 23 unknown. Followers keeps only **Explore follower dates**. Original analyzer counts remain unchanged. Wrapped adds one aggregate **Recorded first** story; it contains no account identities or private-list counts.

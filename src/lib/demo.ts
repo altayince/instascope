@@ -118,7 +118,21 @@ export function demoVaultSnapshots(): VaultSnapshot[] {
       if (index < 3) following.add(changing);
       followers.add(incoming);
       if (index > 0) following.add(incoming);
-      const protectedNames = new Set([changing, incoming, "demo.mutual.0100"]);
+      // One observed absence teaches reappearance without changing any core
+      // demo counts or the four Vault follower/following totals.
+      const reappeared = "demo.mutual.0200";
+      if (index === 1) {
+        followers.delete(reappeared);
+        following.delete(reappeared);
+      }
+      const protectedNames = new Set([
+        changing,
+        incoming,
+        "demo.mutual.0100",
+        "demo.fan.0200",
+        "demo.oneway.0100",
+        reappeared,
+      ]);
       const balance = (set: Set<string>, count: number, prefix: string) => {
         for (const name of [...set].reverse()) {
           if (set.size <= count) break;

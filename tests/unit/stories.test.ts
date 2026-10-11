@@ -5,7 +5,12 @@ import {
   analyze,
   compareSnapshots,
 } from "../../src/lib/analysis/relationships";
-import { buildStories } from "../../src/lib/analysis/stories";
+import {
+  buildStories,
+  buildSavedSnapshotStories,
+} from "../../src/lib/analysis/stories";
+import { circlePulse } from "../../src/lib/analysis/circle-pulse";
+import { relationshipHistoryIndex } from "../../src/lib/analysis/relationship-history";
 
 const date = (value: string) => Date.parse(`${value}T00:00:00Z`) / 1000;
 const dataset = (
@@ -15,6 +20,111 @@ const dataset = (
   followers,
   following,
   metadata: { parsedAt: Date.now(), sourceFormat: "test", warnings: [] },
+});
+
+describe("saved-only Circle Pulse stories", () => {
+  const snapshots = [
+    {
+      id: "story-first",
+      version: 1,
+      exportDate: "2025-01-15",
+      createdAt: 1,
+      followers: ["private.stable", "private.retained", "private.missing"],
+      following: ["private.stable", "private.outgoing"],
+    },
+    {
+      id: "story-middle",
+      version: 1,
+      exportDate: "2025-04-15",
+      createdAt: 2,
+      followers: ["private.stable"],
+      following: ["private.stable", "private.outgoing"],
+    },
+    {
+      id: "story-latest",
+      version: 1,
+      exportDate: "2025-10-15",
+      createdAt: 3,
+      followers: ["private.stable", "private.retained", "private.new"],
+      following: ["private.stable", "private.outgoing"],
+    },
+  ];
+  const summary = circlePulse(relationshipHistoryIndex(snapshots)).summary;
+
+  it("adds at most two cards with correct endpoint retention, including reappeared records", () => {
+    const stories = buildSavedSnapshotStories(summary);
+    expect(stories.map((story) => story.id)).toEqual([
+      "stable-core",
+      "still-here",
+    ]);
+    expect(stories[0].heroValue).toBe("1");
+    expect(stories[0].facts).toContainEqual({
+      value: "3",
+      label: "readable saved snapshots",
+    });
+    expect(stories[1].heroValue).toBe("66.7%");
+    expect(stories[1].heroLabel).toContain("2 of 3 first-snapshot followers");
+    expect(stories[1].note).toContain("does not prove uninterrupted following");
+    expect(
+      buildSavedSnapshotStories({
+        ...summary,
+        followerRetention: { retained: 2, total: 3, percentage: 99 },
+      })[1].heroValue,
+    ).toBe("66.7%");
+    expect(JSON.stringify(stories)).not.toMatch(
+      /private\.|username|loyal|ghosted|refollowed|returned/i,
+    );
+  });
+
+  it("omits unsupported stories for one snapshot, no stable mutuals or empty baselines", () => {
+    expect(buildSavedSnapshotStories(null)).toEqual([]);
+    expect(
+      buildSavedSnapshotStories(
+        circlePulse(relationshipHistoryIndex(snapshots.slice(0, 1))).summary,
+      ),
+    ).toEqual([]);
+    expect(
+      buildSavedSnapshotStories({ ...summary, stableMutuals: 0 }).map(
+        (s) => s.id,
+      ),
+    ).toEqual(["still-here"]);
+    expect(
+      buildSavedSnapshotStories({
+        ...summary,
+        stableMutuals: 0,
+        followerRetention: { retained: 0, total: 0 },
+      }),
+    ).toEqual([]);
+    expect(
+      buildSavedSnapshotStories({ ...summary, firstDate: "2025-02-30" }),
+    ).toEqual([]);
+    expect(
+      buildSavedSnapshotStories({ ...summary, latestDate: summary.firstDate }),
+    ).toEqual([]);
+  });
+
+  it("discloses excluded records and never imports active/private/review metadata into stories", () => {
+    const excluded = circlePulse(
+      relationshipHistoryIndex([...snapshots, { id: "corrupt" }]),
+    ).summary;
+    const stories = buildSavedSnapshotStories(excluded);
+    expect(
+      stories.every((s) => s.note.includes("Unreadable snapshots excluded")),
+    ).toBe(true);
+    const decorated = {
+      ...excluded,
+      username: "private.sentinel",
+      notes: ["Never share this private note"],
+      watch: true,
+      blocked: ["private.blocked"],
+      closeFriendsCount: 99,
+    };
+    expect(buildSavedSnapshotStories(decorated)).toEqual(stories);
+    const active = dataset([account("foreign.active")!]);
+    const original = buildStories(analyze(active), active, null);
+    expect(original.map((s) => s.id)).toEqual(["circle", "orbit"]);
+    expect(buildStories(analyze(active), active, null)).toEqual(original);
+  });
 });
 
 describe("Wrapped relationship stories", () => {

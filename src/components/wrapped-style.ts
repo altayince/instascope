@@ -10,6 +10,18 @@ export const storyStyles: Record<
     motif: "rings" | "rays" | "steps";
   }
 > = {
+  "stable-core": {
+    background: "#173f35",
+    ink: "#f7f3e8",
+    accent: "#d1eb83",
+    motif: "rings",
+  },
+  "still-here": {
+    background: "#e4edcc",
+    ink: "#223d2a",
+    accent: "#47672f",
+    motif: "steps",
+  },
   origins: {
     background: "#163f3e",
     ink: "#fff6e5",

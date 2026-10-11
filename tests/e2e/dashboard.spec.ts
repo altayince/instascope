@@ -4,6 +4,56 @@ import { tools } from "../../src/lib/site";
 import { syntheticConnections } from "../helpers/connection-export";
 import { savedRecords, seedRecords } from "../helpers/vault";
 
+test("Dashboard Pulse facts use saved Vault only and do not infer active-account identity", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/");
+  await expect(
+    page.getByRole("region", {
+      name: "Circle Pulse saved insights",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await seedRecords(page, [
+    {
+      id: "pulse-first",
+      version: 1,
+      exportDate: "2025-01-15",
+      createdAt: 1,
+      followers: ["vault.stable", "vault.retained", "vault.missing"],
+      following: ["vault.stable"],
+    },
+    {
+      id: "pulse-last",
+      version: 1,
+      exportDate: "2025-10-15",
+      createdAt: 2,
+      followers: ["vault.stable", "vault.retained", "vault.new"],
+      following: ["vault.stable"],
+    },
+  ]);
+  await page.reload();
+  const pulse = page.getByRole("region", {
+    name: "Circle Pulse saved insights",
+    exact: true,
+  });
+  await expect(pulse).toContainText("Stable mutuals across 2 saved snapshots");
+  await expect(pulse.locator("dd").first()).toHaveText("1");
+  await expect(pulse).toContainText("66.7%");
+  await expect(pulse).toContainText("2 of 3 first-snapshot followers");
+  await expect(pulse).toContainText("Active export is not included");
+  await expect(pulse.locator("dd")).toHaveCount(2);
+  await expect(
+    pulse.getByRole("link", { name: "Explore Circle Pulse" }),
+  ).toHaveAttribute("href", "/snapshot-vault/#circle-pulse");
+  const facts = await pulse.innerText();
+  await upload(page, {}, false);
+  await expect(pulse).toHaveText(facts, { useInnerText: true });
+  await expect(pulse).not.toContainText("sample.");
+  await expect(pulse).not.toContainText("vault.");
+  await fits(page);
+});
+
 async function upload(
   page: Page,
   optional: Record<string, unknown> = {},

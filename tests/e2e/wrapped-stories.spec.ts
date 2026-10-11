@@ -1,5 +1,33 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { savedRecords, seedRecords } from "../helpers/vault";
+
+const savedStorySnapshots = [
+  {
+    id: "story-first",
+    version: 1,
+    exportDate: "2025-01-15",
+    createdAt: 1,
+    followers: ["private.stable", "private.retained", "private.missing"],
+    following: ["private.stable", "private.outgoing"],
+  },
+  {
+    id: "story-middle",
+    version: 1,
+    exportDate: "2025-04-15",
+    createdAt: 2,
+    followers: ["private.stable"],
+    following: ["private.stable", "private.outgoing"],
+  },
+  {
+    id: "story-latest",
+    version: 1,
+    exportDate: "2025-10-15",
+    createdAt: 3,
+    followers: ["private.stable", "private.retained", "private.new"],
+    following: ["private.stable", "private.outgoing"],
+  },
+];
 
 const exportFiles = (followers: unknown[], following: unknown[]) => [
   {
@@ -339,4 +367,233 @@ test("unsupported file sharing downloads the current card without carrying the p
       .getByRole("status")
       .filter({ hasText: "Add it to Instagram Stories or WhatsApp Status" }),
   ).toBeVisible();
+});
+
+test("saved Wrapped stories require explicit saved-account confirmation and stay independent of the active export", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const texts: string[] = [];
+    Object.assign(window, { savedStoryTexts: texts });
+    const original = CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText = function (
+      ...args: Parameters<typeof original>
+    ) {
+      texts.push(args[0]);
+      return original.apply(this, args);
+    };
+  });
+  await page.goto("/instagram-wrapped/");
+  await seedRecords(page, savedStorySnapshots);
+  await page.reload();
+  const originalSaved = await savedRecords(page);
+  await upload(
+    page,
+    exportFiles([follower("foreign.active")], [following("foreign.active")]),
+    "Upload Instagram export",
+  );
+  const picker = page.getByRole("group", { name: "Wrapped stories" });
+  await expect(picker.getByRole("button")).toHaveCount(2);
+  const controls = page.locator(".wrapped-vault-stories");
+  await controls.locator("summary").click();
+  await expect(controls).toContainText(
+    "Your active export is not included or matched",
+  );
+  const load = controls.getByRole("button", {
+    name: "Load saved-snapshot stories",
+    exact: true,
+  });
+  await expect(load).toBeDisabled();
+  const confirmation = controls.getByRole("checkbox", {
+    name: "I confirm these saved snapshots belong to the same Instagram account.",
+  });
+  await confirmation.check();
+  await load.click();
+  await expect(picker.getByRole("button")).toHaveCount(4);
+  const preview = page.locator(".wrapped-card");
+  await picker
+    .getByRole("button", { name: "Stable Core", exact: true })
+    .click();
+  await expect(preview.locator(".wrapped-hero strong")).toHaveText("1");
+  await expect(preview).toContainText("3");
+  await expect(preview).toContainText("2025-01-15");
+  await expect(preview).toContainText("2025-10-15");
+  expect(
+    await preview.evaluate((card) => {
+      const rect = (selector: string) =>
+        card.querySelector(selector)!.getBoundingClientRect();
+      return (
+        rect(".wrapped-facts").bottom <= rect(".wrapped-note").top &&
+        rect(".wrapped-note").bottom <= rect("small").top &&
+        rect("small").bottom <= card.getBoundingClientRect().bottom - 8 &&
+        [
+          ...card.querySelectorAll(
+            "h2, p, .wrapped-hero, .wrapped-facts, small",
+          ),
+        ].every((element) => element.scrollWidth <= element.clientWidth + 1)
+      );
+    }),
+  ).toBe(true);
+  await picker.getByRole("button", { name: "Still Here", exact: true }).click();
+  await expect(preview.locator(".wrapped-hero strong")).toHaveText("66.7%");
+  await expect(preview).toContainText("2 of 3 first-snapshot followers");
+  await expect(preview).toContainText("does not prove uninterrupted following");
+  await expect(preview).not.toContainText("private.");
+  await expect(preview).not.toContainText("foreign.");
+  expect(
+    await preview.evaluate((card) => {
+      const rect = (selector: string) =>
+        card.querySelector(selector)!.getBoundingClientRect();
+      return (
+        rect(".wrapped-facts").bottom <= rect(".wrapped-note").top &&
+        rect(".wrapped-note").bottom <= rect("small").top &&
+        rect("small").bottom <= card.getBoundingClientRect().bottom - 8 &&
+        [
+          ...card.querySelectorAll(
+            "h2, p, .wrapped-hero, .wrapped-facts, small",
+          ),
+        ].every((element) => element.scrollWidth <= element.clientWidth + 1)
+      );
+    }),
+  ).toBe(true);
+  const event = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download my Wrapped" }).click();
+  const download = await event;
+  expect(download.suggestedFilename()).toBe("instascope-still-here.png");
+  const png = readFileSync((await download.path())!);
+  expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1080, 1920]);
+  const texts = await page.evaluate(
+    () => (window as unknown as { savedStoryTexts: string[] }).savedStoryTexts,
+  );
+  expect(texts.join(" ")).toContain("66.7%");
+  expect(texts.join(" ")).not.toMatch(
+    /private\.|foreign\.|blocked|restricted|private note/i,
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await confirmation.uncheck();
+  await expect(picker.getByRole("button")).toHaveCount(2);
+  await confirmation.check();
+  await expect(picker.getByRole("button")).toHaveCount(2);
+  expect(await savedRecords(page)).toEqual(originalSaved);
+});
+
+test("fictional saved stories demonstrate two aggregate cards without reading or changing real Vault membership", async ({
+  page,
+}) => {
+  await page.goto("/instagram-wrapped/");
+  await seedRecords(page, savedStorySnapshots);
+  await page.reload();
+  const real = await savedRecords(page);
+  await page.getByRole("button", { name: "Try demo", exact: true }).click();
+  const picker = page.getByRole("group", { name: "Wrapped stories" });
+  await expect(picker.getByRole("button")).toHaveCount(9);
+  // After demo begins, its explicit story loader must not read real members.
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.openCursor;
+    Object.assign(window, { savedStoryVaultReads: 0 });
+    IDBObjectStore.prototype.openCursor = function (...args) {
+      if (
+        this.transaction.db.name === "instascope:snapshot-vault" &&
+        this.name === "snapshots"
+      )
+        (window as unknown as { savedStoryVaultReads: number })
+          .savedStoryVaultReads++;
+      return original.apply(this, args as Parameters<typeof original>);
+    };
+  });
+  const controls = page.locator(".wrapped-vault-stories");
+  await controls.locator("summary").click();
+  await expect(controls.getByRole("checkbox")).toHaveCount(0);
+  await controls
+    .getByRole("button", { name: "Load fictional saved stories", exact: true })
+    .click();
+  await expect(picker.getByRole("button")).toHaveCount(11);
+  for (const name of ["Stable Core", "Still Here"]) {
+    await picker.getByRole("button", { name, exact: true }).click();
+    await expect(page.locator(".wrapped-card .wrapped-hero strong")).toHaveText(
+      name === "Stable Core" ? "687" : "93.5%",
+    );
+    if (name === "Still Here")
+      await expect(page.locator(".wrapped-card")).toContainText(
+        "1,038 of 1,110 first-snapshot followers",
+      );
+    await expect(page.locator(".wrapped-card")).toContainText(
+      "DEMO DATA · FICTIONAL EXAMPLE",
+    );
+    await expect(page.locator(".wrapped-card")).not.toContainText("demo.");
+    await expect(page.locator(".wrapped-card")).not.toContainText("private.");
+  }
+  await expect(controls).toContainText("from 4 readable snapshots");
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { savedStoryVaultReads: number })
+          .savedStoryVaultReads,
+    ),
+  ).toBe(0);
+  expect(await savedRecords(page)).toEqual(real);
+});
+
+test("saved cards disappear when Vault becomes unreadable and require fresh confirmation after recovery", async ({
+  page,
+}) => {
+  await page.goto("/instagram-wrapped/");
+  await seedRecords(page, savedStorySnapshots);
+  await page.reload();
+  await upload(
+    page,
+    exportFiles([follower("foreign.active")], [following("foreign.active")]),
+    "Upload Instagram export",
+  );
+  const controls = page.locator(".wrapped-vault-stories");
+  await controls.locator("summary").click();
+  const confirm = controls.getByRole("checkbox");
+  const load = controls.getByRole("button", {
+    name: "Load saved-snapshot stories",
+    exact: true,
+  });
+  await confirm.check();
+  await load.click();
+  const picker = page.getByRole("group", { name: "Wrapped stories" });
+  await expect(picker.getByRole("button")).toHaveCount(4);
+  await page.evaluate(() => {
+    const original = IDBFactory.prototype.open;
+    Reflect.set(window, "circlePulseNativeOpen", original);
+    IDBFactory.prototype.open = function (
+      ...args: Parameters<typeof original>
+    ) {
+      if (args[0] === "instascope:snapshot-vault")
+        throw new DOMException(
+          "Synthetic unavailable storage",
+          "SecurityError",
+        );
+      return original.apply(this, args);
+    };
+    window.dispatchEvent(new Event("focus"));
+  });
+  await expect(picker.getByRole("button")).toHaveCount(2);
+  await controls.locator("summary").click();
+  await expect(controls.getByRole("alert")).toContainText(
+    "Browser storage is unavailable",
+  );
+  await expect(load).toBeDisabled();
+  await page.evaluate(() => {
+    IDBFactory.prototype.open = Reflect.get(
+      window,
+      "circlePulseNativeOpen",
+    ) as IDBFactory["open"];
+    window.dispatchEvent(new Event("focus"));
+  });
+  await expect(controls.getByRole("alert")).toHaveCount(0);
+  await controls.locator("summary").click();
+  await expect(confirm).not.toBeChecked();
+  await expect(load).toBeDisabled();
+  await confirm.check();
+  await load.click();
+  await expect(picker.getByRole("button")).toHaveCount(4);
+  expect(await savedRecords(page)).toHaveLength(3);
 });

@@ -26,6 +26,7 @@ import { vaultStorageMessage } from "@/lib/vault-storage";
 import { useData } from "./data-provider";
 import { useVaultHistoryIndex } from "./use-vault-history";
 import { AccountHistoryDetails } from "./account-history-details";
+import { SavedHistorySummary } from "./saved-history-summary";
 
 const examples = [
   ["demo.mutual.0100", "Stable mutual"],
@@ -63,12 +64,12 @@ export function TimelineAccount({
   const drawer = presentation === "drawer";
   const ContextHeading = drawer ? "h3" : "h5";
   const preset = username ?? initialUsername;
-  const { vault, currentExportDate } = useData();
+  const { vault, currentExportDate, corruptSnapshots } = useData();
   const fictional = useMemo(
     () => (dataset.metadata.demo ? demoVaultSnapshots() : undefined),
     [dataset],
   );
-  const { signature, load } = useVaultHistoryIndex(fictional);
+  const { signature, revision, load } = useVaultHistoryIndex(fictional);
   const index = useMemo(() => timelineAccountIndex(dataset), [dataset]);
   const coverage = useMemo(
     () => ({
@@ -102,11 +103,16 @@ export function TimelineAccount({
   const [saved, setSaved] = useState<{
     dataset: Dataset;
     signature: string;
+    revision: typeof revision;
     index: RelationshipHistoryIndex;
   } | null>(null);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const alive = useRef(true);
+  const source = useRef({ dataset, revision });
+  useEffect(() => {
+    source.current = { dataset, revision };
+  }, [dataset, revision]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -115,15 +121,23 @@ export function TimelineAccount({
   }, []);
   const confirmed = !!fictional || confirmedDataset === dataset;
   const history =
-    saved?.dataset === dataset && saved.signature === signature && confirmed
+    saved?.dataset === dataset &&
+    saved.signature === signature &&
+    saved.revision === revision &&
+    confirmed
       ? saved.index
       : undefined;
+  const skippedHistory = history
+    ? fictional
+      ? history.corrupt
+      : Math.max(history.corrupt, corruptSnapshots)
+    : 0;
   useEffect(() => {
     if (!preset || !fictional) return;
     let active = true;
     load()
       .then((result) => {
-        if (active) setSaved({ dataset, signature, index: result });
+        if (active) setSaved({ dataset, signature, revision, index: result });
       })
       .catch((error) => {
         if (active) setError(vaultStorageMessage(error));
@@ -131,7 +145,7 @@ export function TimelineAccount({
     return () => {
       active = false;
     };
-  }, [dataset, fictional, load, signature, preset]);
+  }, [dataset, fictional, load, signature, revision, preset]);
   const snapshotCount = (fictional ?? vault).length;
   const summary = useMemo(
     () => (selected ? timelineAccountSummary(selected, index, history) : null),
@@ -162,13 +176,23 @@ export function TimelineAccount({
     setError("");
     try {
       const result = await load();
-      if (alive.current) setSaved({ dataset, signature, index: result });
+      if (
+        alive.current &&
+        source.current.dataset === dataset &&
+        source.current.revision === revision
+      )
+        setSaved({ dataset, signature, revision, index: result });
     } catch (error) {
-      if (alive.current) setError(vaultStorageMessage(error));
+      if (
+        alive.current &&
+        source.current.dataset === dataset &&
+        source.current.revision === revision
+      )
+        setError(vaultStorageMessage(error));
     } finally {
       if (alive.current) setBusy(false);
     }
-  }, [busy, confirmed, dataset, load, signature]);
+  }, [busy, confirmed, dataset, load, signature, revision]);
   const choose = useCallback(
     (name: string) => {
       setSelected(name);
@@ -480,11 +504,24 @@ export function TimelineAccount({
               treated as absent observations.
             </p>
           ) : (
-            <AccountHistoryDetails
-              points={summary.points!}
-              singleSnapshotMessage="More than one saved snapshot is needed to observe changes."
-              transitionHeadingLevel={drawer ? 3 : 5}
-            />
+            <>
+              {skippedHistory > 0 && (
+                <p role="status">
+                  {skippedHistory} unreadable saved record
+                  {skippedHistory === 1 ? " was" : "s were"} skipped. They are
+                  not treated as absent observations.
+                </p>
+              )}
+              <SavedHistorySummary
+                points={summary.points!}
+                headingLevel={drawer ? 3 : 5}
+              />
+              <AccountHistoryDetails
+                points={summary.points!}
+                singleSnapshotMessage="More than one saved snapshot is needed to observe changes."
+                transitionHeadingLevel={drawer ? 3 : 5}
+              />
+            </>
           )}
         </section>
       )}

@@ -1,4 +1,5 @@
 @import "./actions.css";
+@import "../components/circle-pulse.css";
 
 :root {
   --paper: #faf9f5;
