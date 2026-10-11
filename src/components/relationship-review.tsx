@@ -10,6 +10,17 @@ import {
 import { relationshipReview } from "@/lib/analysis/review";
 import type { Analysis } from "@/lib/analysis/relationships";
 import type { Account, Dataset } from "@/lib/instagram/types";
+import { useReviewMemory } from "./review-memory-provider";
+import "./review-memory.css";
+
+type MemoryFilter = "all" | "unreviewed" | "reviewed" | "keep" | "watch";
+const memoryFilters: { id: MemoryFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "unreviewed", label: "Unreviewed" },
+  { id: "reviewed", label: "Reviewed" },
+  { id: "keep", label: "Keep" },
+  { id: "watch", label: "Watching" },
+];
 
 type ReviewGroup =
   | "oneWay"
@@ -56,6 +67,13 @@ export function RelationshipReview({
   dataset: Dataset;
   analysis: Analysis;
 }) {
+  const memory = useReviewMemory();
+  const memoryAvailable =
+    memory.ready &&
+    !memory.error &&
+    !memory.corrupt &&
+    memory.demo === !!dataset.metadata.demo;
+  const [memoryFilter, setMemoryFilter] = useState<MemoryFilter>("all");
   const review = useMemo(
     () => relationshipReview(dataset, analysis),
     [dataset, analysis],
@@ -124,6 +142,28 @@ export function RelationshipReview({
       selected.has(entry.username),
     ),
   };
+  const currentAccounts = accounts[group];
+  const filteredAccounts =
+    !memoryAvailable || memoryFilter === "all"
+      ? currentAccounts
+      : currentAccounts.filter(({ username }) => {
+          const record = memory.records.get(username);
+          if (memoryFilter === "unreviewed") return !record?.reviewed;
+          if (memoryFilter === "reviewed") return !!record?.reviewed;
+          if (memoryFilter === "keep") return !!record?.keep;
+          return !!record?.watch;
+        });
+  const attentionCount = memoryAvailable
+    ? currentAccounts.filter(({ username }) => {
+        const record = memory.records.get(username);
+        return !record?.keep && !record?.reviewed;
+      }).length
+    : null;
+  const keptCount = memoryAvailable
+    ? currentAccounts.filter(
+        ({ username }) => memory.records.get(username)?.keep,
+      ).length
+    : null;
   const dateLabel =
     group === "pending"
       ? "Request recorded"
@@ -176,6 +216,48 @@ export function RelationshipReview({
         <h3>{groupLabels.find(({ id }) => id === group)!.label}</h3>
         <p>{groupDescriptions[group]}</p>
       </div>
+      {!unavailable && (
+        <>
+          <div
+            className="review-memory-filters"
+            role="group"
+            aria-label="Review memory filters"
+          >
+            {memoryFilters.map(({ id, label }) => (
+              <button
+                type="button"
+                key={id}
+                aria-pressed={(memoryAvailable ? memoryFilter : "all") === id}
+                disabled={!memoryAvailable}
+                onClick={() => setMemoryFilter(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="review-memory-summary">
+            {memoryAvailable
+              ? `${attentionCount} without Keep or Reviewed in this view · ${keptCount} kept intentionally. All keeps every account visible; Unreviewed can include accounts you chose to Keep.`
+              : memory.error
+                ? "Local review memory is unavailable. All export accounts remain visible; these filters do not assume accounts are unreviewed."
+                : memory.corrupt
+                  ? "Some review memory could not be read. All export accounts remain visible; memory filters are paused until unreadable records are cleared or restored."
+                  : "Reading local review memory before enabling its filters…"}
+          </p>
+          {memoryAvailable && memoryFilter !== "all" && (
+            <p className="list-caption">
+              Showing{" "}
+              {memoryFilters
+                .find(({ id }) => id === memoryFilter)!
+                .label.toLowerCase()}{" "}
+              accounts. Your temporary selection remains independent of these
+              saved labels.
+            </p>
+          )}
+          {memory.error && <p role="alert">{memory.error}</p>}
+          {memory.warning && <p role="status">{memory.warning}</p>}
+        </>
+      )}
       {(group === "oldest" || group === "newest") && (
         <label className="review-year">
           Recorded follow year
@@ -238,7 +320,15 @@ export function RelationshipReview({
           dataset={dataset}
           kind="review"
           listKey={group}
-          accounts={accounts[group]}
+          accounts={filteredAccounts}
+          emptyMessage={
+            memoryAvailable &&
+            memoryFilter !== "all" &&
+            currentAccounts.length > 0 &&
+            !filteredAccounts.length
+              ? "No accounts in this view match the saved review label. Choose All or another review memory filter."
+              : undefined
+          }
           selectionScope={review.selectionScope}
           selectedUsernames={selected}
           onSelectionChange={setSelected}

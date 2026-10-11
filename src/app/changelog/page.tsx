@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 100,
+    title: "Review Memory and Watch Circle with local-only persistence",
+    summary:
+      "Keep, Reviewed, Watch and private notes now stay in a separate browser-local memory. Manage decisions from relationship details, filter Cleaner across sessions and review watched observations only after a dated same-account comparison. Private backups, explicit deletion and fictional demo isolation preserve Vault records, shared output and SEO behavior.",
+  },
+  {
     issue: 98,
     title: "Product UI refresh for a coherent relationship workspace",
     summary:

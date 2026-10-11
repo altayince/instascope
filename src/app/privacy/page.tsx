@@ -55,6 +55,30 @@ export default function Privacy() {
         recorded dates may reflect refollows rather than uninterrupted
         following.
       </p>
+      <h2>Review Memory is private and local.</h2>
+      <p>
+        Keep, Reviewed, Watch and optional private notes are decisions you
+        enter, stored in a separate IndexedDB database in this browser.
+        Usernames, notes, flags and watch targets are not uploaded or sent to
+        analytics. They survive new imports and clearing active data. Clearing
+        Review Memory does not delete Snapshot Vault; deleting snapshots does
+        not delete Review Memory. Clearing browser/site data may remove both.
+      </p>
+      <p>
+        Watch Circle compares the local export with a strictly earlier readable
+        saved snapshot only after you provide the export date and confirm the
+        same Instagram account. InstaScope cannot verify account identity.
+        Differences are observations, not live monitoring, notifications, exact
+        change times or evidence of intent.
+      </p>
+      <p>
+        Review Memory has its own private JSON backup containing usernames,
+        flags and notes. It is downloaded and imported locally, with a preview
+        before confirmation. Existing local records and notes are kept, even if
+        an incoming backup is newer. There is no automatic or cloud backup.
+        Fictional demo memory is held in this tab’s memory only and never
+        overwrites your real decisions.
+      </p>
       <h2>No Instagram credentials.</h2>
       <p>
         We do not ask for a password or session cookie. No Instagram account
@@ -67,8 +91,10 @@ export default function Privacy() {
         restricted accounts, story visibility lists and your unfollow history
         stay local and are excluded from Wrapped images. Cleaner and
         request-review CSV files contain the accounts you select; keep them
-        private unless you choose to share them. Opening a profile takes you to
-        Instagram, which has its own privacy practices.
+        private unless you choose to share them. Review flags and private notes
+        never enter Wrapped, shared images or selected-account CSV files.
+        Opening a profile takes you to Instagram, which has its own privacy
+        practices.
       </p>
       <h2>Product events, without your social graph.</h2>
       <p>

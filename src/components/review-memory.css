@@ -1,0 +1,135 @@
+.review-memory-editor {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.review-memory-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.review-memory-heading h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.review-memory-heading > span,
+.review-memory-help,
+.review-memory-unsaved {
+  color: var(--muted);
+  font-size: 13px;
+}
+.review-memory-privacy {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.review-memory-flags,
+.review-memory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.review-memory-flags button,
+.review-memory-filters button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.review-memory-flags button[aria-pressed="true"],
+.review-memory-filters button[aria-pressed="true"] {
+  background: #e8efe1;
+  border-color: #82966c;
+  color: #294126;
+  font-weight: 600;
+}
+.review-memory-flags button:disabled,
+.review-memory-filters button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.review-memory-note {
+  display: grid;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.review-memory-note textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.review-memory-confirm,
+.review-memory-discard {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #d5bda1;
+  border-radius: 10px;
+  background: #f8f1e8;
+  font-size: 13px;
+}
+.review-memory-discard {
+  flex-shrink: 0;
+}
+.review-memory-confirm p,
+.review-memory-discard p {
+  margin: 8px 0 12px;
+}
+.review-memory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 8px;
+}
+.review-memory-summary {
+  font-size: 13px;
+  color: var(--muted);
+}
+.account-body .account-memory {
+  display: inline-block;
+  width: fit-content;
+  margin-top: 7px;
+  padding: 4px 8px;
+  border: 1px solid #d7dfcc;
+  border-radius: 6px;
+  background: #eff3e9;
+  color: #3a4b31;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.account-body .account-memory[data-state="watch"] {
+  background: #e8eef3;
+  border-color: #c7d8e1;
+  color: #334f60;
+}
+.account-body .account-memory[data-state="reviewed"] {
+  background: #f0f0ec;
+  border-color: var(--line);
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .review-memory-editor {
+    margin-top: 20px;
+  }
+  .review-memory-filters button {
+    flex: 1 0 auto;
+  }
+  .review-memory-discard {
+    padding: 12px;
+  }
+}
