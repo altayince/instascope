@@ -7,6 +7,7 @@ import { useData } from "./data-provider";
 import { SnapshotSaver } from "./snapshot-return";
 import { VaultConfirmation } from "./vault-confirmation";
 import { VaultAccountHistory } from "./vault-account-history";
+import { ReviewMemoryManager } from "./review-memory-manager";
 import {
   SnapshotComparisonResults,
   type SnapshotComparison,
@@ -694,6 +695,7 @@ function VaultContents({
           )}
         </>
       )}
+      <ReviewMemoryManager fictional={demo} />
       {!demo && deletion && (
         <VaultConfirmation
           returnFocus={modalTrigger}

@@ -8,6 +8,7 @@ import {
 import { download } from "@/lib/download";
 import { requestAge } from "@/lib/analysis/insights";
 import { RelationshipDrawer } from "./relationship-drawer";
+import { useReviewMemory } from "./review-memory-provider";
 export function AccountList({
   accounts,
   selectable = false,
@@ -24,6 +25,7 @@ export function AccountList({
   sortDates = true,
   dateDirection,
   relationshipDataset,
+  emptyMessage,
 }: {
   accounts: Account[];
   selectable?: boolean;
@@ -40,7 +42,14 @@ export function AccountList({
   sortDates?: boolean;
   dateDirection?: "followers" | "following";
   relationshipDataset?: Dataset;
+  emptyMessage?: string;
 }) {
+  const memory = useReviewMemory();
+  const memoryAvailable =
+    !!relationshipDataset &&
+    memory.ready &&
+    !memory.error &&
+    memory.demo === !!relationshipDataset.metadata.demo;
   const [opened, setOpened] = useState<{
     account: Account;
     dataset: Dataset;
@@ -110,6 +119,16 @@ export function AccountList({
     return isDeleted(entry) ? "Deleted account" : `@${entry.username}`;
   }
   function details(a: Account, local: boolean) {
+    const remembered = memoryAvailable
+      ? memory.records.get(a.username)
+      : undefined;
+    const memoryState = remembered?.watch
+      ? "watch"
+      : remembered?.keep
+        ? "keep"
+        : remembered?.reviewed
+          ? "reviewed"
+          : null;
     return (
       <>
         {!local && profileHref(a) ? (
@@ -124,6 +143,15 @@ export function AccountList({
           </a>
         ) : (
           <strong>{displayName(a)}</strong>
+        )}
+        {memoryState && (
+          <span className="account-memory" data-state={memoryState}>
+            {memoryState === "watch"
+              ? "Watching"
+              : memoryState === "keep"
+                ? "Kept intentionally"
+                : "Reviewed"}
+          </span>
         )}
         {showDate && (
           <small>
@@ -263,9 +291,10 @@ export function AccountList({
       </p>
       {!filtered.length ? (
         <div className="empty-state">
-          {accounts.length
-            ? "No accounts match this view. Try another filter or search."
-            : "No account records in this view. Choose another category, or import an export containing these records."}
+          {emptyMessage ??
+            (accounts.length
+              ? "No accounts match this view. Try another filter or search."
+              : "No account records in this view. Choose another category, or import an export containing these records.")}
         </div>
       ) : (
         <ul className="accounts">

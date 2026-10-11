@@ -11,6 +11,7 @@ export function VaultConfirmation({
   returnFocus,
   onConfirm,
   onCancel,
+  errorMessage = vaultStorageMessage,
 }: {
   title: string;
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function VaultConfirmation({
   returnFocus?: RefObject<HTMLElement | null>;
   onConfirm: () => Promise<void>;
   onCancel: () => void;
+  errorMessage?: (error: unknown) => string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -88,7 +90,7 @@ export function VaultConfirmation({
               await onConfirm();
               onCancel();
             } catch (error) {
-              setError(vaultStorageMessage(error));
+              setError(errorMessage(error));
               setBusy(false);
             }
           }}

@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useData } from "./data-provider";
 import { Upload } from "./upload";
+import { WatchCircle } from "./watch-circle";
 import { SavedSnapshotNotice } from "./snapshot-return";
 import { SnapshotSaver } from "./snapshot-return";
 import { formatSnapshotDate } from "@/lib/snapshot-vault";
@@ -308,6 +309,7 @@ export function Dashboard() {
           </details>
         </>
       )}
+      {dataset && <WatchCircle dataset={dataset} />}
       <section className="dashboard-vault" aria-label="Snapshot Vault">
         <div>
           <span className="eyebrow">KEEP A HISTORY</span>

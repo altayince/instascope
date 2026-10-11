@@ -1,0 +1,115 @@
+.watch-circle {
+  margin: 28px 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.watch-circle .dashboard-section-heading {
+  margin-bottom: 14px;
+}
+.watch-circle .dashboard-section-heading p {
+  font-size: 14px;
+}
+.watch-circle .notice,
+.watch-circle .empty-state {
+  font-size: 14px;
+}
+.watch-circle-summary {
+  font-size: 14px;
+  margin: 14px 0;
+}
+.watch-circle-summary strong {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.watch-comparison-controls,
+.watch-observations {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.watch-circle summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.watch-comparison-controls p,
+.watch-observations > p {
+  font-size: 13px;
+  margin: 10px 0;
+}
+.watch-comparison-controls > label:not(.snapshot-account-confirmation) {
+  display: grid;
+  gap: 6px;
+  max-width: 340px;
+  font-size: 14px;
+}
+.watch-comparison-controls input[type="date"] {
+  width: 100%;
+  min-height: 44px;
+}
+.watch-comparison-controls .snapshot-account-confirmation {
+  margin: 14px 0;
+  font-size: 14px;
+}
+.watch-observations ul {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+.watch-observations li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.watch-account-open {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+.watch-observations dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 0;
+}
+.watch-observations dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.watch-observations dd {
+  font-size: 15px;
+  margin: 3px 0 0;
+}
+.watch-change-label {
+  border: 1px solid #d6dfcb;
+  background: #eef3e5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .watch-circle {
+    padding: 16px;
+  }
+  .watch-observations li {
+    align-items: flex-start;
+    gap: 8px 14px;
+  }
+  .watch-observations dl {
+    width: 100%;
+    gap: 12px;
+  }
+  .watch-observations dl > div {
+    flex: 1 1 120px;
+  }
+}

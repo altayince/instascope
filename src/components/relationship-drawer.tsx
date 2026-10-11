@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Account, Dataset } from "@/lib/instagram/types";
 import {
   isDeletedInstagramAccount,
@@ -10,6 +11,7 @@ import {
   TimelineAccount,
 } from "./timeline-account";
 import { ActionButton, InsightLink } from "./actions";
+import { ReviewMemoryEditor } from "./review-memory-editor";
 import "./relationship-drawer.css";
 
 export function RelationshipDrawer({
@@ -24,11 +26,41 @@ export function RelationshipDrawer({
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const continueEditing = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+  const [dirty, setDirty] = useState(false);
+  const [pending, setPending] = useState<"close" | "timeline" | null>(null);
   const id = useId();
   const demo = !!dataset.metadata.demo;
   const deleted = !demo && isDeletedInstagramAccount(account.username);
   const name = deleted ? "Deleted account" : `@${account.username}`;
   const href = demo ? null : usableInstagramProfileHref(account);
+  const timelineHref = `/relationship-timeline/#account=${encodeURIComponent(account.username)}`;
+  function openTimeline() {
+    if (window.location.pathname === "/relationship-timeline/") {
+      window.location.hash = `account=${encodeURIComponent(account.username)}`;
+      onClose();
+      window.dispatchEvent(
+        new CustomEvent(RELATIONSHIP_INSPECTION_EVENT, {
+          detail: account.username,
+        }),
+      );
+    } else {
+      router.push(timelineHref);
+      onClose();
+    }
+  }
+  function requestClose() {
+    if (dirty) setPending("close");
+    else onClose();
+  }
+  function keepEditing() {
+    setPending(null);
+    dialog.current?.querySelector("textarea")?.focus({ preventScroll: true });
+  }
+  useEffect(() => {
+    if (pending) continueEditing.current?.focus({ preventScroll: true });
+  }, [pending]);
   useEffect(() => {
     const element = dialog.current!;
     const root = document.documentElement;
@@ -53,7 +85,8 @@ export function RelationshipDrawer({
       aria-describedby={`${id}-description`}
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        if (pending) keepEditing();
+        else requestClose();
       }}
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;
@@ -102,7 +135,7 @@ export function RelationshipDrawer({
           className="drawer-close"
           type="button"
           autoFocus
-          onClick={onClose}
+          onClick={requestClose}
           aria-label="Close relationship details"
         >
           Close
@@ -119,7 +152,41 @@ export function RelationshipDrawer({
           username={account.username}
           presentation="drawer"
         />
+        <ReviewMemoryEditor
+          username={account.username}
+          onDirtyChange={setDirty}
+        />
       </div>
+      {pending && (
+        <div className="review-memory-discard" role="alert">
+          <strong>Discard the unsaved note?</strong>
+          <p>
+            Your saved review memory stays unchanged. Save the note before
+            leaving if you want to keep these edits.
+          </p>
+          <div className="review-memory-actions">
+            <button
+              ref={continueEditing}
+              className="button secondary"
+              type="button"
+              onClick={keepEditing}
+            >
+              Continue editing
+            </button>
+            <ActionButton
+              type="button"
+              variant="danger"
+              onClick={() =>
+                pending === "timeline" ? openTimeline() : onClose()
+              }
+            >
+              {pending === "timeline"
+                ? "Discard note and continue"
+                : "Discard note and close"}
+            </ActionButton>
+          </div>
+        </div>
+      )}
       <footer className="relationship-drawer-actions">
         {href && (
           <a
@@ -133,17 +200,14 @@ export function RelationshipDrawer({
           </a>
         )}
         <InsightLink
-          href={`/relationship-timeline/#account=${encodeURIComponent(account.username)}`}
+          href={timelineHref}
           onNavigate={(event) => {
-            if (window.location.pathname === "/relationship-timeline/") {
+            if (dirty) {
               event.preventDefault();
-              window.location.hash = `account=${encodeURIComponent(account.username)}`;
-              onClose();
-              window.dispatchEvent(
-                new CustomEvent(RELATIONSHIP_INSPECTION_EVENT, {
-                  detail: account.username,
-                }),
-              );
+              setPending("timeline");
+            } else if (window.location.pathname === "/relationship-timeline/") {
+              event.preventDefault();
+              openTimeline();
             }
           }}
         >

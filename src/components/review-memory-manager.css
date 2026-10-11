@@ -1,0 +1,25 @@
+.review-memory-manager {
+  padding-top: 28px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+.review-memory-manager h2 {
+  font-size: 25px;
+}
+.review-memory-manager p {
+  max-width: 78ch;
+}
+.review-memory-backup-help {
+  color: var(--muted);
+  font-size: 14px;
+}
+.review-memory-import {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  min-width: 0;
+}
+.review-memory-import input {
+  width: 100%;
+  max-width: 320px;
+}
