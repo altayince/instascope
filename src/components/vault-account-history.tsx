@@ -27,25 +27,35 @@ export function VaultAccountHistory({
   fictional?: VaultSnapshot[];
 }) {
   const { dataset, vault } = useData();
-  const { signature, load } = useVaultHistoryIndex(fictional);
+  const { signature, revision, load } = useVaultHistoryIndex(fictional);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [result, setResult] = useState<{
     signature: string;
+    revision: typeof revision;
     matches: string[];
     selected: string;
     points: RelationshipHistoryPoint[];
   } | null>(null);
-  const [confirmActive, setConfirmActive] = useState(false);
+  const [confirmedDataset, setConfirmedDataset] =
+    useState<typeof dataset>(null);
+  const confirmActive = !!dataset && confirmedDataset === dataset;
   const mounted = useRef(true);
+  const source = useRef(revision);
+  useEffect(() => {
+    source.current = revision;
+  }, [revision]);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
     };
   }, []);
-  const shown = result?.signature === signature ? result : null;
+  const shown =
+    result?.signature === signature && result.revision === revision
+      ? result
+      : null;
   const activeMatchesSource =
     dataset && !!dataset.metadata.demo === !!fictional;
   const origins = useMemo(
@@ -67,7 +77,7 @@ export function VaultAccountHistory({
     setBusy(true);
     setError("");
     setResult(null);
-    setConfirmActive(false);
+    setConfirmedDataset(null);
     try {
       const index = await load();
       const matches = index.names.has(normalized)
@@ -76,15 +86,17 @@ export function VaultAccountHistory({
             .filter((n) => n.includes(normalized))
             .sort()
             .slice(0, 20);
-      if (mounted.current)
+      if (mounted.current && source.current === revision)
         setResult({
           signature,
+          revision,
           matches,
           selected: matches.length === 1 ? matches[0] : "",
           points: matches.length === 1 ? accountHistory(matches[0], index) : [],
         });
     } catch (error) {
-      if (mounted.current) setError(vaultStorageMessage(error));
+      if (mounted.current && source.current === revision)
+        setError(vaultStorageMessage(error));
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -93,16 +105,18 @@ export function VaultAccountHistory({
     setError("");
     try {
       const index = await load();
-      if (!mounted.current) return;
-      setConfirmActive(false);
+      if (!mounted.current || source.current !== revision) return;
+      setConfirmedDataset(null);
       setResult({
         signature,
+        revision,
         matches: [name],
         selected: name,
         points: accountHistory(name, index),
       });
     } catch (error) {
-      if (mounted.current) setError(vaultStorageMessage(error));
+      if (mounted.current && source.current === revision)
+        setError(vaultStorageMessage(error));
     }
   }
   return (
@@ -160,7 +174,9 @@ export function VaultAccountHistory({
                   <input
                     type="checkbox"
                     checked={confirmActive}
-                    onChange={(e) => setConfirmActive(e.target.checked)}
+                    onChange={(e) =>
+                      setConfirmedDataset(e.target.checked ? dataset : null)
+                    }
                   />{" "}
                   I confirm the active export and this saved history belong to
                   the same Instagram account.

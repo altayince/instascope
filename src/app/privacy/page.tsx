@@ -41,11 +41,13 @@ export default function Privacy() {
         backup format before you confirm a local merge. Existing dates are kept.
       </p>
       <p>
-        Nothing is compared automatically. Choose the snapshots and confirm the
-        dates and that both exports belong to the same Instagram account.
-        InstaScope does not automatically verify account identity. Saved totals
-        describe individual exports, not continuous monitoring or a complete
-        relationship history.
+        Circle Pulse summarizes saved Vault snapshots locally, independently of
+        your active export. Make sure the selected saved records belong to the
+        same Instagram account. For a two-snapshot comparison, choose the
+        snapshots and confirm the dates and that both exports belong to the same
+        Instagram account. InstaScope does not automatically verify account
+        identity. Saved totals describe individual exports, not continuous
+        monitoring or a complete relationship history.
       </p>
       <p>
         Account history is derived locally from usernames in saved snapshots.
@@ -54,6 +56,14 @@ export default function Privacy() {
         Vault storage. Snapshot presence does not establish exact event times;
         recorded dates may reflect refollows rather than uninterrupted
         following.
+      </p>
+      <p>
+        Circle Pulse retention, stable membership, reappearance and state-change
+        summaries exist only in memory. They are not stored in Vault, added to
+        backups or sent to analytics. Optional saved-history Wrapped cards use
+        only aggregate facts after you choose to include them, without usernames
+        or private-list data. Observed presence does not prove uninterrupted
+        following or what happened between saved exports.
       </p>
       <h2>Review Memory is private and local.</h2>
       <p>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Account, Dataset } from "@/lib/instagram/types";
 import {
@@ -12,26 +12,40 @@ import {
 } from "./timeline-account";
 import { ActionButton, InsightLink } from "./actions";
 import { ReviewMemoryEditor } from "./review-memory-editor";
+import { AccountHistoryDetails } from "./account-history-details";
+import { SavedHistorySummary } from "./saved-history-summary";
+import {
+  accountHistory,
+  relationshipStateLabels,
+  type RelationshipHistoryIndex,
+} from "@/lib/analysis/relationship-history";
+import { formatSnapshotDate } from "@/lib/snapshot-vault";
 import "./relationship-drawer.css";
+
+type DrawerProps = {
+  account: Account;
+  returnFocus: HTMLElement;
+  onClose: () => void;
+} & (
+  | { dataset: Dataset; savedHistory?: never; demo?: never }
+  | { dataset?: never; savedHistory: RelationshipHistoryIndex; demo: boolean }
+);
 
 export function RelationshipDrawer({
   account,
   dataset,
+  savedHistory,
+  demo: fictional,
   returnFocus,
   onClose,
-}: {
-  account: Account;
-  dataset: Dataset;
-  returnFocus: HTMLElement;
-  onClose: () => void;
-}) {
+}: DrawerProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const continueEditing = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const [dirty, setDirty] = useState(false);
   const [pending, setPending] = useState<"close" | "timeline" | null>(null);
   const id = useId();
-  const demo = !!dataset.metadata.demo;
+  const demo = dataset ? !!dataset.metadata.demo : fictional;
   const deleted = !demo && isDeletedInstagramAccount(account.username);
   const name = deleted ? "Deleted account" : `@${account.username}`;
   const href = demo ? null : usableInstagramProfileHref(account);
@@ -144,18 +158,29 @@ export function RelationshipDrawer({
       <p id={`${id}-description`} className="relationship-drawer-description">
         {demo
           ? "Demo data · Fictional example."
-          : "Private details from your export, processed in this browser."}
+          : dataset
+            ? "Private details from your export, processed in this browser."
+            : "Saved snapshot observations, processed in this browser. This view does not use the active export."}
       </p>
       <div className="relationship-drawer-content">
-        <TimelineAccount
-          dataset={dataset}
-          username={account.username}
-          presentation="drawer"
-        />
-        <ReviewMemoryEditor
-          username={account.username}
-          onDirtyChange={setDirty}
-        />
+        {dataset ? (
+          <>
+            <TimelineAccount
+              dataset={dataset}
+              username={account.username}
+              presentation="drawer"
+            />
+            <ReviewMemoryEditor
+              username={account.username}
+              onDirtyChange={setDirty}
+            />
+          </>
+        ) : (
+          <SavedOnlyInspector
+            username={account.username}
+            history={savedHistory}
+          />
+        )}
       </div>
       {pending && (
         <div className="review-memory-discard" role="alert">
@@ -199,21 +224,88 @@ export function RelationshipDrawer({
             Open Instagram profile <span aria-hidden="true">›</span>
           </a>
         )}
-        <InsightLink
-          href={timelineHref}
-          onNavigate={(event) => {
-            if (dirty) {
-              event.preventDefault();
-              setPending("timeline");
-            } else if (window.location.pathname === "/relationship-timeline/") {
-              event.preventDefault();
-              openTimeline();
+        {dataset ? (
+          <InsightLink
+            href={timelineHref}
+            onNavigate={(event) => {
+              if (dirty) {
+                event.preventDefault();
+                setPending("timeline");
+              } else if (
+                window.location.pathname === "/relationship-timeline/"
+              ) {
+                event.preventDefault();
+                openTimeline();
+              }
+            }}
+          >
+            Open full Relationship Timeline
+          </InsightLink>
+        ) : (
+          <InsightLink
+            href={
+              demo
+                ? "/snapshot-vault/?demo=true#circle-pulse"
+                : "/snapshot-vault/#circle-pulse"
             }
-          }}
-        >
-          Open full Relationship Timeline
-        </InsightLink>
+            onNavigate={() => onClose()}
+          >
+            Back to Circle Pulse
+          </InsightLink>
+        )}
       </footer>
     </dialog>
+  );
+}
+
+function SavedOnlyInspector({
+  username,
+  history,
+}: {
+  username: string;
+  history: RelationshipHistoryIndex;
+}) {
+  const points = useMemo(
+    () => accountHistory(username, history),
+    [username, history],
+  );
+  const latest = points.at(-1);
+  return (
+    <section
+      className="drawer-inspector"
+      aria-label="Saved snapshot relationship observations"
+    >
+      <h3>Saved snapshot observations</h3>
+      {history.corrupt > 0 && (
+        <p role="status">
+          {history.corrupt} unreadable saved record
+          {history.corrupt === 1 ? " was" : "s were"} skipped. They are not
+          treated as absent observations.
+        </p>
+      )}
+      {!latest ? (
+        <p>No readable saved snapshots in this range.</p>
+      ) : (
+        <>
+          <p>
+            Selected saved range: {formatSnapshotDate(points[0].exportDate)} to{" "}
+            {formatSnapshotDate(latest.exportDate)}.
+          </p>
+          <dl className="relationship-summary">
+            <div>
+              <dt>Latest selected saved state</dt>
+              <dd>{relationshipStateLabels[latest.state]}</dd>
+            </div>
+          </dl>
+          <SavedHistorySummary points={points} />
+          <AccountHistoryDetails points={points} />
+          <p>
+            Saved snapshots do not contain recorded follower/following dates or
+            optional export categories. Your active export and private Review
+            Memory are separate.
+          </p>
+        </>
+      )}
+    </section>
   );
 }

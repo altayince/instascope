@@ -10,6 +10,18 @@ export const relationshipStateLabels: Record<RelationshipState, string> = {
   "you-follow": "You follow",
   absent: "Absent",
 };
+export function relationshipState(
+  follower: boolean,
+  following: boolean,
+): RelationshipState {
+  return follower
+    ? following
+      ? "mutual"
+      : "follows-you"
+    : following
+      ? "you-follow"
+      : "absent";
+}
 export type RelationshipHistoryPoint = {
   snapshotId: string;
   exportDate: string;
@@ -56,13 +68,7 @@ export function accountHistory(
     return {
       snapshotId: s.snapshotId,
       exportDate: s.exportDate,
-      state: follower
-        ? following
-          ? "mutual"
-          : "follows-you"
-        : following
-          ? "you-follow"
-          : "absent",
+      state: relationshipState(follower, following),
     };
   });
 }

@@ -7,32 +7,91 @@ import {
   type CSSProperties,
 } from "react";
 import type { Analysis, compareSnapshots } from "@/lib/analysis/relationships";
-import { buildStories, type Story } from "@/lib/analysis/stories";
+import {
+  buildStories,
+  buildSavedSnapshotStories,
+  type Story,
+} from "@/lib/analysis/stories";
+import { demoVaultSnapshots } from "@/lib/demo";
+import { vaultStorageMessage } from "@/lib/vault-storage";
 import { download } from "@/lib/download";
 import { track } from "@/lib/analytics";
 import type { Dataset } from "@/lib/instagram/types";
 import { drawWrappedStory } from "./wrapped-canvas";
 import { storyStyles } from "./wrapped-style";
+import { useData } from "./data-provider";
+import { useCirclePulse } from "./use-circle-pulse";
+import { ActionButton, InsightLink } from "./actions";
 
 type Comparison = ReturnType<typeof compareSnapshots> | null;
 
-export function Wrapped({
-  analysis,
-  comparison,
-  dataset,
-}: {
+type WrappedProps = {
   analysis: Analysis;
   comparison: Comparison;
   dataset: Dataset;
-}) {
+};
+
+export function Wrapped(props: WrappedProps) {
+  const isDemo = !!props.dataset.metadata.demo;
+  const fictional = useMemo(
+    () => (isDemo ? demoVaultSnapshots() : undefined),
+    [isDemo],
+  );
+  const pulse = useCirclePulse(fictional, { auto: false });
+  // Reset confirmation and prepared images on every saved-history revision.
+  return <WrappedDeck key={pulse.signature} {...props} pulse={pulse} />;
+}
+
+function WrappedDeck({
+  analysis,
+  comparison,
+  dataset,
+  pulse,
+}: WrappedProps & { pulse: ReturnType<typeof useCirclePulse> }) {
+  const { vault, storageReady, storageError } = useData();
+  const isDemo = !!dataset.metadata.demo;
+  const [confirmed, setConfirmed] = useState(isDemo);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [savedError, setSavedError] = useState("");
+  const loadAttempt = useRef(0);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  const savedStories = useMemo(
+    () =>
+      savedLoaded && confirmed && pulse.model
+        ? buildSavedSnapshotStories(pulse.model.summary)
+        : [],
+    [savedLoaded, confirmed, pulse.model],
+  );
   const stories = useMemo(
-    () => buildStories(analysis, dataset, comparison),
-    [analysis, dataset, comparison],
+    () => [...buildStories(analysis, dataset, comparison), ...savedStories],
+    [analysis, dataset, comparison, savedStories],
   );
   const [selected, setSelected] = useState<Story["id"]>("circle");
   const [message, setMessage] = useState("");
   const story = stories.find((item) => item.id === selected) ?? stories[0];
-  const isDemo = !!dataset.metadata.demo;
+  const canLoadSaved =
+    isDemo || (storageReady && !storageError && vault.length >= 2);
+
+  async function loadSavedStories() {
+    if (!canLoadSaved || !confirmed || pulse.busy) return;
+    const attempt = ++loadAttempt.current;
+    setSavedLoaded(false);
+    setSavedError("");
+    try {
+      await pulse.load();
+      if (alive.current && attempt === loadAttempt.current)
+        setSavedLoaded(true);
+    } catch (error) {
+      if (alive.current && attempt === loadAttempt.current)
+        setSavedError(vaultStorageMessage(error));
+    }
+  }
 
   const index = stories.indexOf(story);
   const style = storyStyles[story.id];
@@ -262,6 +321,76 @@ export function Wrapped({
           card is a 1080 × 1920 story, made privately in your browser. No
           usernames or private-list counts on shared cards.
         </p>
+        <details className="wrapped-vault-stories">
+          <summary>Stories from saved snapshots</summary>
+          <p>
+            Stable Core and Still Here use saved Vault snapshots only. Your
+            active export is not included or matched to this history. Recorded
+            presence does not prove uninterrupted following.
+          </p>
+          {isDemo ? (
+            <p>
+              Demo data · Fictional saved snapshots. Your real Vault is
+              separate.
+            </p>
+          ) : canLoadSaved ? (
+            <label className="snapshot-account-confirmation">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(event) => {
+                  loadAttempt.current++;
+                  setConfirmed(event.target.checked);
+                  setSavedLoaded(false);
+                  setSavedError("");
+                }}
+              />
+              I confirm these saved snapshots belong to the same Instagram
+              account.
+            </label>
+          ) : (
+            <p>
+              {storageError ||
+                (storageReady
+                  ? "Save at least two readable snapshots to add saved-history stories."
+                  : "Opening your local Vault…")}
+            </p>
+          )}
+          <div className="wrapped-vault-load">
+            <ActionButton
+              type="button"
+              disabled={!canLoadSaved || !confirmed || pulse.busy || sharing}
+              onClick={() => void loadSavedStories()}
+            >
+              {pulse.busy
+                ? "Reading saved snapshots…"
+                : isDemo
+                  ? "Load fictional saved stories"
+                  : "Load saved-snapshot stories"}
+            </ActionButton>
+            <InsightLink
+              href={
+                isDemo
+                  ? "/snapshot-vault/?demo=true#circle-pulse"
+                  : "/snapshot-vault/#circle-pulse"
+              }
+            >
+              Explore Circle Pulse
+            </InsightLink>
+          </div>
+          {(savedError || pulse.error) && (
+            <p role="alert">{savedError || pulse.error}</p>
+          )}
+          {savedLoaded && pulse.model && (
+            <p role="status">
+              {savedStories.length
+                ? `${savedStories.length} saved-history stories added from ${pulse.model.summary.snapshotCount} readable snapshots.`
+                : "These saved snapshots do not support a Stable Core or Still Here card."}
+              {pulse.model.summary.skippedSnapshots > 0 &&
+                " Unreadable snapshots were excluded, never treated as empty."}
+            </p>
+          )}
+        </details>
         <div
           className="wrapped-story-picker"
           role="group"

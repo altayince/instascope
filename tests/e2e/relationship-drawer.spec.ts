@@ -179,6 +179,9 @@ test("saved drawer history remains confirmed, date-qualified, read-only and rese
   const panel = drawer(page);
   await panel.getByRole("button", { name: "History", exact: true }).click();
   await expect(panel).toContainText("confirm the same account");
+  await expect(
+    panel.getByRole("region", { name: "Saved history summary", exact: true }),
+  ).toHaveCount(0);
   await panel.locator(".timeline-history-options summary").focus();
   await page.keyboard.press("Tab");
   await expect(
@@ -198,6 +201,19 @@ test("saved drawer history remains confirmed, date-qualified, read-only and rese
     "Follows you",
     "Absent",
   ]);
+  const summary = panel.getByRole("region", {
+    name: "Saved history summary",
+    exact: true,
+  });
+  await expect(value(summary, "Observed presence")).toHaveText(
+    "2 of 3 readable snapshots",
+  );
+  await expect(value(summary, "Observed state changes")).toHaveText("2");
+  await expect(value(summary, "Observed again after absence")).toHaveText(
+    "No such pattern observed",
+  );
+  await expect(summary).not.toContainText(/refollowed|loyal|ghosted|score/i);
+  await expect(panel).toContainText("1 unreadable saved record was skipped");
   await expect(panel).toContainText("do not establish exact change times");
   await panel.getByRole("button", { name: "Context", exact: true }).click();
   const context = panel.getByRole("region", {
@@ -213,6 +229,8 @@ test("saved drawer history remains confirmed, date-qualified, read-only and rese
   await panel.getByRole("checkbox").uncheck();
   await expect(context).not.toContainText("Previously mutual");
   await expect(load).toBeDisabled();
+  await panel.getByRole("button", { name: "History", exact: true }).click();
+  await expect(summary).toHaveCount(0);
   await close(page);
   await page
     .getByRole("button", {
@@ -231,6 +249,60 @@ test("saved drawer history remains confirmed, date-qualified, read-only and rese
     value(panel, "Saved snapshots containing this username"),
   ).toHaveText("Saved history not loaded");
   expect(await savedRecords(page)).toEqual(before);
+  await fits(page);
+});
+
+test("confirmed drawer history describes reappearance between saved observations without event claims", async ({
+  page,
+}) => {
+  await page.goto("/followers-analyzer/");
+  await seedRecords(page, [
+    snapshot("2025-01-15", ["sample.active"], ["sample.active"]),
+    snapshot("2025-04-15", [], []),
+    snapshot("2025-07-15", ["sample.active"], []),
+  ]);
+  await page.reload();
+  await upload(page, files);
+  await opener(page, "@sample.active").click();
+  const panel = drawer(page);
+  await panel.getByRole("button", { name: "History", exact: true }).click();
+  await expect(
+    panel.getByRole("region", { name: "Saved history summary", exact: true }),
+  ).toHaveCount(0);
+  await panel.locator(".timeline-history-options summary").click();
+  await panel.getByRole("checkbox").check();
+  await panel
+    .getByRole("button", { name: "Load saved history", exact: true })
+    .click();
+  const summary = panel.getByRole("region", {
+    name: "Saved history summary",
+    exact: true,
+  });
+  await expect(value(summary, "Observed presence")).toHaveText(
+    "2 of 3 readable snapshots",
+  );
+  await expect(value(summary, "Observed state changes")).toHaveText("2");
+  await expect(value(summary, "Observed again after absence")).toHaveText(
+    "Observed",
+  );
+  await expect(summary).toContainText(
+    "Observed again in the 15 Jul 2025 snapshot",
+  );
+  await expect(summary).toContainText(
+    "absent in saved snapshots from 15 Apr 2025",
+  );
+  await expect(summary).toContainText(
+    "Earlier presence was observed on 15 Jan 2025",
+  );
+  await expect(summary).not.toContainText(
+    /refollowed|returned|came back|loyal|ghosted|score/i,
+  );
+  await expect(summary).toContainText(
+    "not uninterrupted relationships, exact event times or causes",
+  );
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+  await expect(opener(page, "@sample.active")).toBeFocused();
   await fits(page);
 });
 
