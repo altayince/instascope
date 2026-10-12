@@ -3,7 +3,14 @@ import type { ConnectionKind, ConnectionList } from "./types";
 // Only explicitly supported export names/containers are consumed from a ZIP.
 export const connectionFormats: Record<
   ConnectionKind,
-  { filename: string; keys: string[] }
+  {
+    filename: string;
+    keys: string[];
+    allowNumericSuffix?: boolean;
+    allowHtm?: boolean;
+    /** Verified extras require labelled records with an explicit Username. */
+    labelledOnly?: boolean;
+  }
 > = {
   pendingRequests: {
     filename: "pending_follow_requests",
@@ -28,6 +35,20 @@ export const connectionFormats: Record<
   recentlyUnfollowed: {
     filename: "recently_unfollowed_profiles",
     keys: ["relationships_unfollowed_users"],
+  },
+  recentFollowRequests: {
+    filename: "recent_follow_requests",
+    keys: [],
+    allowNumericSuffix: false,
+    allowHtm: false,
+    labelledOnly: true,
+  },
+  removedSuggestions: {
+    filename: "removed_suggestions",
+    keys: [],
+    allowNumericSuffix: false,
+    allowHtm: false,
+    labelledOnly: true,
   },
 };
 export const connectionKinds = Object.keys(

@@ -14,7 +14,7 @@ excluded from ignored-file counts. Loose files and the synchronous and browser
 Blob ZIP adapters feed the same assembly path.
 
 `Dataset.metadata.importProvenance` contains transport/content-format counts,
-recognized/ignored file counts and eight fixed relationship-category counters:
+recognized/ignored file counts and ten fixed relationship-category counters:
 source, JSON, HTML, parsed, unsupported and skipped files. It contains no filenames,
 paths, usernames, IDs or raw metadata. A combined JSON document can supply two
 core categories while still counting as one recognized source file.
@@ -48,7 +48,7 @@ historical follower totals.
 
 ## Optional lists
 
-The existing six categories retain their semantics:
+The eight optional categories retain their semantics:
 
 - **Available:** included and safely parsed. A valid empty list displays
   `Included · 0 records`.
@@ -61,6 +61,15 @@ unsupported. Later files skipped by the existing importer are counted as skipped
 they are not claimed to have parsed successfully. Missing optional data is a
 neutral limitation, not an export failure.
 
+INS-108 adds **Recent sent-request records** (`recentFollowRequests`) and
+**Removed suggestions** (`removedSuggestions`) to the same optional-state and
+aggregate source-file reporting. Recent sent-request records are separate from
+pending requests: the export groups sent requests that were confirmed or
+deleted, without identifying the outcome for each account. Removed suggestions
+are profiles removed from suggestions, not removed followers. Their recorded
+dates do not establish the exact time of an action. Neither category extends
+the four Connection Privacy lists or the core Followers/Following date coverage.
+
 ## Analysis availability
 
 Core Circle is ready for an accepted dataset, including explicitly empty lists.
@@ -69,6 +78,9 @@ current mutual with usable dates in both directions. Pending Requests and Unfoll
 History require an available respective category, including available-empty.
 Connection Privacy is full, partial or unavailable according to how many of its
 four categories were safely read, not how many accounts they contain.
+Recent sent-request and removed-suggestion availability each require their own
+available category, including an explicitly empty one; they cannot enable Pending
+Requests or Unfollow History. Unknown or unreadable extras have no record count.
 
 Wrapped date availability follows existing product gates: following-date stories
 need a following date; the mutual-origin story needs at least ten dated mutuals.

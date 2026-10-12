@@ -44,10 +44,15 @@ describe("optional connection adapters", () => {
     expect(dataset.followers).toEqual([]);
     expect(dataset.following).toEqual([]);
     expect(
-      Object.values(dataset.connections!).every(
-        (v) => v.status === "available",
+      Object.keys(syntheticConnections).every(
+        (name) =>
+          dataset.connections![
+            detectKind(name)! as (typeof connectionKinds)[number]
+          ].status === "available",
       ),
     ).toBe(true);
+    expect(dataset.connections!.recentFollowRequests.status).toBe("missing");
+    expect(dataset.connections!.removedSuggestions.status).toBe("missing");
     expect(
       dataset.connections!.pendingRequests.accounts.map((a) => a.username),
     ).toEqual(["request.old", "request.recent", "request.undated"]);
@@ -57,27 +62,26 @@ describe("optional connection adapters", () => {
     expect(dataset.connections!.recentlyUnfollowed.accounts).toHaveLength(2);
     expect(dataset.connections!.restricted.accounts).toEqual([]);
   });
-  it.each(connectionKinds)(
-    "accepts known legacy and split shapes for %s",
-    (kind) => {
-      const format = connectionFormats[kind];
-      expect(detectKind(`nested/${format.filename}_2.json`)).toBe(kind);
-      const parts = parseJson(
-        JSON.stringify({
-          [format.keys[0]]: [
-            {
-              title: "Legacy.Name",
-              string_list_data: [{ timestamp: 1704067200 }],
-            },
-          ],
-        }),
-        kind,
-      );
-      expect(parts).toEqual([
-        { kind, accounts: [account("legacy.name", 1704067200)] },
-      ]);
-    },
-  );
+  it.each(
+    connectionKinds.filter((kind) => !connectionFormats[kind].labelledOnly),
+  )("accepts known legacy and split shapes for %s", (kind) => {
+    const format = connectionFormats[kind];
+    expect(detectKind(`nested/${format.filename}_2.json`)).toBe(kind);
+    const parts = parseJson(
+      JSON.stringify({
+        [format.keys[0]]: [
+          {
+            title: "Legacy.Name",
+            string_list_data: [{ timestamp: 1704067200 }],
+          },
+        ],
+      }),
+      kind,
+    );
+    expect(parts).toEqual([
+      { kind, accounts: [account("legacy.name", 1704067200)] },
+    ]);
+  });
   it("distinguishes missing, empty and unsupported lists and keeps complete core results", () => {
     const dataset = importDataset([
       ...core,

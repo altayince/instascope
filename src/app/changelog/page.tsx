@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 108,
+    title: "Audit and support safe relationship archive extras",
+    summary:
+      "Review recent sent-request records and profiles removed from suggestions, with explicit missing, empty and unreadable states. These local export lists stay separate from pending requests, unfollow actions and saved snapshots; source dates never imply a live state or a known resolution time.",
+  },
+  {
     issue: 106,
     title: "Export Doctor: factual local export diagnostics",
     summary:

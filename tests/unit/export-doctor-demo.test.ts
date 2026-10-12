@@ -22,7 +22,26 @@ it("demonstrates fictional split JSON coverage without changing the complete too
   });
   expect(report.core.followers.dateCoverage).toBeLessThan(100);
   expect(report.capabilities.connectionPrivacy).toBe("full");
+  expect(Object.values(report.optional)).toHaveLength(8);
+  expect(
+    Object.values(report.optional).every((list) => list.status === "available"),
+  ).toBe(true);
+  expect(report.optional.recentFollowRequests).toMatchObject({
+    status: "available",
+    records: 3,
+    sourceFiles: 1,
+  });
+  expect(report.optional.removedSuggestions).toMatchObject({
+    status: "available",
+    records: 4,
+    sourceFiles: 1,
+  });
+  expect(report.capabilities.recentSentRequests).toBe(true);
+  expect(report.capabilities.removedSuggestions).toBe(true);
+  expect(report.archive.optionalCategoriesFound).toBe(8);
   expect(JSON.stringify(report)).not.toContain("demo.mutual.");
+  expect(JSON.stringify(report)).not.toContain("demo.recentrequest.");
+  expect(JSON.stringify(report)).not.toContain("demo.suggestion.");
 });
 
 it("keeps a partial fictional Doctor example separate from active demo tools", () => {
@@ -38,6 +57,22 @@ it("keeps a partial fictional Doctor example separate from active demo tools", (
   expect(report.optional.restricted.status).toBe("unsupported");
   expect(report.optional.restricted.records).toBeUndefined();
   expect(report.optional.hideStoryFrom.status).toBe("missing");
+  expect(report.optional.recentFollowRequests.status).toBe("missing");
+  expect(report.optional.recentFollowRequests.records).toBeUndefined();
+  expect(report.optional.removedSuggestions).toMatchObject({
+    status: "available",
+    records: 0,
+  });
+  expect(report.capabilities.recentSentRequests).toBe(false);
+  expect(report.capabilities.removedSuggestions).toBe(true);
+  expect(
+    Object.values(report.optional).filter((list) => list.status === "missing"),
+  ).toHaveLength(3);
+  expect(
+    Object.values(report.optional).filter(
+      (list) => list.status === "unsupported",
+    ),
+  ).toHaveLength(1);
   expect(report.capabilities.connectionPrivacy).toBe("partial");
   expect(report.capabilities.availablePrivacyLists).toBe(2);
   const complete = demoSnapshots().newer;
@@ -45,6 +80,8 @@ it("keeps a partial fictional Doctor example separate from active demo tools", (
   expect(complete.connections!.restricted.accounts).toHaveLength(3);
   expect(complete.connections!.hideStoryFrom.accounts).toHaveLength(5);
   expect(complete.connections!.pendingRequests.accounts).toHaveLength(3);
+  expect(complete.connections!.recentFollowRequests.accounts).toHaveLength(3);
+  expect(complete.connections!.removedSuggestions.accounts).toHaveLength(4);
 });
 
 it("does not carry diagnostic provenance into Vault snapshots", () => {

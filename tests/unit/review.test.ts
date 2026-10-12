@@ -30,6 +30,16 @@ function dataset(): Dataset {
       blocked: { status: "missing", accounts: [], message: "Missing" },
       restricted: { status: "missing", accounts: [], message: "Missing" },
       hideStoryFrom: { status: "missing", accounts: [], message: "Missing" },
+      recentFollowRequests: {
+        status: "missing",
+        accounts: [],
+        message: "Missing",
+      },
+      removedSuggestions: {
+        status: "missing",
+        accounts: [],
+        message: "Missing",
+      },
     },
     metadata: {
       parsedAt: Date.UTC(2025, 0, 15),
