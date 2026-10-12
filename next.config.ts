@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { indexableDeployment } from "./src/lib/site-config";
 import { profileEndpoint } from "./src/lib/profile-lookup";
+import { analyticsEndpoint } from "./src/lib/analytics-config";
 const production = indexableDeployment(
   process.env.NEXT_PUBLIC_SITE_URL,
   process.env.NEXT_PUBLIC_PREVIEW,
@@ -17,6 +18,10 @@ const config: NextConfig = {
   poweredByHeader: false,
   images: { unoptimized: true },
   env: {
+    NEXT_PUBLIC_ANALYTICS_ENDPOINT: analyticsEndpoint(
+      process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT,
+      production,
+    ),
     NEXT_PUBLIC_PROFILE_ENDPOINT: profileEndpoint(
       process.env.NEXT_PUBLIC_PROFILE_ENDPOINT,
       production,

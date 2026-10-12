@@ -15,6 +15,7 @@ import { ActionButton } from "./actions";
 import { useData } from "./data-provider";
 import { useCirclePulse } from "./use-circle-pulse";
 import { RelationshipDrawer } from "./relationship-drawer";
+import { useVisibleProductSurface } from "./use-product-event";
 
 const number = (value: number) => value.toLocaleString("en-US");
 const percent = (value?: number) =>
@@ -27,6 +28,7 @@ export function CirclePulse({
 }: {
   fictional?: readonly VaultSnapshot[];
 }) {
+  const surface = useVisibleProductSurface("circle_pulse_opened");
   const { vault, corruptSnapshots } = useData();
   const { model, busy, error, signature, load } = useCirclePulse(fictional);
   const count = fictional?.length ?? vault.length;
@@ -66,6 +68,7 @@ export function CirclePulse({
   }
   return (
     <section
+      ref={surface}
       id="circle-pulse"
       className="circle-pulse"
       aria-labelledby="circle-pulse-heading"

@@ -25,10 +25,9 @@ export function Upload({
     setBusy(true);
     setError("");
     track("parser_started");
+    let dataset: Dataset;
     try {
-      onLoad(await readExport(files));
-      track("parser_succeeded");
-      track("results_viewed");
+      dataset = await readExport(files);
     } catch (error) {
       setError(
         error instanceof Error
@@ -36,10 +35,21 @@ export function Upload({
           : "Could not read this export. Try again.",
       );
       track("parser_failed");
+      return;
     } finally {
       inFlight.current = false;
       setBusy(false);
       if (input.current) input.current.value = "";
+    }
+    track("parser_succeeded");
+    try {
+      onLoad(dataset);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not open this export. Try again.",
+      );
     }
   }
   return (

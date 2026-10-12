@@ -15,7 +15,7 @@ import {
 import { demoVaultSnapshots } from "@/lib/demo";
 import { vaultStorageMessage } from "@/lib/vault-storage";
 import { download } from "@/lib/download";
-import { track } from "@/lib/analytics";
+import { track, trackOnce } from "@/lib/analytics";
 import type { Dataset } from "@/lib/instagram/types";
 import { drawWrappedStory } from "./wrapped-canvas";
 import { storyStyles } from "./wrapped-style";
@@ -72,6 +72,9 @@ function WrappedDeck({
     () => [...buildStories(analysis, dataset, comparison), ...savedStories],
     [analysis, dataset, comparison, savedStories],
   );
+  useEffect(() => {
+    if (!isDemo && stories.length) trackOnce("wrapped_generated", dataset);
+  }, [dataset, isDemo, stories]);
   const [selected, setSelected] = useState<Story["id"]>("circle");
   const [message, setMessage] = useState("");
   const story = stories.find((item) => item.id === selected) ?? stories[0];
@@ -166,7 +169,7 @@ function WrappedDeck({
       !navigator.canShare?.({ files: [file] })
     ) {
       download(file, file.name);
-      track("wrapped_downloaded");
+      if (!isDemo) track("wrapped_downloaded");
       setMessage(
         share
           ? "Your PNG was downloaded. Add it to Instagram Stories or WhatsApp Status from your photos."
@@ -177,7 +180,7 @@ function WrappedDeck({
     setSharing(true);
     try {
       await navigator.share({ files: [file], title: "My Instagram Wrapped" });
-      track("wrapped_shared");
+      if (!isDemo) track("wrapped_shared");
       setMessage("Card handed to your device's share menu.");
     } catch (error) {
       setMessage(

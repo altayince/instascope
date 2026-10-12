@@ -3,6 +3,7 @@ import { primaryTools } from "../../src/lib/site";
 import { publicPaths } from "../../src/lib/public-paths";
 import { articles } from "../../src/lib/articles";
 import { productSections } from "../../src/lib/navigation";
+import { collectEvents } from "../helpers/analytics";
 
 test("export guides link to valid tools and preserve a working demo journey", async ({
   page,
@@ -33,6 +34,9 @@ test("public routes render one heading, load assets and fit mobile screens", asy
   page,
   request,
 }) => {
+  // The static test server does not host the separate Cloudflare collector.
+  // Model a configured deployment while keeping every asset failure visible.
+  await collectEvents(page);
   const errors: string[] = [],
     failed: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

@@ -22,9 +22,10 @@ import { RelationshipReview } from "./relationship-review";
 import { MutualOrigins } from "./mutual-origins";
 import { SavedHistoryAccountList } from "./saved-history-account-list";
 import { InsightLink } from "./actions";
+import { useProductSurface } from "./use-product-event";
 import { workspaceSections } from "@/lib/navigation";
 import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
-import { track } from "@/lib/analytics";
+import { trackOnce } from "@/lib/analytics";
 import type { Mode } from "@/lib/site";
 import type { ConnectionList, Dataset } from "@/lib/instagram/types";
 export const categories = {
@@ -133,6 +134,7 @@ export function Workspace({
     startDemo,
   } = useData();
   const pathname = usePathname();
+  const [landingEntry] = useState(() => pathname === "/" && !dataset);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState<Category>(initialCategory);
   const analysis = useMemo(
@@ -179,16 +181,24 @@ export function Workspace({
     if (difference) tabs.scrollLeft += difference;
   }, [pathname, mode, dataset]);
 
+  useProductSurface("landing_viewed", landingEntry && pathname === "/");
+  const surfaceEvent =
+    mode === "cleaner"
+      ? "cleaner_opened"
+      : mode === "pending"
+        ? "pending_requests_opened"
+        : mode === "privacy"
+          ? "connection_privacy_opened"
+          : mode === "history"
+            ? "unfollow_history_opened"
+            : mode === "timeline"
+              ? "timeline_opened"
+              : null;
+  useProductSurface(surfaceEvent, !!dataset);
   useEffect(() => {
-    track("landing_viewed");
-    if (mode === "cleaner") track("cleaner_opened");
-  }, [mode]);
-  useEffect(() => {
-    if (analysis && mode === "wrapped") track("wrapped_generated");
-  }, [analysis, mode]);
-  useEffect(() => {
-    if (comparison) track("comparison_succeeded");
-  }, [comparison]);
+    if (dataset && analysis && !dataset.metadata.demo)
+      trackOnce("results_viewed", dataset);
+  }, [dataset, analysis]);
   return (
     <section id="tool" className="workspace">
       {!dataset && (
@@ -319,13 +329,7 @@ export function Workspace({
               </div>
               {!older && <SavedComparisonChoice />}
               {!older && (
-                <Upload
-                  label="Upload older snapshot"
-                  onLoad={(value) => {
-                    track("comparison_started");
-                    setOlder(value);
-                  }}
-                />
+                <Upload label="Upload older snapshot" onLoad={setOlder} />
               )}
               {comparison && (
                 <SnapshotComparisonResults

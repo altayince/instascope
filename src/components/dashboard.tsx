@@ -16,10 +16,11 @@ import { demoPartialExport, demoVaultSnapshots } from "@/lib/demo";
 import { productSections } from "@/lib/navigation";
 import { ActionButton, ActionLink, InsightLink } from "./actions";
 import { tools, type ToolSlug } from "@/lib/site";
-import { track } from "@/lib/analytics";
+import { trackOnce } from "@/lib/analytics";
 import type { ConnectionList } from "@/lib/instagram/types";
 import type { VaultSnapshot } from "@/lib/snapshot-vault";
 import { useCirclePulse } from "./use-circle-pulse";
+import { useProductSurface } from "./use-product-event";
 
 const groups = productSections.map((section) => ({
   ...section,
@@ -166,9 +167,10 @@ export function Dashboard() {
     () => (dataset ? dashboardInsights(dataset, snapshotCount) : []),
     [dataset, snapshotCount],
   );
+  useProductSurface("dashboard_opened");
   useEffect(() => {
-    track("dashboard_opened");
-  }, []);
+    if (dataset && !dataset.metadata.demo) trackOnce("results_viewed", dataset);
+  }, [dataset]);
 
   const dated = timeline
     ? timeline.coverage.followers + timeline.coverage.following

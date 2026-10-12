@@ -30,6 +30,8 @@ import {
   type VaultSummary,
 } from "@/lib/snapshot-vault";
 import { vaultStorageMessage } from "@/lib/vault-storage";
+import { track } from "@/lib/analytics";
+import { useProductSurface } from "./use-product-event";
 
 function SnapshotHistory({ snapshots }: { snapshots: VaultSummary[] }) {
   const history = [...snapshots].reverse();
@@ -124,6 +126,7 @@ type Comparison = {
   result: SnapshotComparison;
 };
 export function SnapshotVault() {
+  useProductSurface("snapshot_vault_opened");
   const params = useSearchParams();
   const router = useRouter();
   const demo = params.get("demo") === "true";
@@ -132,12 +135,13 @@ export function SnapshotVault() {
     <VaultContents
       key={demo ? "demo" : "real"}
       fictional={demo ? fictional : undefined}
-      onToggleDemo={() =>
+      onToggleDemo={() => {
+        if (!demo) track("demo_started");
         router.replace(
           demo ? "/snapshot-vault/" : "/snapshot-vault/?demo=true",
           { scroll: false },
-        )
-      }
+        );
+      }}
     />
   );
 }
@@ -228,6 +232,7 @@ function VaultContents({
       setError(invalid);
       return;
     }
+    if (!demo) track("comparison_started");
     setBusy(true);
     try {
       const [first, second] = await Promise.all([
@@ -254,6 +259,7 @@ function VaultContents({
         newer,
         result: compareVaultSnapshots(first, second, sameAccountConfirmed),
       });
+      if (!demo) track("comparison_succeeded");
     } catch (error) {
       setError(vaultStorageMessage(error));
     } finally {

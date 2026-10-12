@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 import { readFile } from "node:fs/promises";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 const endpoint = "**/api/profile-picture?*";
 const imageUrl = "https://scontent-synthetic.cdninstagram.com/photo.png";
 const png = Buffer.from(
@@ -141,6 +142,90 @@ test("configured same-origin lookup displays a verified photo and keeps preview 
       () => (window as unknown as { profileEvents: string[] }).profileEvents,
     ),
   ).toContain("profile_succeeded");
+});
+
+test("profile analytics counts each real attempt once and excludes invalid input and the local sample", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const events: string[] = [];
+    Object.assign(window, { profileEvents: events });
+    window.addEventListener("instascope:event", (event) =>
+      events.push((event as CustomEvent).detail.event),
+    );
+  });
+  const events = () =>
+    page.evaluate(() =>
+      (window as unknown as { profileEvents: string[] }).profileEvents.filter(
+        (event) => event.startsWith("profile_"),
+      ),
+    );
+  let calls = 0;
+  await page.route(endpoint, (route) => {
+    calls++;
+    if (calls === 1)
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "profile_unavailable" }),
+      });
+    const username = new URL(route.request().url()).searchParams.get(
+      "username",
+    );
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ username, imageUrl }),
+    });
+  });
+  await page.route(imageUrl, (route) =>
+    route.fulfill({ contentType: "image/png", body: png }),
+  );
+  await open(page);
+  await submit(page, "bad name");
+  await expect(alert(page)).toContainText("Enter an Instagram username");
+  await page.getByRole("button", { name: "Try with sample photo" }).click();
+  await expect(
+    page.getByRole("img", {
+      name: "Synthetic sample portrait, not a real person",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Exit sample", exact: true }),
+  ).toBeEnabled();
+  expect(await events()).toEqual([]);
+  expect(calls).toBe(0);
+  await page.getByRole("button", { name: "Exit sample", exact: true }).click();
+
+  await submit(page, "unavailable.example");
+  await expect(alert(page)).toContainText("verifiable public profile photo");
+  await expect.poll(events).toEqual(["profile_search", "profile_failed"]);
+  await submit(page, "available.example");
+  const photo = page.getByRole("img", {
+    name: "Public profile photo for available.example",
+  });
+  await expect(photo).toBeVisible();
+  const firstAttempts = [
+    "profile_search",
+    "profile_failed",
+    "profile_search",
+    "profile_succeeded",
+  ];
+  await expect.poll(events).toEqual(firstAttempts);
+
+  // Preview reloads and an image becoming unavailable after a completed
+  // success must not create another terminal outcome for that lookup.
+  await photo.dispatchEvent("load");
+  expect(await events()).toEqual(firstAttempts);
+  await photo.dispatchEvent("error");
+  await expect(alert(page)).toContainText("photo is no longer available");
+  expect(await events()).toEqual(firstAttempts);
+
+  // A separate deliberate lookup is still counted, even for the same CDN URL.
+  await submit(page, "another.example");
+  await expect
+    .poll(events)
+    .toEqual([...firstAttempts, "profile_search", "profile_succeeded"]);
+  expect(calls).toBe(3);
 });
 
 for (const [shape, width, height] of [
@@ -492,8 +577,9 @@ for (const fixture of [
       .toBuffer();
     const outgoing: string[] = [];
     page.on("request", (request) => {
-      if (!["GET", "HEAD"].includes(request.method()))
-        outgoing.push(request.url());
+      if (["GET", "HEAD"].includes(request.method())) return;
+      if (isSafeAnalyticsRequest(request, new URL(page.url()).origin)) return;
+      outgoing.push(request.url());
     });
     await page.route(endpoint, (route) =>
       route.fulfill({

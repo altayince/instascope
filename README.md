@@ -29,7 +29,7 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
 - Optional export insights: pending-request ages and manual CSV review, private connection lists, your own recently-unfollowed records, year/month relationship dates and a following-date Wrapped card.
 - Dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
 - Independent public-photo viewer UI and optional rate-limited Worker. Public upstream access is best-effort; default deployment leaves lookup off.
-- Event-name-only analytics interface and optional Worker collector. Remote analytics is off unless configured.
+- Event-name-only analytics and an isolated Worker collector. Production builds use same-origin `/api/events`; preview builds default to remote analytics off. Deploy the collector separately; see [analytics setup](docs/ANALYTICS.md).
 
 ## Test and build
 

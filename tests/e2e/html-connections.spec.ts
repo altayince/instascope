@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { strToU8, zipSync } from "fflate";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 import {
   htmlConnectionDocument,
   htmlLabelRecord,
@@ -49,6 +50,7 @@ test("nested Meta HTML ZIP preserves optional privacy identities, dates and even
 }) => {
   const unexpected: string[] = [];
   page.on("request", (request) => {
+    if (isSafeAnalyticsRequest(request)) return;
     if (
       request.method() === "POST" ||
       new URL(request.url()).origin !== "http://127.0.0.1:3000"

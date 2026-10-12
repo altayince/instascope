@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { zipSync, strToU8 } from "fflate";
 import { syntheticConnections } from "../helpers/connection-export";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 
 async function upload(
   page: Page,
@@ -157,7 +158,9 @@ test("privacy categories distinguish absent, empty and unsupported while history
     "Jan 10, 2025",
   );
   await expect(
-    page.getByRole("link", { name: "Open unfollow.again on Instagram" }).first(),
+    page
+      .getByRole("link", { name: "Open unfollow.again on Instagram" })
+      .first(),
   ).toHaveAttribute("href", "https://www.instagram.com/unfollow.again/");
   await page.getByLabel("Search accounts").fill("unfollow.again");
   await expect(page.locator(".accounts li")).toHaveCount(2);
@@ -180,6 +183,7 @@ test("timeline filters real export dates and exports an aggregate-only story wit
   const requests: string[] = [],
     errors: string[] = [];
   page.on("request", (r) => {
+    if (isSafeAnalyticsRequest(r)) return;
     if (r.method() === "POST" || !r.url().startsWith("http://127.0.0.1:3000"))
       requests.push(r.url());
   });

@@ -205,12 +205,28 @@ test("crawlable viewer and Privacy copy explain local enhancement and actual bui
     "both exports belong to the same Instagram account",
     "does not automatically verify account identity",
     "We do not ask for a password or session cookie",
-    "Remote product analytics is not enabled",
     "Optional AI super resolution runs in a browser worker",
     "photo is not uploaded to an AI service",
     "Reports there are public",
   ])
     await expect(privacy).toContainText(text);
+  await expect(privacy.locator("[data-analytics-endpoint]")).toHaveAttribute(
+    "data-analytics-endpoint",
+    preview ? "" : "/api/events",
+  );
+  if (preview)
+    await expect(privacy).toContainText(
+      "Remote product analytics is not enabled",
+    );
+  else {
+    await expect(privacy).toContainText(
+      "This deployment sends allowlisted product event names",
+    );
+    await expect(privacy).toContainText(
+      "Do Not Track disables remote delivery",
+    );
+    await expect(privacy).toContainText("There are no analytics cookies");
+  }
   if (preview)
     await expect(privacy).toContainText(
       "Public-photo lookup is not configured on this deployment.",
