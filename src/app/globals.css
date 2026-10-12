@@ -150,11 +150,28 @@ small {
   align-items: center;
   min-height: 44px;
   padding: 8px 12px;
+  line-height: 1.6;
   border-radius: 8px;
 }
 .product-navigation summary {
-  display: list-item;
-  list-style-position: inside;
+  gap: 8px;
+  list-style: none;
+}
+.product-navigation summary::marker {
+  content: "";
+}
+.product-navigation summary::-webkit-details-marker {
+  display: none;
+}
+.product-navigation summary::after {
+  content: "";
+  flex-shrink: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+.product-navigation .tool-menu[open] > summary::after {
+  transform: rotate(180deg);
 }
 .product-navigation > a[aria-current="page"],
 .product-navigation .tool-menu[data-active="true"] > summary {

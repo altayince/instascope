@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 104,
+    title: "Align navigation, polish backups and read HTML connection lists",
+    summary:
+      "Header links and native menu triggers now share consistent alignment. Vault and Review Memory use one accessible backup picker with clear filenames. Instagram HTML relationship records support nested wrappers and explicitly labelled account tables while preserving date precision, privacy and missing/empty/unsupported distinctions.",
+  },
+  {
     issue: 102,
     title: "Circle Pulse and local Vault intelligence",
     summary:

@@ -66,6 +66,128 @@ async function populated(
   await expect(page.locator(".vault-row")).toHaveCount(records.length);
 }
 
+test("Vault backup picker is accessible, keeps filenames stable and resets for the same file", async ({
+  page,
+}) => {
+  await populated(page, [first]);
+  const maintenance = page.getByRole("region", {
+    name: "Keep a private backup",
+    exact: true,
+  });
+  const picker = maintenance.locator(".backup-file-picker");
+  const input = maintenance.getByLabel("Import Vault backup", { exact: true });
+  const trigger = picker.locator(".backup-file-trigger");
+  const filename = picker.locator(".backup-file-name");
+  await expect(trigger).toHaveText("Choose backup file");
+  await expect(filename).toHaveText("No file selected");
+  await expect(input).toHaveAttribute("accept", ".json,application/json");
+  await expect(input).toBeEnabled();
+  expect(
+    await input.evaluate((element) => element.getBoundingClientRect().width),
+  ).toBeLessThanOrEqual(1);
+  await expect(input).not.toHaveAttribute("aria-hidden", "true");
+  const exportButton = maintenance.getByRole("button", {
+    name: "Export Vault backup",
+    exact: true,
+  });
+  await exportButton.focus();
+  await page.keyboard.press("Tab");
+  await expect(input).toBeFocused();
+  await expect(trigger).toHaveCSS("outline-style", "solid");
+  const originalHeight = (await picker.boundingBox())!.height;
+  if (page.viewportSize()!.width > 600) {
+    // Measure both controls in one frame; focus can trigger smooth scrolling.
+    const bounds = await maintenance.evaluate((section) => {
+      const exported = section
+        .querySelector(".backup-file-controls > button")!
+        .getBoundingClientRect();
+      const chosen = section
+        .querySelector(".backup-file-trigger")!
+        .getBoundingClientRect();
+      return {
+        topDifference: Math.abs(exported.top - chosen.top),
+        heightDifference: Math.abs(exported.height - chosen.height),
+      };
+    });
+    expect(bounds.topDifference).toBeLessThanOrEqual(1);
+    expect(bounds.heightDifference).toBeLessThanOrEqual(1);
+  }
+
+  // Hold the browser-local file read so the existing busy state is observable.
+  await page.evaluate(() => {
+    const original = File.prototype.text;
+    File.prototype.text = async function () {
+      await new Promise<void>((resolve) => {
+        (
+          window as Window & { finishBackupRead?: () => void }
+        ).finishBackupRead = resolve;
+      });
+      File.prototype.text = original;
+      return original.call(this);
+    };
+  });
+  const chosen = page.waitForEvent("filechooser");
+  await page.keyboard.press("Enter");
+  await (await chosen).setFiles(backupFile([second]));
+  await expect(filename).toHaveText("instascope-snapshot-vault.json");
+  await expect(input).toBeDisabled();
+  await expect(
+    maintenance.getByRole("button", {
+      name: "Export Vault backup",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(picker).toHaveAttribute("data-disabled", "true");
+  await page.evaluate(() =>
+    (window as Window & { finishBackupRead?: () => void }).finishBackupRead!(),
+  );
+  const preview = maintenance.getByLabel("Backup import preview", {
+    exact: true,
+  });
+  await expect(preview).toContainText("1 new snapshot");
+  expect(
+    Math.abs((await picker.boundingBox())!.height - originalHeight),
+  ).toBeLessThanOrEqual(1);
+  expect(await savedRecords(page)).toEqual([first]);
+  await preview
+    .getByRole("button", { name: "Cancel import", exact: true })
+    .click();
+  await expect(preview).toHaveCount(0);
+  await expect(filename).toHaveText("No file selected");
+  await expect(input).toHaveValue("");
+
+  const again = page.waitForEvent("filechooser");
+  await trigger.click();
+  await (await again).setFiles(backupFile([second]));
+  await expect(preview).toContainText("1 new snapshot");
+  await preview
+    .getByRole("button", { name: "Import snapshots", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Merge this Vault backup?",
+    exact: true,
+  });
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(filename).toHaveText("instascope-snapshot-vault.json");
+  await expect(preview).toBeVisible();
+  await preview
+    .getByRole("button", { name: "Import snapshots", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "Confirm import", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  await expect(filename).toHaveText("No file selected");
+  await expect(input).toHaveValue("");
+  await expect(page.locator(".vault-row")).toHaveCount(2);
+  const stored = await savedRecords(page);
+  expect(stored.find((record) => record.id === first.id)).toEqual(first);
+  expect(stored.find((record) => record.id === second.id)?.exportDate).toBe(
+    second.exportDate,
+  );
+  await fits(page);
+});
+
 test("Vault is a private application route and leaves public SEO unchanged", async ({
   page,
   request,

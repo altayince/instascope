@@ -1,6 +1,10 @@
 "use client";
 import { useId, useRef, useState } from "react";
 import { ActionButton } from "./actions";
+import {
+  BackupFilePicker,
+  type BackupFilePickerHandle,
+} from "./backup-file-picker";
 import { VaultConfirmation } from "./vault-confirmation";
 import { useReviewMemory } from "./review-memory-provider";
 import {
@@ -26,7 +30,7 @@ export function ReviewMemoryManager({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const trigger = useRef<HTMLButtonElement | null>(null);
-  const input = useRef<HTMLInputElement>(null);
+  const picker = useRef<BackupFilePickerHandle>(null);
   const demo = fictional || memory.demo;
   const disabled = !memory.ready || !!memory.error || busy;
   const records = [...memory.records.values()];
@@ -80,7 +84,7 @@ export function ReviewMemoryManager({
             never silently replaced. Vault V1 backups continue to work
             separately.
           </p>
-          <div className="vault-actions">
+          <div className="backup-file-controls">
             <ActionButton
               type="button"
               disabled={disabled || !records.length || !!memory.corrupt}
@@ -110,38 +114,33 @@ export function ReviewMemoryManager({
             >
               Export Review Memory backup
             </ActionButton>
-            <label className="review-memory-import">
-              Import Review Memory backup
-              <input
-                ref={input}
-                type="file"
-                accept=".json,application/json"
-                disabled={disabled}
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  setBackup(null);
-                  setError("");
-                  setMessage("");
-                  if (!file) return;
-                  setBusy(true);
-                  try {
-                    if (file.size > MAX_REVIEW_BACKUP_BYTES)
-                      throw new Error(
-                        "Review Memory backup is too large. Nothing was imported.",
-                      );
-                    setBackup(parseReviewMemoryBackup(await file.text()));
-                  } catch (error) {
-                    setError(
-                      error instanceof Error
-                        ? error.message
-                        : "This backup could not be read. Nothing was imported.",
+            <BackupFilePicker
+              ref={picker}
+              label="Import Review Memory backup"
+              disabled={disabled}
+              onSelect={async (file) => {
+                setBackup(null);
+                setError("");
+                setMessage("");
+                if (!file) return;
+                setBusy(true);
+                try {
+                  if (file.size > MAX_REVIEW_BACKUP_BYTES)
+                    throw new Error(
+                      "Review Memory backup is too large. Nothing was imported.",
                     );
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              />
-            </label>
+                  setBackup(parseReviewMemoryBackup(await file.text()));
+                } catch (error) {
+                  setError(
+                    error instanceof Error
+                      ? error.message
+                      : "This backup could not be read. Nothing was imported.",
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
           </div>
           {backup && (
             <section
@@ -180,7 +179,7 @@ export function ReviewMemoryManager({
                   type="button"
                   onClick={() => {
                     setBackup(null);
-                    if (input.current) input.current.value = "";
+                    picker.current?.reset();
                   }}
                 >
                   Cancel Review Memory import
@@ -240,7 +239,7 @@ export function ReviewMemoryManager({
                     `${result.added} Review Memory records imported locally · ${result.skipped} existing local records kept.`,
                   );
                   setBackup(null);
-                  if (input.current) input.current.value = "";
+                  picker.current?.reset();
                 }
               }}
             >
