@@ -46,7 +46,9 @@ export type ConnectionKind =
   | "blocked"
   | "restricted"
   | "hideStoryFrom"
-  | "recentlyUnfollowed";
+  | "recentlyUnfollowed"
+  | "recentFollowRequests"
+  | "removedSuggestions";
 export type ConnectionList =
   | { status: "available"; accounts: Account[] }
   | { status: "missing" | "unsupported"; accounts: []; message: string };

@@ -13,6 +13,8 @@ import { validExportDate } from "../snapshot-storage";
 
 export const connectionContextLabels: Record<ConnectionKind, string> = {
   pendingRequests: "Sent request recorded",
+  recentFollowRequests: "Recent sent request record; outcome not distinguished",
+  removedSuggestions: "Removed profile suggestion record",
   recentlyUnfollowed: "You unfollowed this account in export history",
   closeFriends: "Close Friends record",
   blocked: "Blocked account record",

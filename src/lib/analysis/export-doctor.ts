@@ -58,6 +58,8 @@ export type ExportDoctorReport = {
     mutualOrigins: boolean;
     datedMutuals: number;
     pendingRequests: boolean;
+    recentSentRequests: boolean;
+    removedSuggestions: boolean;
     connectionPrivacy: "full" | "partial" | "unavailable";
     availablePrivacyLists: number;
     unfollowHistory: boolean;
@@ -78,6 +80,8 @@ const labels: Record<Relationship, string> = {
   followers: "Followers",
   following: "Following",
   pendingRequests: "Pending requests",
+  recentFollowRequests: "Recent sent-request records",
+  removedSuggestions: "Removed suggestions",
   closeFriends: "Close friends",
   blocked: "Blocked accounts",
   restricted: "Restricted accounts",
@@ -262,6 +266,8 @@ export function exportDoctor(dataset: Dataset): ExportDoctorReport {
       mutualOrigins: datedMutuals > 0,
       datedMutuals,
       pendingRequests: optional.pendingRequests.status === "available",
+      recentSentRequests: optional.recentFollowRequests.status === "available",
+      removedSuggestions: optional.removedSuggestions.status === "available",
       connectionPrivacy:
         availablePrivacyLists === privacyKinds.length
           ? "full"

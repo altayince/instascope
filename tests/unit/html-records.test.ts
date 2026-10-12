@@ -381,10 +381,13 @@ describe("HTML import status and transport parity", () => {
     expect(zip.following).toEqual(loose.following);
     expect(zip.connections).toEqual(loose.connections);
     expect(asyncZip.connections).toEqual(zip.connections);
-    for (const kind of connectionKinds) {
+    for (const name of Object.keys(syntheticHtmlConnections)) {
+      const kind = connectionKinds.find((value) => detectKind(name) === value)!;
       expect(zip.connections![kind].status).toBe("available");
       expect(zip.connections![kind].accounts).toHaveLength(2);
     }
+    expect(zip.connections!.recentFollowRequests.status).toBe("missing");
+    expect(zip.connections!.removedSuggestions.status).toBe("missing");
     expect(
       zip.connections!.recentlyUnfollowed.accounts.map(
         (entry) => entry.timestamp,
@@ -445,8 +448,8 @@ describe("HTML import status and transport parity", () => {
 
   it("does not expand unsupported export categories", () => {
     for (const filename of [
-      "recent_follow_requests.html",
-      "removed_suggestions.html",
+      "received_follow_requests.html",
+      "favorites.html",
       "synced_contacts.html",
     ])
       expect(detectKind(filename)).toBeUndefined();

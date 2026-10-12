@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { strToU8, zipSync } from "fflate";
 import {
+  htmlConnectionDocument,
+  htmlLabelRecord,
   syntheticHtmlCore,
   syntheticHtmlConnections,
 } from "../helpers/html-connection-export";
@@ -111,7 +113,7 @@ test("Doctor explains split JSON sources, dates and optional states without expo
   });
   await expect(status(page)).toContainText("Core relationships ready");
   await expect(status(page)).toContainText("66.7%");
-  await expect(status(page)).toContainText("4 of 6");
+  await expect(status(page)).toContainText("4 of 8");
   await details(page);
   const report = doctor(page);
   await expect(report.locator('[data-doctor-core="followers"]')).toContainText(
@@ -161,7 +163,7 @@ test("Doctor preserves real-structure HTML availability and timezone-unknown dat
   await page.goto("/dashboard/");
   await upload(page, { ...syntheticHtmlCore, ...syntheticHtmlConnections });
   await expect(status(page)).toContainText("50%");
-  await expect(status(page)).toContainText("6 of 6");
+  await expect(status(page)).toContainText("6 of 8");
   await details(page);
   const report = doctor(page);
   await expect(report).toContainText("HTML");
@@ -178,6 +180,10 @@ test("Doctor preserves real-structure HTML availability and timezone-unknown dat
     await expect(
       report.locator(`[data-doctor-category="${kind}"]`),
     ).toContainText("Included · 2 records");
+  for (const kind of ["recentFollowRequests", "removedSuggestions"])
+    await expect(
+      report.locator(`[data-doctor-category="${kind}"]`),
+    ).toContainText("Not included");
   await fits(page);
   await page
     .locator('.dashboard-tool-card[href="/connection-privacy/"]')
@@ -281,9 +287,17 @@ test("Doctor demo is fictional and partial-export examples do not replace comple
     page.getByText("Demo data · Fictional example", { exact: true }),
   ).toBeVisible();
   await expect(status(page)).toContainText("96.9%");
+  await expect(status(page)).toContainText("8 of 8");
   await details(page);
   await expect(doctor(page)).toContainText("JSON");
   await expect(doctor(page)).toContainText("3 follower files");
+  const activeReport = doctor(page).locator(":scope > .export-doctor-sections");
+  await expect(
+    activeReport.locator('[data-doctor-category="recentFollowRequests"]'),
+  ).toContainText("Included · 3 records");
+  await expect(
+    activeReport.locator('[data-doctor-category="removedSuggestions"]'),
+  ).toContainText("Included · 4 records");
   await doctor(page)
     .getByText("See a fictional partial export", { exact: true })
     .click();
@@ -301,6 +315,12 @@ test("Doctor demo is fictional and partial-export examples do not replace comple
   await expect(
     example.locator('[data-doctor-category="restricted"]'),
   ).toContainText("Could not read");
+  await expect(
+    example.locator('[data-doctor-category="recentFollowRequests"]'),
+  ).toContainText("Not included");
+  await expect(
+    example.locator('[data-doctor-category="removedSuggestions"]'),
+  ).toContainText("Included · 0 records");
   await fits(page);
   await page
     .locator('.dashboard-tool-card[href="/connection-privacy/"]')
@@ -317,4 +337,73 @@ test("Doctor demo is fictional and partial-export examples do not replace comple
     await expect(
       privacy.getByRole("button", { name: new RegExp(`${label} ${count}`) }),
     ).toBeVisible();
+});
+
+test("Doctor keeps Archive Extras separate from pending, privacy and unfollow history", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/");
+  await upload(page, {
+    "followers.json": "[]",
+    "following.json": "[]",
+    "recent_follow_requests.json": JSON.stringify([
+      {
+        timestamp: 1735689600,
+        media: [],
+        fbid: "12345678901234567",
+        label_values: [{ label: "Username", value: "synthetic.doctor.recent" }],
+      },
+    ]),
+    "removed_suggestions.html": htmlConnectionDocument([
+      htmlLabelRecord(
+        [["Username", "synthetic.doctor.suggestion"]],
+        "Jan 02, 2025 1:05 pm",
+      ),
+    ]),
+  });
+  await expect(status(page)).toContainText("2 of 8");
+  await details(page);
+  const report = doctor(page);
+  for (const kind of ["recentFollowRequests", "removedSuggestions"])
+    await expect(
+      report.locator(`[data-doctor-category="${kind}"]`),
+    ).toContainText("Included · 1 record");
+  for (const capability of ["recentSentRequests", "removedSuggestions"])
+    await expect(
+      report.locator(`[data-doctor-capability="${capability}"]`),
+    ).toContainText("Included · 1 record");
+  for (const capability of ["pendingRequests", "unfollowHistory"])
+    await expect(
+      report.locator(`[data-doctor-capability="${capability}"]`),
+    ).toContainText("Not included");
+  await expect(
+    report.locator('[data-doctor-capability="connectionPrivacy"]'),
+  ).toContainText("0 of 4 lists readable");
+  await expect(
+    report.locator('[data-doctor-capability="relationshipDates"]'),
+  ).toContainText("No usable recorded dates");
+  await expect(report).toContainText("not removed followers");
+  await expect(report).not.toContainText("synthetic.doctor.");
+  await expect(report).not.toContainText("12345678901234567");
+  await fits(page);
+
+  await page.reload();
+  await upload(page, {
+    "followers.json": "[]",
+    "following.json": "[]",
+    "recent_follow_requests.json": "{",
+    "removed_suggestions.json": "[]",
+  });
+  await expect(status(page)).toContainText("1 of 8");
+  await details(page);
+  await expect(
+    doctor(page).locator('[data-doctor-category="recentFollowRequests"]'),
+  ).toContainText("Could not read");
+  await expect(
+    doctor(page).locator('[data-doctor-category="removedSuggestions"]'),
+  ).toContainText("Included · 0 records");
+  await expect(
+    doctor(page).locator('[data-doctor-capability="pendingRequests"]'),
+  ).toContainText("Not included");
+  await fits(page);
 });

@@ -10,6 +10,8 @@ const percentage = (value: number) =>
   `${value.toLocaleString("en-US", { maximumFractionDigits: 1 })}%`;
 const labels: Record<ConnectionKind, string> = {
   pendingRequests: "Pending requests",
+  recentFollowRequests: "Recent sent-request records",
+  removedSuggestions: "Removed suggestions",
   closeFriends: "Close friends",
   blocked: "Blocked accounts",
   restricted: "Restricted accounts",
@@ -306,6 +308,14 @@ function DoctorDetails({
             <dt>Pending Requests</dt>
             <dd>{optionalStatus(report.optional.pendingRequests)}</dd>
           </div>
+          <div data-doctor-capability="recentSentRequests">
+            <dt>Recent sent-request records</dt>
+            <dd>{optionalStatus(report.optional.recentFollowRequests)}</dd>
+          </div>
+          <div data-doctor-capability="removedSuggestions">
+            <dt>Removed suggestions</dt>
+            <dd>{optionalStatus(report.optional.removedSuggestions)}</dd>
+          </div>
           <div data-doctor-capability="connectionPrivacy">
             <dt>Connection Privacy</dt>
             <dd>
@@ -390,6 +400,12 @@ function DoctorDetails({
             relationships, historical follower totals or uninterrupted
             following. A sent request record does not prove it is still pending
             today.
+          </li>
+          <li>
+            Recent sent-request records are separate from pending requests; the
+            export does not identify which were confirmed or deleted. Removed
+            suggestions are not removed followers. Dates in these lists are
+            recorded values, not verified action times.
           </li>
         </ul>
       </section>

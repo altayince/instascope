@@ -9,6 +9,7 @@ import type {
 import { missingConnection } from "@/lib/instagram/connections";
 import { filterRequests, type AgeFilter } from "@/lib/analysis/insights";
 import { AccountList } from "./account-list";
+import "./connection-insights.css";
 
 const privacyLists = {
   closeFriends: [
@@ -49,7 +50,10 @@ export function Unavailable({ list }: { list: ConnectionList }) {
   );
 }
 export function PendingRequests({ dataset }: { dataset: Dataset }) {
-  const list = readList(dataset, "pendingRequests");
+  const [kind, setKind] = useState<"pendingRequests" | "recentFollowRequests">(
+    "pendingRequests",
+  );
+  const list = readList(dataset, kind);
   const [referenceDate, setReferenceDate] = useState(() =>
     new Date(dataset.metadata.parsedAt).toISOString().slice(0, 10),
   );
@@ -60,15 +64,41 @@ export function PendingRequests({ dataset }: { dataset: Dataset }) {
   );
   return (
     <section aria-label="Pending request review">
+      <div className="insight-controls">
+        <label>
+          Request records
+          <select
+            value={kind}
+            onChange={(event) => setKind(event.target.value as typeof kind)}
+          >
+            <option value="pendingRequests">
+              Sent requests listed as pending
+            </option>
+            <option value="recentFollowRequests">Recent sent requests</option>
+          </select>
+        </label>
+      </div>
       <div className="list-heading">
-        <h3>Sent follow requests</h3>
-        <p>
-          Requests listed as pending in this export. Instagram may have changed
-          since the export was created. Review profiles manually.
-        </p>
+        <h3>
+          {kind === "pendingRequests"
+            ? "Sent follow requests"
+            : "Recent sent requests"}
+        </h3>
+        {kind === "pendingRequests" ? (
+          <p>
+            Requests listed as pending in this export. Instagram may have
+            changed since the export was created. Review profiles manually.
+          </p>
+        ) : (
+          <p>
+            Instagram groups recently sent requests that were confirmed or
+            deleted in this list. The records do not distinguish which happened
+            to each request or prove it is pending now.
+          </p>
+        )}
       </div>
       <Unavailable list={list} />
-      {list.status === "available" && (
+      {list.status === "available" && kind === "pendingRequests" && (
         <>
           <p className="notice">
             {list.accounts.length} requests in this export. Age means calendar
@@ -105,6 +135,7 @@ export function PendingRequests({ dataset }: { dataset: Dataset }) {
             age.
           </p>
           <AccountList
+            key={kind}
             relationshipDataset={dataset}
             accounts={filtered}
             selectionScope={list.accounts}
@@ -113,6 +144,25 @@ export function PendingRequests({ dataset }: { dataset: Dataset }) {
             dateLabel="Request recorded"
             ageReference={referenceDate}
             initialSort="oldest"
+          />
+        </>
+      )}
+      {list.status === "available" && kind === "recentFollowRequests" && (
+        <>
+          <p className="notice">
+            {list.accounts.length} recent sent request records in this export.
+            Dates are supplied by the export; they do not establish when a
+            request was confirmed or deleted. This is separate from the pending
+            request list.
+          </p>
+          <AccountList
+            key={kind}
+            relationshipDataset={dataset}
+            accounts={list.accounts}
+            demo={dataset.metadata.demo}
+            dateLabel="Request recorded"
+            initialSort="newest"
+            countLabel="records"
           />
         </>
       )}
@@ -176,31 +226,77 @@ export function PrivacyLists({ dataset }: { dataset: Dataset }) {
 }
 export function UnfollowHistory({ dataset }: { dataset: Dataset }) {
   const list = readList(dataset, "recentlyUnfollowed");
+  const removedSuggestions = readList(dataset, "removedSuggestions");
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const suggestionsStatus =
+    removedSuggestions.status === "available"
+      ? `Included · ${removedSuggestions.accounts.length} account${removedSuggestions.accounts.length === 1 ? "" : "s"}`
+      : removedSuggestions.status === "missing"
+        ? "Not included in this export"
+        : "Could not read safely";
   return (
-    <section aria-label="Your unfollow history">
-      <div className="list-heading">
-        <h3>Accounts you recently unfollowed</h3>
-        <p>
-          This is your own action history from Instagram’s recently-unfollowed
-          list. It does not identify people who unfollowed you.
+    <>
+      <section aria-label="Your unfollow history">
+        <div className="list-heading">
+          <h3>Accounts you recently unfollowed</h3>
+          <p>
+            This is your own action history from Instagram’s recently-unfollowed
+            list. It does not identify people who unfollowed you.
+          </p>
+        </div>
+        <p className="notice">
+          This list may cover only a limited period. It is not a complete
+          lifetime history, and an account may have been followed again. Dates
+          are the recorded event dates.
         </p>
-      </div>
-      <p className="notice">
-        This list may cover only a limited period. It is not a complete lifetime
-        history, and an account may have been followed again. Dates are the
-        recorded event dates.
-      </p>
-      <Unavailable list={list} />
-      {list.status === "available" && (
-        <AccountList
-          relationshipDataset={dataset}
-          accounts={list.accounts}
-          demo={dataset.metadata.demo}
-          dateLabel="Unfollow recorded"
-          initialSort="newest"
-          countLabel="records"
-        />
-      )}
-    </section>
+        <Unavailable list={list} />
+        {list.status === "available" && (
+          <AccountList
+            relationshipDataset={dataset}
+            accounts={list.accounts}
+            demo={dataset.metadata.demo}
+            dateLabel="Unfollow recorded"
+            initialSort="newest"
+            countLabel="records"
+          />
+        )}
+      </section>
+      <details
+        className="archive-extra-details"
+        onToggle={(event) => setSuggestionsOpen(event.currentTarget.open)}
+      >
+        <summary>
+          <span>Removed profile suggestions</span>
+          <small>{suggestionsStatus}</small>
+        </summary>
+        {suggestionsOpen && (
+          <section aria-label="Removed profile suggestions">
+            <div className="list-heading">
+              <h3>Removed profile suggestions</h3>
+              <p>
+                Profiles you removed from Instagram suggestions, as recorded in
+                this export.
+              </p>
+            </div>
+            <p className="notice">
+              Removing a suggestion does not mean you unfollowed the account,
+              removed a follower or were unfollowed. Dates are recorded values
+              from the export; they do not establish the account’s current
+              relationship with you. This list is separate from your unfollow
+              history.
+            </p>
+            <Unavailable list={removedSuggestions} />
+            {removedSuggestions.status === "available" && (
+              <AccountList
+                relationshipDataset={dataset}
+                accounts={removedSuggestions.accounts}
+                demo={dataset.metadata.demo}
+                dateLabel="Suggestion record"
+              />
+            )}
+          </section>
+        )}
+      </details>
+    </>
   );
 }

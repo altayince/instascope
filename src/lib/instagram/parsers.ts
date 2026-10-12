@@ -14,16 +14,24 @@ export function detectKind(path: string): Relationship | undefined {
     path.replaceAll("\\", "/").split("/").pop()?.toLowerCase() ?? "";
   if (/^followers(?:_\d+)?\.(json|html?)$/.test(filename)) return "followers";
   if (/^following(?:_\d+)?\.(json|html?)$/.test(filename)) return "following";
-  return connectionKinds.find((kind) =>
-    new RegExp(
-      `^${connectionFormats[kind].filename}(?:_\\d+)?\\.(json|html?)$`,
-    ).test(filename),
-  );
+  return connectionKinds.find((kind) => {
+    const format = connectionFormats[kind];
+    const suffix = format.allowNumericSuffix === false ? "" : "(?:_\\d+)?";
+    const extension =
+      format.allowHtm === false ? "(json|html)" : "(json|html?)";
+    return new RegExp(`^${format.filename}${suffix}\\.${extension}$`).test(
+      filename,
+    );
+  });
 }
 function record(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
-function parseEntries(value: unknown, allowLabels = false): Account[] {
+function parseEntries(
+  value: unknown,
+  allowLabels = false,
+  labelledOnly = false,
+): Account[] {
   if (!Array.isArray(value))
     throw new ImportError(
       "The relationship list has an unsupported structure. Request a fresh JSON export from Instagram.",
@@ -32,6 +40,21 @@ function parseEntries(value: unknown, allowLabels = false): Account[] {
   for (const row of value) {
     if (allowLabels && record(row) && Array.isArray(row.label_values)) {
       const fields = row.label_values.filter(record);
+      if (labelledOnly) {
+        const identities = fields
+          .filter((field) => field.label === "Username")
+          .map((field) => account(field.value, row.timestamp));
+        if (
+          !identities.length ||
+          identities.some((entry) => entry === null) ||
+          new Set(identities.map((entry) => entry?.username)).size !== 1
+        )
+          throw new ImportError(
+            "A connection record has no unambiguous exported Username. Incomplete results would be misleading.",
+          );
+        result.push(identities[0]!);
+        continue;
+      }
       // A display name can look like a username. Never infer identity from Name.
       const url = fields.find((field) => field.label === "URL")?.value;
       const username = fields.find(
@@ -50,6 +73,10 @@ function parseEntries(value: unknown, allowLabels = false): Account[] {
       result.push(entry);
       continue;
     }
+    if (labelledOnly)
+      throw new ImportError(
+        "This connection list requires exported labelled account records. Request a fresh export including this category.",
+      );
     if (!record(row) || !Array.isArray(row.string_list_data))
       throw new ImportError(
         "A relationship record is malformed. Request a fresh export; incomplete results would be misleading.",
@@ -107,6 +134,9 @@ export function parseJson(text: string, kind?: Relationship): ParsedPart[] {
         accounts: parseEntries(
           data,
           kind !== "followers" && kind !== "following",
+          kind !== "followers" && kind !== "following"
+            ? connectionFormats[kind].labelledOnly
+            : false,
         ),
       },
     ];
@@ -202,7 +232,10 @@ function ancestorTable(node: HtmlNode): HtmlElement | undefined {
     if (htmlElement(parent) && parent.name === "table") return parent;
 }
 
-function htmlLabelAccount(table: HtmlElement): Account | undefined {
+function htmlLabelAccount(
+  table: HtmlElement,
+  requireUsername = false,
+): Account | undefined {
   const fields = new Map<string, string[]>();
   let hasFieldRows = false;
   for (const row of findAll((node) => node.name === "tr", table.children)) {
@@ -235,6 +268,13 @@ function htmlLabelAccount(table: HtmlElement): Account | undefined {
   const usernameFields = (fields.get("Username") ?? []).map((value) =>
     account(value),
   );
+  if (
+    requireUsername &&
+    (!usernameFields.length || usernameFields.some((entry) => entry === null))
+  )
+    throw new ImportError(
+      "An HTML connection record has no supported exported Username. Incomplete results would be misleading.",
+    );
   if (
     usernameFields.length > 1 &&
     usernameFields.some((entry) => entry === null)
@@ -286,6 +326,10 @@ function htmlRecordAccounts(
   const main = findAll((node) => node.name === "main", document.children)[0];
   const body = findAll((node) => node.name === "body", document.children)[0];
   const root = main ?? body ?? document;
+  const labelledOnly =
+    kind !== "followers" &&
+    kind !== "following" &&
+    connectionFormats[kind].labelledOnly === true;
   const seeds: { node: HtmlElement; profile: Account; labelled: boolean }[] =
     [];
   for (const node of findAll(
@@ -295,13 +339,14 @@ function htmlRecordAccounts(
     if (excludedHtmlContext(node, root)) continue;
     if (node.name === "table") {
       if (kind === "followers" || kind === "following") continue;
-      const profile = htmlLabelAccount(node);
+      const profile = htmlLabelAccount(node, labelledOnly);
       if (profile) seeds.push({ node, profile, labelled: true });
       continue;
     }
     // URL fields inside tables belong to their labelled record, never a second
     // account inferred from its stale URL. Core imports do not consume tables.
     if (ancestorTable(node)) continue;
+    if (labelledOnly) continue;
     const profile = htmlProfile(node.attribs.href);
     if (profile) seeds.push({ node, profile, labelled: false });
   }

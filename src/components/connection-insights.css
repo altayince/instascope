@@ -1,0 +1,20 @@
+.archive-extra-details {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.archive-extra-details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.archive-extra-details > summary small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.archive-extra-details > section {
+  margin-top: 20px;
+}

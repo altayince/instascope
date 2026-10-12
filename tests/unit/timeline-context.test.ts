@@ -13,6 +13,9 @@ import {
 } from "../../src/lib/analysis/timeline-context";
 import { relationshipHistoryIndex } from "../../src/lib/analysis/relationship-history";
 import { mutualOrigins } from "../../src/lib/analysis/mutual-origins";
+import { relationshipTimeline } from "../../src/lib/analysis/insights";
+import { relationshipReview } from "../../src/lib/analysis/review";
+import { analyze } from "../../src/lib/analysis/relationships";
 import { demoSnapshots, demoVaultSnapshots } from "../../src/lib/demo";
 
 const day = (d: number, h = 0) => Date.UTC(2021, 0, d, h) / 1000;
@@ -124,6 +127,50 @@ describe("Timeline relationship summaries", () => {
   });
 });
 describe("Timeline supported context", () => {
+  it("shows archive extras only as recorded context, without adding pending, unfollow or timeline events", () => {
+    const connections = Object.fromEntries(
+      connectionKinds.map((kind) => [kind, missingConnection()]),
+    ) as NonNullable<Dataset["connections"]>;
+    connections.recentFollowRequests = {
+      status: "available",
+      accounts: [account("sample.recentrequest", day(1))!],
+    };
+    connections.removedSuggestions = {
+      status: "available",
+      accounts: [account("sample.suggestion", day(2))!],
+    };
+    const dataset = { ...current, connections };
+    const index = timelineAccountIndex(dataset);
+    expect(
+      timelineAccountContext("sample.recentrequest", index).current,
+    ).toEqual(["Recent sent request record; outcome not distinguished"]);
+    expect(timelineAccountContext("sample.suggestion", index).current).toEqual([
+      "Removed profile suggestion record",
+    ]);
+    for (const username of ["sample.recentrequest", "sample.suggestion"])
+      expect(timelineAccountSummary(username, index).state).toBeUndefined();
+    const review = relationshipReview(dataset, analyze(dataset));
+    expect(review.pendingAccounts).toEqual([]);
+    expect(review.unfollowedAccounts).toEqual([]);
+    expect(
+      review.selectionScope.some((a) => a.username === "sample.suggestion"),
+    ).toBe(false);
+    expect(
+      review.selectionScope.some((a) => a.username === "sample.recentrequest"),
+    ).toBe(false);
+    expect(relationshipTimeline(dataset)).toEqual(
+      relationshipTimeline(current),
+    );
+    connections.recentFollowRequests = missingConnection();
+    connections.removedSuggestions = {
+      status: "unsupported",
+      accounts: [],
+      message: "Could not read safely",
+    };
+    const unavailable = timelineAccountIndex(dataset);
+    expect(unavailable.names.has("sample.recentrequest")).toBe(false);
+    expect(unavailable.names.has("sample.suggestion")).toBe(false);
+  });
   it("uses only available active-export optional records, without treating private-only names as current absent", () => {
     const connections = Object.fromEntries(
       connectionKinds.map((kind) => [kind, missingConnection()]),

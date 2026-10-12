@@ -28,6 +28,13 @@ const rows = (values: { username: string; timestamp?: unknown }[]) =>
     string_list_data: [{ value: username, timestamp }],
   }));
 const core = [json("followers.json", []), json("following.json", [])];
+const extraRows = (values: { username: string; timestamp?: number }[]) =>
+  values.map(({ username, timestamp }) => ({
+    ...(timestamp === undefined ? {} : { timestamp }),
+    media: [],
+    fbid: "12345678901234567",
+    label_values: [{ label: "Username", value: username }],
+  }));
 const generatedHtml = (text: string, generation: string) =>
   text.replace(
     "<body>",
@@ -207,6 +214,111 @@ describe("Export Doctor coverage and capabilities", () => {
     });
   });
 
+  it("reports Archive Extras independently from pending, unfollow and privacy capabilities", () => {
+    const data = importDataset([
+      ...core,
+      json(
+        "recent_follow_requests.json",
+        extraRows([{ username: "synthetic.recent", timestamp: 1704067200 }]),
+      ),
+      json(
+        "removed_suggestions.json",
+        extraRows([{ username: "synthetic.suggestion" }]),
+      ),
+    ]);
+    const report = exportDoctor(data);
+    expect(Object.keys(report.optional)).toHaveLength(8);
+    expect(report.optional.recentFollowRequests).toMatchObject({
+      status: "available",
+      records: 1,
+      sourceFiles: 1,
+      jsonFiles: 1,
+    });
+    expect(report.optional.removedSuggestions).toMatchObject({
+      status: "available",
+      records: 1,
+      sourceFiles: 1,
+    });
+    expect(report.archive).toMatchObject({
+      recognizedFiles: 4,
+      optionalCategoriesFound: 2,
+      optionalSourceFiles: 2,
+    });
+    expect(report.capabilities).toMatchObject({
+      recentSentRequests: true,
+      removedSuggestions: true,
+      pendingRequests: false,
+      unfollowHistory: false,
+      connectionPrivacy: "unavailable",
+      availablePrivacyLists: 0,
+      relationshipDates: false,
+      wrappedDateStories: false,
+    });
+    expect(JSON.stringify(report)).not.toMatch(
+      /synthetic\.recent|synthetic\.suggestion|12345678901234567|fbid|label_values/,
+    );
+  });
+
+  it("distinguishes missing, available-empty and unsupported Archive Extras without guessing zero", () => {
+    const missing = exportDoctor(importDataset(core));
+    for (const kind of [
+      "recentFollowRequests",
+      "removedSuggestions",
+    ] as const) {
+      expect(missing.optional[kind]).toMatchObject({
+        status: "missing",
+        sourceFiles: 0,
+      });
+      expect(missing.optional[kind].records).toBeUndefined();
+    }
+    expect(missing.capabilities.recentSentRequests).toBe(false);
+    expect(missing.capabilities.removedSuggestions).toBe(false);
+    for (const [emptyFile, unsupportedFile, emptyKind, unsupportedKind] of [
+      [
+        "recent_follow_requests.json",
+        "removed_suggestions.json",
+        "recentFollowRequests",
+        "removedSuggestions",
+      ],
+      [
+        "removed_suggestions.json",
+        "recent_follow_requests.json",
+        "removedSuggestions",
+        "recentFollowRequests",
+      ],
+    ] as const) {
+      const report = exportDoctor(
+        importDataset([
+          ...core,
+          json(emptyFile, []),
+          input(unsupportedFile, "{"),
+        ]),
+      );
+      expect(report.optional[emptyKind]).toMatchObject({
+        status: "available",
+        records: 0,
+        sourceFiles: 1,
+      });
+      expect(report.optional[unsupportedKind]).toMatchObject({
+        status: "unsupported",
+        sourceFiles: 1,
+      });
+      expect(report.optional[unsupportedKind].records).toBeUndefined();
+      expect(report.capabilities.recentSentRequests).toBe(
+        emptyKind === "recentFollowRequests",
+      );
+      expect(report.capabilities.removedSuggestions).toBe(
+        emptyKind === "removedSuggestions",
+      );
+      expect(report.capabilities.pendingRequests).toBe(false);
+      expect(report.capabilities.unfollowHistory).toBe(false);
+      expect(
+        report.warnings.find((warning) => warning.category === unsupportedKind)
+          ?.message,
+      ).toContain("could not be read completely");
+    }
+  });
+
   it("does not infer source-file counts, content format, range or generation from legacy datasets", () => {
     const report = exportDoctor(dataset([account("very.old", 946684800)!]));
     expect(report.provenanceAvailable).toBe(false);
@@ -368,7 +480,7 @@ describe("Aggregate import provenance", () => {
       "connections/followers.json": strToU8("[]"),
       "connections/following.json": strToU8("[]"),
       "media/photo.jpg": strToU8("not read"),
-      "recent_follow_requests.json": strToU8("not supported"),
+      "synced_contacts.json": strToU8("not supported"),
     });
     const directory = locateDirectory(
       zip.subarray(Math.max(0, zip.length - ZIP_TAIL_BYTES)),
@@ -409,7 +521,7 @@ describe("Aggregate import provenance", () => {
       zip: 1,
     });
     expect(JSON.stringify(sync.metadata.importProvenance)).not.toMatch(
-      /private-archive-name|photo\.jpg|connections\/|recent_follow_requests/,
+      /private-archive-name|photo\.jpg|connections\/|synced_contacts/,
     );
   });
 
@@ -473,10 +585,15 @@ describe("Aggregate import provenance", () => {
       timezoneUnknownDates: 1,
     });
     expect(
-      connectionKinds.every(
-        (kind) => report.optional[kind].status === "available",
-      ),
+      connectionKinds
+        .filter(
+          (kind) =>
+            kind !== "recentFollowRequests" && kind !== "removedSuggestions",
+        )
+        .every((kind) => report.optional[kind].status === "available"),
     ).toBe(true);
+    expect(report.optional.recentFollowRequests.status).toBe("missing");
+    expect(report.optional.removedSuggestions.status).toBe("missing");
     expect(report.capabilities.connectionPrivacy).toBe("full");
   });
 
@@ -487,6 +604,14 @@ describe("Aggregate import provenance", () => {
         rows([{ username: "vault.identity", timestamp: 1704067200 }]),
       ),
       json("following.json", []),
+      json(
+        "recent_follow_requests.json",
+        extraRows([{ username: "synthetic.active.recent" }]),
+      ),
+      json(
+        "removed_suggestions.json",
+        extraRows([{ username: "synthetic.active.suggestion" }]),
+      ),
     ]);
     const saved = createSavedSnapshot(data, "2025-01-01");
     const vault = createVaultSnapshot(data, "2025-01-01", "synthetic-vault", 1);
@@ -505,7 +630,14 @@ describe("Aggregate import provenance", () => {
       "version",
     ]);
     expect(serializeVaultBackup([vault])).not.toMatch(
-      /importProvenance|Doctor|recognizedFiles|dateCoverage|sourceFormat|generationDate/,
+      /importProvenance|Doctor|recognizedFiles|dateCoverage|sourceFormat|generationDate|recentFollowRequests|removedSuggestions|synthetic\.active/,
+    );
+    expect(JSON.stringify(saved)).not.toMatch(
+      /recentFollowRequests|removedSuggestions|synthetic\.active/,
+    );
+    const withoutExtras = { ...data, connections: undefined };
+    expect(buildStories(analyze(data), data, null)).toEqual(
+      buildStories(analyze(withoutExtras), withoutExtras, null),
     );
   });
 

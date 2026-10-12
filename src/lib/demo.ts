@@ -114,6 +114,14 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
         status: "available",
         accounts: privacyEntries("hidden", 5, 1430),
       },
+      recentFollowRequests: {
+        status: "available",
+        accounts: privacyEntries("recentrequest", 3, 1300),
+      },
+      removedSuggestions: {
+        status: "available",
+        accounts: privacyEntries("suggestion", 4, 1310),
+      },
     },
     metadata: {
       ...metadata,
@@ -147,6 +155,8 @@ export function demoPartialExport(): Dataset {
       message: "This fictional category could not be read safely.",
     },
     hideStoryFrom: missingConnection(),
+    recentFollowRequests: missingConnection(),
+    removedSuggestions: { status: "available", accounts: [] },
   };
   dataset.metadata.importProvenance = fictionalProvenance(dataset.connections);
   return dataset;
