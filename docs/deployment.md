@@ -63,21 +63,35 @@ INS-82 keeps browser-local Real-ESRGAN as an explicitly general-purpose **AI ups
 
 Run `npm run check`, `npm run build:production` and the full `npm run test:e2e` suite for the configured static build. The profile tests intercept the same-origin API and photo response. To additionally exercise the truly unconfigured build, unset `NEXT_PUBLIC_PROFILE_ENDPOINT`, set `NEXT_PUBLIC_PREVIEW=true`, run `npm run build`, then run `npm run test:e2e -- tests/e2e/profile-viewer.spec.ts --grep "deployment fallback"`. Remove the override and rebuild production before testing or deploying the configured feature. Worker unit tests cover current metadata, identity mismatches, login/redirect responses, rate limits, response-size limits, timeout and URL trust; health smoke tests never contact Instagram.
 
-## Optional product analytics
+## First-party aggregate product analytics
 
-INS-85 production audit: live `/privacy/` matched the generated current-main content; no stale Privacy build/cache was found. The public-photo endpoint was compiled as `/api/profile-picture`, and remote product analytics was disabled in the live copy. Local AI enhancement and the required same-account snapshot confirmation were missing from that explanation and have been added. Build-time `NEXT_PUBLIC_*` settings must be verified in the generated `out/privacy/index.html` and the deployed page, not inferred from Worker runtime settings. This task does not deploy analytics infrastructure or change its configuration.
+INS-110 production builds compile `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` by default using the existing production/preview environment detection. Preview and local builds remain disabled unless a valid same-origin endpoint is explicitly configured. `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off` disables delivery even in production; a preserved explicit empty value also disables it. Rebuild after changing public variables. Check `out/privacy/index.html` and the deployed Privacy paragraph's `data-analytics-endpoint`; runtime Worker variables cannot change the static client.
+
+The static application deployment does **not** deploy this separate collector. Before publishing the enabled client, use the existing account session/token for the Cloudflare account owning `instascope.me`, confirm proxied DNS and Analytics Engine availability, and verify native limiter namespace `1002` does not belong to an unrelated service. The production config declares `EVENTS` for `instascope_events`, `RATE_LIMITER` at 60 events per 60 seconds, and the HTTPS route `https://instascope.me/api/events*`. Only exact `/api/events` is accepted by the handler. Existing CSP `connect-src 'self'` already permits this endpoint; no CORS or third-party endpoint is added.
+
+```powershell
+$env:PATH = "$PWD\.tools\node-v24.21.0-win-x64;$env:PATH"
+npx.cmd --yes wrangler@4.147.0 deploy --config workers/wrangler.analytics.jsonc --env production
+npm.cmd run build:production
+```
+
+Then publish the generated `out` directory through the existing static deployment. Analytics Engine creates the dataset on the first accepted write. Native rate limiter bindings are verified through Wrangler's config/deployment output, not a dashboard binding list. Limiting is approximate and per Cloudflare location. Check [current account availability and pricing](https://developers.cloudflare.com/analytics/analytics-engine/pricing/) without upgrading or assuming permanently free quotas. This PR supplies deployment configuration; it does not claim that an account binding or live route was created.
 
 The footer's reporting destination is the existing public repository's GitHub issue form. Repository visibility and enabled Issues were verified before linking it. Reports are public and must contain fictional examples rather than archives, account lists or credentials; GitHub sign-in is required to submit a report. If repository visibility changes, remove or replace this public link rather than pointing users at a private repository.
 
-With no configuration, event names are visible only via a browser event listener:
+With remote delivery disabled, event names are visible only via a browser event listener:
 
 ```js
-window.addEventListener('instascope:event', e => console.info(e.detail.event));
+window.addEventListener("instascope:event", (e) =>
+  console.info(e.detail.event),
+);
 ```
 
-To enable remote aggregate metrics, deploy `workers/analytics.ts` using its Wrangler config, connect an Analytics Engine dataset and limiter, and add a same-origin `/api/events` route. Set `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` and rebuild. Check current account pricing/availability first. The worker accepts exactly `{ "event": "<allowlisted name>" }`, rejects extra keys and large bodies, stores one event name and a numeric count, and does not store IP keys used for rate limiting. Hosting request logs must be assessed separately. The client respects Do Not Track and omits credentials and referrer.
+The collector accepts exactly `{ "event": "<allowlisted name>" }`, with a 100-byte body bound and no metadata. It writes only `blobs: [event]`, `doubles: [1]`, with no indexes; Cloudflare additionally supplies ingestion timestamp and sampling fields. The connecting IP is used ephemerally by the native limiter, never stored in Analytics Engine or intentionally logged. Worker observability, invocation logs and Logpush are disabled; assess hosting/security logging separately. Client delivery respects Do Not Track, omits credentials/referrer and rejects redirects. Every response is `no-store`. Product actions remain usable if analytics is missing, rate limited or unavailable.
 
-Example aggregate query: `SELECT blob1 AS event, SUM(double1) AS total FROM instascope_events GROUP BY event`. Set retention/access controls appropriate to the chosen host. Do not add export counts, usernames, filenames, lists, persistent IDs or arbitrary event properties.
+Use sampling-weighted totals, not raw row counts: `SELECT blob1 AS event, SUM(_sample_interval * double1) AS total FROM instascope_events WHERE timestamp >= NOW() - INTERVAL '7' DAY GROUP BY blob1 ORDER BY total DESC FORMAT JSON`. [ANALYTICS.md](ANALYTICS.md) contains the full event audit, exact SQL/API instructions and guarded event-volume ratios. Account-restricted reporting tokens stay outside the frontend and repository. These metrics do not identify users, sessions or whether one person returned.
+
+A configuration probe can POST `{"event":"readiness_probe"}` to `/api/events` with `Origin: https://instascope.me` and `Content-Type: application/json`. The unknown event is never persisted: `400` from the collector means it safely rejected the probe, `503` means bindings are unavailable, and `404`/HTML indicates a missing route. `429` means wait for the limiter; `204` with `DNT: 1` is a discarded request and does not prove readiness. Confirm `Cache-Control: no-store` and `X-Robots-Tag: noindex`. This checks routing/bindings, not durable event ingestion. Do not use a real product event for automated smoke checks.
 
 ## Public launch gates
 
@@ -85,6 +99,6 @@ Example aggregate query: `SELECT blob1 AS event, SUM(double1) AS total FROM inst
 - Test physical mobile devices and Safari; Chromium mobile emulation is not sufficient for universal support.
 - Set domain, canonical URL, and verify robots now allows crawling.
 - Verify the domain in Google Search Console, submit `/sitemap.xml`, and inspect tool pages.
-- Configure analytics only if desired, then verify payloads contain event names alone.
+- Verify the analytics collector before publishing an enabled production build, or explicitly disable delivery with `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off`. Payloads must contain event names alone.
 - Recheck photo delivery and rate limiting if enabling that optional service.
 - No promotional messages have been posted to social/community accounts.

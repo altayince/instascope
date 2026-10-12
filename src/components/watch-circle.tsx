@@ -20,9 +20,11 @@ import { useReviewMemory } from "./review-memory-provider";
 import { useVaultHistoryIndex } from "./use-vault-history";
 import { RelationshipDrawer } from "./relationship-drawer";
 import { ActionButton } from "./actions";
+import { useVisibleProductSurface } from "./use-product-event";
 import "./watch-circle.css";
 
 export function WatchCircle({ dataset }: { dataset: Dataset }) {
+  const surface = useVisibleProductSurface("watch_circle_opened");
   const { currentExportDate } = useData();
   const fictional = useMemo(
     () => (dataset.metadata.demo ? demoWatchSnapshots() : undefined),
@@ -36,6 +38,7 @@ export function WatchCircle({ dataset }: { dataset: Dataset }) {
       key={`${history.signature}:${currentExportDate ?? ""}`}
       dataset={dataset}
       history={history}
+      surface={surface}
     />
   );
 }
@@ -43,9 +46,11 @@ export function WatchCircle({ dataset }: { dataset: Dataset }) {
 function WatchCircleContents({
   dataset,
   history,
+  surface,
 }: {
   dataset: Dataset;
   history: ReturnType<typeof useVaultHistoryIndex>;
+  surface: ReturnType<typeof useVisibleProductSurface>;
 }) {
   const id = useId();
   const memory = useReviewMemory();
@@ -152,7 +157,11 @@ function WatchCircleContents({
     isDeletedInstagramAccount(name) ? "Deleted account" : `@${name}`;
   const skipped = model.skippedSnapshots || (!demo ? corruptSnapshots : 0);
   return (
-    <section className="watch-circle" aria-labelledby={`${id}-title`}>
+    <section
+      ref={surface}
+      className="watch-circle"
+      aria-labelledby={`${id}-title`}
+    >
       <div className="dashboard-section-heading">
         <span className="eyebrow">WATCH CIRCLE</span>
         <h2 className="dashboard-section-title" id={`${id}-title`}>

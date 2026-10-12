@@ -3,6 +3,7 @@ import { strToU8, zipSync } from "fflate";
 import { tools } from "../../src/lib/site";
 import { syntheticConnections } from "../helpers/connection-export";
 import { savedRecords, seedRecords } from "../helpers/vault";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 
 test("Dashboard Pulse facts use saved Vault only and do not infer active-account identity", async ({
   page,
@@ -171,6 +172,7 @@ test("real upload populates counts and coverage, persists through tools and open
   const outbound: string[] = [];
   const origin = new URL(baseURL!).origin;
   page.on("request", (request) => {
+    if (isSafeAnalyticsRequest(request, origin)) return;
     // WebKit reports browser-local blob reads as requests; they keep our origin.
     if (request.method() === "POST" || new URL(request.url()).origin !== origin)
       outbound.push(request.url());

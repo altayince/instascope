@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import type { Dataset } from "@/lib/instagram/types";
+import { track } from "@/lib/analytics";
 import { demoSnapshots } from "@/lib/demo";
 import {
   restoreSavedSnapshot,
@@ -150,10 +151,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [storageReady, refreshVault]);
 
   function setOlder(value: Dataset | null) {
+    const source = current.current;
+    const realComparison =
+      value && source && !value.metadata.demo && !source.metadata.demo;
+    if (realComparison) track("comparison_started");
     selected.current = null;
     setPrevious(value);
     setOlderSource(value ? "manual" : null);
     setCurrentExportDate(null);
+    if (realComparison) track("comparison_succeeded");
   }
   function clear() {
     current.current = null;
@@ -180,6 +186,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       );
     }
     const saved = await store.save(candidate, replace);
+    track("snapshot_saved");
     await refreshVault();
     return saved;
   }
@@ -194,6 +201,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return "Upload an export before comparing with a saved snapshot.";
     if (source.metadata.demo)
       return "A fictional demo cannot be compared with your saved snapshot.";
+    track("comparison_started");
     try {
       const saved = await store.get(id);
       if (saved.createdAt !== revision) {
@@ -208,6 +216,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setPrevious(restoreSavedSnapshot(saved));
       setOlderSource("saved");
       setCurrentExportDate(date);
+      track("comparison_succeeded");
       return null;
     } catch (error) {
       return vaultStorageMessage(error);
@@ -267,6 +276,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           setPrevious(demo.older);
           setOlderSource("demo");
           setCurrentExportDate(null);
+          track("demo_started");
         },
       }}
     >

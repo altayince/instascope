@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 
 test("homepage leads with relationship review and keeps every tool and demo usable", async ({
   page,
@@ -63,6 +64,7 @@ test("fictional demo supports exploration, Cleaner, comparison and a labeled PNG
 }) => {
   const external: string[] = [];
   page.on("request", (r) => {
+    if (isSafeAnalyticsRequest(r)) return;
     // WebKit reports local blob downloads as requests; their origin is still local.
     if (
       r.method() === "POST" ||

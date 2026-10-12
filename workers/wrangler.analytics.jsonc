@@ -1,17 +1,43 @@
 {
-  "name": "instascope-product-events",
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "instascope-product-events-local",
   "main": "analytics.ts",
   "compatibility_date": "2026-09-26",
   "workers_dev": false,
-  "analytics_engine_datasets": [
-    { "binding": "EVENTS", "dataset": "instascope_events" },
-  ],
-  "ratelimits": [
-    {
-      "name": "RATE_LIMITER",
-      "namespace_id": "1002",
-      "simple": { "limit": 60, "period": 60 },
+  "preview_urls": false,
+  "logpush": false,
+  "observability": {
+    "enabled": false,
+    "logs": { "enabled": false, "invocation_logs": false },
+  },
+  // A distinct default name prevents an omitted --env production from replacing
+  // the production collector with a binding-free local configuration.
+  "env": {
+    "production": {
+      "name": "instascope-product-events",
+      "workers_dev": false,
+      "preview_urls": false,
+      "logpush": false,
+      "observability": {
+        "enabled": false,
+        "logs": { "enabled": false, "invocation_logs": false },
+      },
+      "routes": [
+        {
+          "pattern": "https://instascope.me/api/events*",
+          "zone_name": "instascope.me",
+        },
+      ],
+      "analytics_engine_datasets": [
+        { "binding": "EVENTS", "dataset": "instascope_events" },
+      ],
+      "ratelimits": [
+        {
+          "name": "RATE_LIMITER",
+          "namespace_id": "1002",
+          "simple": { "limit": 60, "period": 60 },
+        },
+      ],
     },
-  ],
-  "observability": { "enabled": false },
+  },
 }

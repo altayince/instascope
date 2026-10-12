@@ -1,5 +1,6 @@
 "use client";
-import { useId } from "react";
+import { useId, useRef } from "react";
+import { track } from "@/lib/analytics";
 import type { ExportDoctorReport } from "@/lib/analysis/export-doctor";
 import { connectionKinds } from "@/lib/instagram/connections";
 import type { ConnectionKind } from "@/lib/instagram/types";
@@ -75,6 +76,7 @@ export function ExportDoctor({
   demoExampleReport?: ExportDoctorReport;
 }) {
   const id = useId();
+  const opened = useRef(false);
   const lists = Object.values(report.optional);
   const readable = lists.filter((entry) => entry.status === "available").length;
   const missing = lists.filter((entry) => entry.status === "missing").length;
@@ -121,7 +123,19 @@ export function ExportDoctor({
             "Core tools remain available."}
         </p>
       )}
-      <details className="export-doctor-details">
+      <details
+        className="export-doctor-details"
+        onToggle={(event) => {
+          if (
+            event.target !== event.currentTarget ||
+            !event.currentTarget.open ||
+            opened.current
+          )
+            return;
+          opened.current = true;
+          track("export_doctor_opened");
+        }}
+      >
         <summary>View export details</summary>
         <section
           className="export-doctor-expanded"

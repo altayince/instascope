@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { strToU8, zipSync } from "fflate";
 import { readFileSync } from "node:fs";
 import { writeLargeExport } from "../helpers/large-export";
+import { isSafeAnalyticsRequest } from "../helpers/analytics";
 const files = [
   "tests/fixtures/followers_1.json",
   "tests/fixtures/following.json",
@@ -42,6 +43,7 @@ test("large media-rich ZIP imports locally without transferring file bytes on th
   });
   const posts: string[] = [];
   page.on("request", (request) => {
+    if (isSafeAnalyticsRequest(request)) return;
     if (request.method() === "POST") posts.push(request.url());
   });
   await page.goto("/followers-analyzer/");
@@ -60,6 +62,7 @@ test("upload ZIP, correct relationships, search, and no network upload", async (
   const uploads: string[] = [],
     errors: string[] = [];
   page.on("request", (request) => {
+    if (isSafeAnalyticsRequest(request)) return;
     if (request.method() === "POST") uploads.push(request.url());
   });
   page.on("pageerror", (error) => errors.push(error.message));

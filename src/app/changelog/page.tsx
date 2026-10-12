@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 110,
+    title: "Enable privacy-safe aggregate product analytics",
+    summary:
+      "Measure real import, snapshot, Wrapped and public-photo actions using first-party event names only. Demo use stays separate from real outcome metrics; Do Not Track, no identifiers and no private export payloads protect your data. Analytics failures never block the tools.",
+  },
+  {
     issue: 108,
     title: "Audit and support safe relationship archive extras",
     summary:

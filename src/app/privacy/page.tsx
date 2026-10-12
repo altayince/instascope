@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
+import { analyticsEndpoint } from "@/lib/analytics-config";
 import { Breadcrumbs } from "@/components/structured-data";
 export const metadata: Metadata = pageMetadata(
   "Privacy",
@@ -107,12 +108,19 @@ export default function Privacy() {
         practices.
       </p>
       <h2>Product events, without your social graph.</h2>
-      <p>
-        {process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT
-          ? "This deployment sends event names such as parser_succeeded to a same-origin analytics endpoint. It sends no archive contents, filenames, usernames, counts, or persistent identifiers. Do Not Track disables delivery."
+      <p
+        data-analytics-endpoint={analyticsEndpoint(
+          process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT,
+        )}
+      >
+        {analyticsEndpoint(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT)
+          ? "This deployment sends allowlisted product event names such as parser_succeeded to a same-origin analytics endpoint. The collector stores each event name with a count of one. It receives no archive contents, filenames, usernames, follower/following counts, page URLs, notes, review flags, watch targets or snapshot dates. There are no analytics cookies, persistent identifiers or session tracking. Do Not Track disables remote delivery. Analytics failure never blocks the tools."
           : "Remote product analytics is not enabled on this deployment. Event names are emitted locally within the page for development diagnostics."}{" "}
-        Hosting infrastructure can receive normal request information such as
-        your IP address when you visit the site.
+        The event collector uses a connecting IP only temporarily for rate
+        limiting and does not write it or user agents to analytics storage or
+        intentional request logs. Hosting and security infrastructure can
+        receive normal request information such as your IP address when you
+        visit the site.
       </p>
       <h2>Public photo lookup is separate.</h2>
       <p>

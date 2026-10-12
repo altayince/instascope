@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Public images are isolated from the static Next image optimizer. */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeUsername } from "@/lib/instagram/normalize";
 import { track } from "@/lib/analytics";
 import {
@@ -38,6 +38,15 @@ export function ProfileViewer() {
   const preview = useRef<HTMLDivElement>(null);
   const enhancementRequest = useRef<AbortController | null>(null);
   const succeededImage = useRef("");
+  const lookupOutcome = useRef<"idle" | "pending" | "finished">("idle");
+  const finishLookup = useCallback(
+    (event: "profile_succeeded" | "profile_failed") => {
+      if (lookupOutcome.current !== "pending") return;
+      lookupOutcome.current = "finished";
+      track(event);
+    },
+    [],
+  );
   const loading = busy || loadingPhoto;
   useEffect(() => {
     if (!retryUntil) return;
@@ -65,11 +74,12 @@ export function ProfileViewer() {
           ? "The local sample could not load. Please try again."
           : "The public photo took too long to load. Try opening the profile.",
       );
-      if (!sample) track("profile_failed");
+      if (!sample) finishLookup("profile_failed");
     }, 12000);
     return () => clearTimeout(timer);
-  }, [loadingPhoto, sample]);
+  }, [loadingPhoto, sample, finishLookup]);
   function resetPreview() {
+    lookupOutcome.current = "idle";
     enhancementRequest.current?.abort();
     setEnhancing(false);
     setEnhanced(null);
@@ -114,7 +124,7 @@ export function ProfileViewer() {
                 : "Request limit: up to 10 lookups per minute.",
       );
     }
-    track("profile_failed");
+    finishLookup("profile_failed");
   }
   async function enhance() {
     if (!image || enhancing) return;
@@ -166,6 +176,7 @@ export function ProfileViewer() {
     setRetryHint("");
     setImage("");
     succeededImage.current = "";
+    lookupOutcome.current = "idle";
     setError("");
     const normalized = normalizeUsername(input);
     if (!normalized) {
@@ -176,9 +187,10 @@ export function ProfileViewer() {
     }
     setUsername(normalized);
     track("profile_search");
+    lookupOutcome.current = "pending";
     if (!endpoint || !/^\/(?!\/)[a-z0-9/_-]+$/i.test(endpoint)) {
       setError(profileMessages.service_not_configured);
-      track("profile_failed");
+      finishLookup("profile_failed");
       return;
     }
     setBusy(true);
@@ -220,7 +232,7 @@ export function ProfileViewer() {
           : null;
       if (!url) {
         setError("The public photo response could not be verified.");
-        track("profile_failed");
+        finishLookup("profile_failed");
         return;
       }
       setImage(url);
@@ -233,7 +245,7 @@ export function ProfileViewer() {
           ? profileMessages.lookup_timeout
           : profileMessages.service_unavailable,
       );
-      track("profile_failed");
+      finishLookup("profile_failed");
     } finally {
       setBusy(false);
     }
@@ -365,7 +377,7 @@ export function ProfileViewer() {
                   });
                   if (!sample && succeededImage.current !== image) {
                     succeededImage.current = image;
-                    track("profile_succeeded");
+                    finishLookup("profile_succeeded");
                   }
                 }
               }}
@@ -384,7 +396,7 @@ export function ProfileViewer() {
                     ? "The local sample could not load. Please try again."
                     : "The public photo is no longer available. Try opening the profile.",
                 );
-                if (!sample) track("profile_failed");
+                if (!sample) finishLookup("profile_failed");
               }}
             />
           </div>

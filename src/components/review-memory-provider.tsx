@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useData } from "./data-provider";
+import { track } from "@/lib/analytics";
 import { demoReviewMemory } from "@/lib/demo-review-memory";
 import { normalizeUsername } from "@/lib/instagram/normalize";
 import {
@@ -133,6 +134,7 @@ export function ReviewMemoryProvider({
     }
     requireRealStorage();
     const record = await store.update(username, patch);
+    track("review_memory_used");
     readVersion.current++;
     setReal((previous) => {
       const records = new Map(previous.records);
