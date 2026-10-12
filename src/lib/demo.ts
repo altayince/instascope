@@ -1,5 +1,6 @@
-import type { Dataset } from "./instagram/types";
+import type { Dataset, ImportProvenance } from "./instagram/types";
 import { account } from "./instagram/normalize";
+import { connectionKinds, missingConnection } from "./instagram/connections";
 import type { VaultSnapshot } from "./snapshot-vault";
 // Deterministic fictional identities; generated locally without network access.
 const entries = (prefix: string, count: number, offset = 0) =>
@@ -17,6 +18,46 @@ const withMissingDates = (accounts: Dataset["followers"]) =>
   accounts.map((entry, index) =>
     index % 32 === 31 ? { ...entry, timestamp: undefined } : entry,
   );
+
+// Fictional import facts for Doctor; no real archive or saved history is read.
+function fictionalProvenance(
+  connections: Dataset["connections"],
+): ImportProvenance {
+  const categories = Object.fromEntries(
+    (["followers", "following", ...connectionKinds] as const).map((kind) => {
+      const status =
+        kind === "followers" || kind === "following"
+          ? "available"
+          : (connections?.[kind]?.status ?? "missing");
+      const files = kind === "followers" ? 3 : status === "missing" ? 0 : 1;
+      return [
+        kind,
+        {
+          sourceFiles: files,
+          jsonFiles: files,
+          htmlFiles: 0,
+          parsedFiles: status === "available" ? files : 0,
+          unsupportedFiles: status === "unsupported" ? files : 0,
+          skippedFiles: 0,
+        },
+      ];
+    }),
+  ) as ImportProvenance["categories"];
+  const recognizedFiles = Object.values(categories).reduce(
+    (sum, value) => sum + value.sourceFiles,
+    0,
+  );
+  return {
+    transports: { json: 0, html: 0, zip: 1 },
+    contentFormats: { json: recognizedFiles, html: 0 },
+    recognizedFiles,
+    ignoredFiles: 2,
+    generationDatedFiles: 0,
+    generationCheckedFiles: 0,
+    generationStatus: "unverified",
+    categories,
+  };
+}
 export function demoSnapshots(): { newer: Dataset; older: Dataset } {
   const mutuals = entries("mutual", 742);
   const metadata = {
@@ -88,7 +129,27 @@ export function demoSnapshots(): { newer: Dataset; older: Dataset } {
       snapshotLabel: "Fictional older snapshot · Dec 15, 2024",
     },
   };
+  newer.metadata.importProvenance = fictionalProvenance(newer.connections);
   return { newer, older };
+}
+
+// A separate, clearly labelled teaching example. It does not replace any
+// active demo category or alter the complete Connection Privacy demonstration.
+export function demoPartialExport(): Dataset {
+  const dataset = demoSnapshots().newer;
+  dataset.connections = {
+    ...dataset.connections!,
+    pendingRequests: missingConnection(),
+    blocked: { status: "available", accounts: [] },
+    restricted: {
+      status: "unsupported",
+      accounts: [],
+      message: "This fictional category could not be read safely.",
+    },
+    hideStoryFrom: missingConnection(),
+  };
+  dataset.metadata.importProvenance = fictionalProvenance(dataset.connections);
+  return dataset;
 }
 
 // In-memory teaching fixtures only; never pass these to Vault persistence/backup.

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 106,
+    title: "Export Doctor: factual local export diagnostics",
+    summary:
+      "See which relationship files were combined, usable recorded-date coverage, optional list availability and supported analyses. Aggregate facts stay in active memory. Consistent HTML generation minutes are labelled with source scope; requested range and safe rename identity remain unverified. Existing tools and saved-data formats are unchanged.",
+  },
+  {
     issue: 104,
     title: "Align navigation, polish backups and read HTML connection lists",
     summary:
