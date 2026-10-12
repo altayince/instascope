@@ -8,6 +8,10 @@ import { SnapshotSaver } from "./snapshot-return";
 import { VaultConfirmation } from "./vault-confirmation";
 import { VaultAccountHistory } from "./vault-account-history";
 import { ReviewMemoryManager } from "./review-memory-manager";
+import {
+  BackupFilePicker,
+  type BackupFilePickerHandle,
+} from "./backup-file-picker";
 import { CirclePulse } from "./circle-pulse";
 import {
   SnapshotComparisonResults,
@@ -171,7 +175,7 @@ function VaultContents({
   const [deletion, setDeletion] = useState<VaultSummary | "all" | null>(null);
   const [backup, setBackup] = useState<VaultBackup | null>(null);
   const [importing, setImporting] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
+  const picker = useRef<BackupFilePickerHandle>(null);
   const modalTrigger = useRef<HTMLButtonElement | null>(null);
   const id = useId();
   const older = vault.find((s) => s.id === olderId),
@@ -564,7 +568,7 @@ function VaultContents({
                 to 32 MB; existing export dates are kept and skipped, never
                 silently overwritten.
               </p>
-              <div className="vault-actions">
+              <div className="backup-file-controls">
                 <button
                   className="button secondary"
                   type="button"
@@ -592,38 +596,33 @@ function VaultContents({
                 >
                   Export Vault backup
                 </button>
-                <label className="vault-import">
-                  Import Vault backup
-                  <input
-                    ref={input}
-                    type="file"
-                    accept=".json,application/json"
-                    disabled={busy}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      setBackup(null);
-                      setError("");
-                      setMessage("");
-                      if (!file) return;
-                      setBusy(true);
-                      try {
-                        if (file.size > MAX_BACKUP_BYTES)
-                          throw new Error(
-                            "Vault backups must be 32 MB or smaller.",
-                          );
-                        setBackup(parseVaultBackup(await file.text()));
-                      } catch (error) {
-                        setError(
-                          error instanceof Error
-                            ? error.message
-                            : "This backup could not be read.",
+                <BackupFilePicker
+                  ref={picker}
+                  label="Import Vault backup"
+                  disabled={busy}
+                  onSelect={async (file) => {
+                    setBackup(null);
+                    setError("");
+                    setMessage("");
+                    if (!file) return;
+                    setBusy(true);
+                    try {
+                      if (file.size > MAX_BACKUP_BYTES)
+                        throw new Error(
+                          "Vault backups must be 32 MB or smaller.",
                         );
-                      } finally {
-                        setBusy(false);
-                      }
-                    }}
-                  />
-                </label>
+                      setBackup(parseVaultBackup(await file.text()));
+                    } catch (error) {
+                      setError(
+                        error instanceof Error
+                          ? error.message
+                          : "This backup could not be read.",
+                      );
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                />
               </div>
               {backup && preview && (
                 <div className="notice" aria-label="Backup import preview">
@@ -665,7 +664,7 @@ function VaultContents({
                       type="button"
                       onClick={() => {
                         setBackup(null);
-                        if (input.current) input.current.value = "";
+                        picker.current?.reset();
                       }}
                     >
                       Cancel import
@@ -743,7 +742,7 @@ function VaultContents({
               `${result.added} snapshots imported locally · ${result.skipped} existing dates skipped.`,
             );
             setBackup(null);
-            if (input.current) input.current.value = "";
+            picker.current?.reset();
           }}
         >
           <p>

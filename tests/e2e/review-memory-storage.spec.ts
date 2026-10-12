@@ -81,6 +81,85 @@ async function vaultMetadata(page: Page) {
   );
 }
 
+test("Review Memory uses the shared backup picker and resets filename without changing Vault data", async ({
+  page,
+}) => {
+  await page.goto("/snapshot-vault/");
+  await seedRecords(page, history);
+  await seedReviewMemory(page, [local]);
+  await page.reload();
+  const section = manager(page);
+  const picker = section.locator(".backup-file-picker");
+  const input = section.getByLabel("Import Review Memory backup", {
+    exact: true,
+  });
+  const trigger = picker.locator(".backup-file-trigger");
+  const filename = picker.locator(".backup-file-name");
+  await expect(input).toBeEnabled();
+  await expect(input).toHaveAttribute("accept", ".json,application/json");
+  await expect(trigger).toHaveText("Choose backup file");
+  await expect(filename).toHaveText("No file selected");
+  expect(
+    await input.evaluate((element) => element.getBoundingClientRect().width),
+  ).toBeLessThanOrEqual(1);
+  const originalHeight = (await picker.boundingBox())!.height;
+  const added = memoryRecord("synthetic.backup.account", { reviewed: true });
+  const file = {
+    ...backupFile([added]),
+    name: "synthetic-review-memory-backup-with-a-deliberately-long-filename.json",
+  };
+  const chosen = page.waitForEvent("filechooser");
+  await trigger.click();
+  await (await chosen).setFiles(file);
+  await expect(filename).toHaveText(file.name);
+  const preview = section.getByRole("region", {
+    name: "Review Memory import preview",
+    exact: true,
+  });
+  await expect(preview).toContainText("Nothing has been imported yet");
+  expect(
+    Math.abs((await picker.boundingBox())!.height - originalHeight),
+  ).toBeLessThanOrEqual(1);
+  expect(await readReviewMemory(page)).toEqual([local]);
+  await preview
+    .getByRole("button", { name: "Cancel Review Memory import", exact: true })
+    .click();
+  await expect(preview).toHaveCount(0);
+  await expect(filename).toHaveText("No file selected");
+  await expect(input).toHaveValue("");
+
+  const exportButton = section.getByRole("button", {
+    name: "Export Review Memory backup",
+    exact: true,
+  });
+  await expect(exportButton).toBeEnabled();
+  await exportButton.focus();
+  await page.keyboard.press("Tab");
+  await expect(input).toBeFocused();
+  await expect(trigger).toHaveCSS("outline-style", "solid");
+  const again = page.waitForEvent("filechooser");
+  await page.keyboard.press("Enter");
+  await (await again).setFiles(file);
+  await expect(preview).toContainText("1 incoming account records");
+  await confirmImport(page);
+  await expect(filename).toHaveText("No file selected");
+  await expect(input).toHaveValue("");
+  const stored = await readReviewMemory(page);
+  expect(stored).toHaveLength(2);
+  expect(stored.find((record) => record.username === local.username)).toEqual(
+    local,
+  );
+  expect(stored.find((record) => record.username === added.username)).toEqual(
+    added,
+  );
+  expect(await savedRecords(page)).toEqual(history);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
+});
+
 test("new Review Memory domain preserves Vault V1, private backup round-trips and newer conflicts keep local notes", async ({
   page,
 }, testInfo) => {

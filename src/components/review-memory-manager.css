@@ -13,13 +13,3 @@
   color: var(--muted);
   font-size: 14px;
 }
-.review-memory-import {
-  display: grid;
-  gap: 6px;
-  font-size: 14px;
-  min-width: 0;
-}
-.review-memory-import input {
-  width: 100%;
-  max-width: 320px;
-}
