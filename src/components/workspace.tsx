@@ -435,6 +435,10 @@ export function Workspace({
           {(mode === "cleaner" ||
             mode === "wrapped" ||
             (mode === "comparison" && older)) && <SnapshotSaver />}
+          <p className="list-caption">
+            Check included lists and recorded-date coverage in{" "}
+            <Link href="/dashboard/#export-doctor">Export Doctor</Link>.
+          </p>
           <details className="data-notes">
             <summary>About these results</summary>
             {dataset.metadata.warnings.map((warning) => (

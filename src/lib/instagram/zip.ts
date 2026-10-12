@@ -13,6 +13,7 @@ export type ZipEntry = {
   offset: number;
 };
 export type ImportBudget = { expanded: number };
+export type ZipImportStats = { ignoredFiles: number };
 const invalid = () =>
   new ImportError(
     "This ZIP is damaged or incomplete. Download it again or select the extracted Followers and Following files.",
@@ -65,11 +66,13 @@ export function locateDirectory(
 export function relevantEntries(
   bytes: Uint8Array,
   directory: ZipDirectory,
+  stats?: ZipImportStats,
 ): ZipEntry[] {
   if (bytes.length !== directory.size) throw invalid();
   const view = viewOf(bytes),
     entries: ZipEntry[] = [];
   const names = new Set<string>();
+  let ignoredFiles = 0;
   let cursor = 0;
   for (let i = 0; i < directory.count; i++) {
     if (
@@ -100,7 +103,12 @@ export function relevantEntries(
     )
       throw unsupported();
     if (entry.offset + 30 > directory.offset) throw invalid();
-    if (detectKind(name)) {
+    const attributes = view.getUint32(cursor + 38, true);
+    const isDirectory =
+      name.replaceAll("\\", "/").endsWith("/") ||
+      (attributes & 0x10) !== 0 ||
+      ((attributes >>> 16) & 0xf000) === 0x4000;
+    if (!isDirectory && detectKind(name)) {
       if ((entry.flags & 0x2041) !== 0 || ![0, 8].includes(entry.method))
         throw unsupported();
       const normalizedPath = name.replaceAll("\\", "/").toLowerCase();
@@ -110,10 +118,11 @@ export function relevantEntries(
         );
       names.add(normalizedPath);
       entries.push(entry);
-    }
+    } else if (!isDirectory) ignoredFiles++;
     cursor = next;
   }
   if (cursor !== bytes.length) throw invalid();
+  if (stats) stats.ignoredFiles += ignoredFiles;
   return entries;
 }
 
@@ -208,7 +217,11 @@ export function decodeEntry(packed: Uint8Array, entry: ZipEntry): Uint8Array {
   return output;
 }
 
-export function extractZip(bytes: Uint8Array, budget: ImportBudget) {
+export function extractZip(
+  bytes: Uint8Array,
+  budget: ImportBudget,
+  stats?: ZipImportStats,
+) {
   const directory = locateDirectory(
     bytes.subarray(Math.max(0, bytes.length - ZIP_TAIL_BYTES)),
     bytes.length,
@@ -216,6 +229,7 @@ export function extractZip(bytes: Uint8Array, budget: ImportBudget) {
   return relevantEntries(
     bytes.subarray(directory.offset, directory.offset + directory.size),
     directory,
+    stats,
   ).map((entry) => {
     reserveEntry(entry, budget);
     const length = localHeaderLength(
@@ -232,7 +246,11 @@ export function extractZip(bytes: Uint8Array, budget: ImportBudget) {
   });
 }
 
-export async function extractZipBlob(file: Blob, budget: ImportBudget) {
+export async function extractZipBlob(
+  file: Blob,
+  budget: ImportBudget,
+  stats?: ZipImportStats,
+) {
   const read = async (start: number, end: number) =>
     new Uint8Array(await file.slice(start, end).arrayBuffer());
   const directory = locateDirectory(
@@ -242,6 +260,7 @@ export async function extractZipBlob(file: Blob, budget: ImportBudget) {
   const entries = relevantEntries(
     await read(directory.offset, directory.offset + directory.size),
     directory,
+    stats,
   );
   const files: { name: string; bytes: Uint8Array }[] = [];
   // Sequential reads keep peak memory bounded independently of archive size.

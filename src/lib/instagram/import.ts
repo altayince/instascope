@@ -1,29 +1,34 @@
 import { strFromU8 } from "fflate";
 import { deduplicate, deduplicateEvents } from "./normalize";
 import { connectionKinds, missingConnection } from "./connections";
-import { detectKind, ImportError, parseHtml, parseJson } from "./parsers";
+import { detectKind, ImportError, parseHtmlSource, parseJson } from "./parsers";
 import { extractZip, extractZipBlob, type ImportBudget } from "./zip";
 import { LIMITS, validateSelection } from "./limits";
 import type {
   ConnectionKind,
   ConnectionList,
   Dataset,
+  ImportProvenance,
   ParsedPart,
+  Relationship,
 } from "./types";
 
 export { LIMITS } from "./limits";
 export type InputFile = { name: string; bytes: Uint8Array };
 export type NamedBlob = Blob & { name: string };
 
-function parseText({ name, bytes }: InputFile): ParsedPart[] {
+function parseText({ name, bytes }: InputFile): {
+  parts: ParsedPart[];
+  generationDate?: string;
+} {
   if (bytes.byteLength > LIMITS.entry)
     throw new ImportError(
       "A relationship file exceeds the 20 MB safety limit.",
     );
   const text = strFromU8(bytes).replace(/^\uFEFF/, "");
   return /\.json$/i.test(name)
-    ? parseJson(text, detectKind(name))
-    : parseHtml(text, detectKind(name));
+    ? { parts: parseJson(text, detectKind(name)) }
+    : parseHtmlSource(text, detectKind(name));
 }
 
 function reservePlain(size: number, budget: ImportBudget) {
@@ -34,20 +39,101 @@ function reservePlain(size: number, budget: ImportBudget) {
     );
 }
 
-function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
+function provenanceFor(
+  files: readonly { name: string }[],
+  ignoredFiles: number,
+): ImportProvenance {
+  const transports = { json: 0, html: 0, zip: 0 };
+  for (const file of files) {
+    if (/\.zip$/i.test(file.name)) transports.zip++;
+    else if (/\.html?$/i.test(file.name)) transports.html++;
+    else transports.json++;
+  }
+  return {
+    transports,
+    contentFormats: { json: 0, html: 0 },
+    recognizedFiles: 0,
+    ignoredFiles,
+    generationDatedFiles: 0,
+    generationCheckedFiles: 0,
+    generationStatus: "unverified",
+    categories: Object.fromEntries(
+      (["followers", "following", ...connectionKinds] as Relationship[]).map(
+        (kind) => [
+          kind,
+          {
+            sourceFiles: 0,
+            jsonFiles: 0,
+            htmlFiles: 0,
+            parsedFiles: 0,
+            unsupportedFiles: 0,
+            skippedFiles: 0,
+          },
+        ],
+      ),
+    ) as ImportProvenance["categories"],
+  };
+}
+
+function assemble(
+  inputs: InputFile[],
+  sourceFormat: string,
+  provenance: ImportProvenance,
+): Dataset {
   const parts: ParsedPart[] = [];
   const connections = Object.fromEntries(
     connectionKinds.map((kind) => [kind, missingConnection()]),
   ) as Record<ConnectionKind, ConnectionList>;
   for (const input of inputs) {
     const kind = detectKind(input.name);
+    const format = /\.json$/i.test(input.name) ? "json" : "html";
+    provenance.recognizedFiles++;
+    provenance.contentFormats[format]++;
+    const countCategory = (
+      category: Relationship,
+      status: "parsedFiles" | "unsupportedFiles" | "skippedFiles",
+    ) => {
+      const counts = provenance.categories[category];
+      counts.sourceFiles++;
+      counts[format === "json" ? "jsonFiles" : "htmlFiles"]++;
+      counts[status]++;
+    };
+    const parsedInput = () => {
+      const parsed = parseText(input);
+      if (format === "html") {
+        provenance.generationCheckedFiles++;
+        if (parsed.generationDate) {
+          provenance.generationDatedFiles++;
+          if (provenance.generationStatus !== "conflicting") {
+            if (
+              provenance.generationDate &&
+              provenance.generationDate !== parsed.generationDate
+            ) {
+              provenance.generationStatus = "conflicting";
+              delete provenance.generationDate;
+            } else {
+              provenance.generationDate = parsed.generationDate;
+              provenance.generationStatus = "consistent";
+            }
+          }
+        }
+      }
+      return parsed.parts;
+    };
     if (!kind || kind === "followers" || kind === "following") {
-      parts.push(...parseText(input));
+      const parsed = parsedInput();
+      for (const category of new Set(parsed.map((part) => part.kind)))
+        countCategory(category, "parsedFiles");
+      parts.push(...parsed);
       continue;
     }
-    if (connections[kind].status === "unsupported") continue;
+    if (connections[kind].status === "unsupported") {
+      countCategory(kind, "skippedFiles");
+      continue;
+    }
     try {
-      const accounts = parseText(input).flatMap((part) => part.accounts);
+      const accounts = parsedInput().flatMap((part) => part.accounts);
+      countCategory(kind, "parsedFiles");
       const combined = [...connections[kind].accounts, ...accounts];
       connections[kind] = {
         status: "available",
@@ -58,6 +144,7 @@ function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
       };
     } catch (error) {
       if (!(error instanceof ImportError)) throw error;
+      countCategory(kind, "unsupportedFiles");
       // Never show a partially parsed optional list as complete or as zero.
       connections[kind] = {
         status: "unsupported",
@@ -88,6 +175,7 @@ function assemble(inputs: InputFile[], sourceFormat: string): Dataset {
     metadata: {
       parsedAt: Date.now(),
       sourceFormat,
+      importProvenance: provenance,
       warnings: [
         "Results reflect the lists in this export. Use an All time export for complete relationships.",
         ...connectionKinds
@@ -119,18 +207,23 @@ export function importDataset(files: InputFile[]): Dataset {
     files.map((file) => ({ name: file.name, size: file.bytes.length })),
   );
   const inputs: InputFile[] = [],
-    budget = { expanded: 0 };
+    budget = { expanded: 0 },
+    stats = { ignoredFiles: 0 };
   for (const file of files) {
     if (/\.zip$/i.test(file.name)) {
       if (file.bytes[0] !== 80 || file.bytes[1] !== 75)
         throw new ImportError("This file is not a valid ZIP archive.");
-      inputs.push(...extractZip(file.bytes, budget));
+      inputs.push(...extractZip(file.bytes, budget, stats));
     } else {
       reservePlain(file.bytes.length, budget);
       inputs.push(file);
     }
   }
-  return assemble(inputs, sourceFormat(files));
+  return assemble(
+    inputs,
+    sourceFormat(files),
+    provenanceFor(files, stats.ignoredFiles),
+  );
 }
 
 // Browser File objects are cloned to the worker without first reading their contents.
@@ -140,10 +233,11 @@ export async function importFiles(
 ): Promise<Dataset> {
   validateSelection(files);
   const inputs: InputFile[] = [],
-    budget = { expanded: 0 };
+    budget = { expanded: 0 },
+    stats = { ignoredFiles: 0 };
   for (const file of files) {
     if (/\.zip$/i.test(file.name))
-      inputs.push(...(await extractZipBlob(file, budget)));
+      inputs.push(...(await extractZipBlob(file, budget, stats)));
     else {
       reservePlain(file.size, budget);
       inputs.push({
@@ -152,5 +246,9 @@ export async function importFiles(
       });
     }
   }
-  return assemble(inputs, sourceFormat(files));
+  return assemble(
+    inputs,
+    sourceFormat(files),
+    provenanceFor(files, stats.ignoredFiles),
+  );
 }

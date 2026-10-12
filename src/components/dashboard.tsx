@@ -3,6 +3,8 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useData } from "./data-provider";
 import { Upload } from "./upload";
+import { ExportDoctor } from "./export-doctor";
+import { exportDoctor } from "@/lib/analysis/export-doctor";
 import { WatchCircle } from "./watch-circle";
 import { SavedSnapshotNotice } from "./snapshot-return";
 import { SnapshotSaver } from "./snapshot-return";
@@ -10,7 +12,7 @@ import { formatSnapshotDate } from "@/lib/snapshot-vault";
 import { analyze } from "@/lib/analysis/relationships";
 import { relationshipTimeline } from "@/lib/analysis/insights";
 import { dashboardInsights } from "@/lib/analysis/dashboard-insights";
-import { demoVaultSnapshots } from "@/lib/demo";
+import { demoPartialExport, demoVaultSnapshots } from "@/lib/demo";
 import { productSections } from "@/lib/navigation";
 import { ActionButton, ActionLink, InsightLink } from "./actions";
 import { tools, type ToolSlug } from "@/lib/site";
@@ -136,6 +138,15 @@ export function Dashboard() {
   } = useData();
   const analysis = useMemo(
     () => (dataset ? analyze(dataset) : null),
+    [dataset],
+  );
+  const doctor = useMemo(
+    () => (dataset ? exportDoctor(dataset) : null),
+    [dataset],
+  );
+  const doctorExample = useMemo(
+    () =>
+      dataset?.metadata.demo ? exportDoctor(demoPartialExport()) : undefined,
     [dataset],
   );
   const timeline = useMemo(
@@ -310,6 +321,13 @@ export function Dashboard() {
               ))}
             </dl>
           </section>
+          {doctor && (
+            <ExportDoctor
+              report={doctor}
+              demo={dataset.metadata.demo}
+              demoExampleReport={doctorExample}
+            />
+          )}
           {insights.length > 0 && (
             <section
               aria-labelledby="dashboard-insights-title"
