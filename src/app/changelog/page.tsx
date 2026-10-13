@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 118,
+          title: "Restore the shared original InstaScope visual theme",
+          summary:
+            "Instagram and WhatsAppScope share the original InstaScope colors and controls again. Platform identity and navigation remain distinct; local analysis, share cards and development-only release protection are preserved.",
+        },
+        {
           issue: 116,
           title: "Add Cloudflare Worker Previews configuration",
           summary:
