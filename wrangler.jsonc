@@ -1,0 +1,9 @@
+{
+  "name": "instascope",
+  "compatibility_date": "2026-10-13",
+  "preview_urls": true,
+  "assets": {
+    "directory": "./out"
+  },
+  "previews": {}
+}
