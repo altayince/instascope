@@ -13,6 +13,18 @@ InstaScope follows the MUZ/GLA issue-first, task-branch, PR-only workflow.
 Install hooks after every clone: `powershell -ExecutionPolicy Bypass -File scripts/install-githooks.ps1`.
 Local hooks complement server-side protection; they do not replace it.
 
+## Unreleased WhatsAppScope work
+
+The owner's INS-114 release policy overrides steps 2 and 5 for WhatsAppScope:
+start from updated `dev`, create the INS feature branch from that lineage, and
+target `dev` in the PR. Never merge this work to `main`, deploy production, or
+change Cloudflare production settings without a separate explicit release
+instruction. Instagram work retains the normal main-based workflow. Issue,
+ownership, changelog, validation and no-force-push rules still apply.
+
+WhatsAppScope additionally requires the explicit preview-only build gate; its
+routes and switcher are absent from the default production export.
+
 The ownership workflow reads private Project metadata using `INS_PROJECT_TOKEN`. This repository secret needs repo and Project read access. Never print or commit the credential. The job must never check out PR code or run scripts from it.
 
 See `docs/github-setup.md` for the actual configured remote state.

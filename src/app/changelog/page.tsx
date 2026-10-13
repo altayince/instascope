@@ -7,6 +7,16 @@ export const metadata: Metadata = pageMetadata(
   "/changelog/",
 );
 const changes = [
+  ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
+    ? [
+        {
+          issue: 114,
+          title: "Build dev-only WhatsAppScope product foundation",
+          summary:
+            "Preview-only WhatsAppScope adds local chat TXT/ZIP analysis and factual shareable cards, with a distinct green identity in the shared product family. An explicit release gate keeps its routes and platform switcher out of production; Instagram tools remain unchanged.",
+        },
+      ]
+    : []),
   {
     issue: 112,
     title: "Finish park-ready product utilities",
