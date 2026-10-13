@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 116,
+          title: "Add Cloudflare Worker Previews configuration",
+          summary:
+            "Development previews have a dedicated static-site configuration, separate from the production photo and analytics services. No production routes or service bindings are added.",
+        },
+        {
           issue: 114,
           title: "Build dev-only WhatsAppScope product foundation",
           summary:
