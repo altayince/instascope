@@ -30,9 +30,12 @@ enabled preview WhatsApp builds; no CI deployment is added.
 ## Architecture
 
 - `platforms.ts` is the route/identity, navigation and footer registry; only Instagram and
-  WhatsApp are exposed. The shared shell chooses navigation, brand and scoped
-  design tokens from the active route. Disabled builds retain the existing
-  Instagram shell. Typography, spacing and generic actions stay shared.
+  WhatsApp are exposed. The shared shell chooses navigation and brand identity
+  from the active route. Both platforms use the same original InstaScope palette,
+  surfaces, controls and focus styles; no platform-specific pink/mint theme layer
+  is applied. Disabled builds retain the existing Instagram shell. Typography,
+  spacing and generic actions stay shared. Wrapped uses the existing InstaScope
+  card palettes for its screen preview and local PNG output.
   Each platform has an explicit availability decision; WhatsApp opt-in cannot
   automatically expose a future unfinished platform.
 - `src/lib/whatsapp` owns its types, parser, normalization, bounded importer,

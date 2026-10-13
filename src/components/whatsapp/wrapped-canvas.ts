@@ -1,12 +1,13 @@
 import type { WhatsAppStory } from "@/lib/whatsapp/stories";
+import { storyStyles } from "@/components/wrapped-style";
 
 export const WHATSAPP_STORY_WIDTH = 1080;
 export const WHATSAPP_STORY_HEIGHT = 1920;
 export const whatsappStoryThemes = {
-  forest: { background: "#143c32", ink: "#f5f6e9", accent: "#c7f6bc" },
-  mint: { background: "#d5ece1", ink: "#173d32", accent: "#256c52" },
-  cream: { background: "#f5f1e4", ink: "#263d31", accent: "#356c50" },
-  lime: { background: "#d6f1b9", ink: "#183d31", accent: "#315f41" },
+  forest: storyStyles["stable-core"],
+  mint: storyStyles["still-here"],
+  cream: storyStyles.origins,
+  lime: storyStyles.turnover,
 } as const;
 
 function drawLines(

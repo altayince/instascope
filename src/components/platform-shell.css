@@ -1,111 +1,13 @@
-/* Only the enabled preview shell selects a platform palette. */
+/* Shared shell structure. Both platforms inherit the original root palette. */
 .platform-shell {
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
-  --lime: var(--accent-soft);
-  --button-ink: #fff;
-  --secondary-border: var(--border-emphasis);
-  --secondary-hover: var(--surface-tint);
-  --tertiary-hover: var(--surface-tint);
-  --nav-active: var(--accent-soft);
-  --nav-item-active: var(--surface-tint);
-  --badge-bg: var(--surface-tint);
-  --badge-border: var(--border-emphasis);
-  --status-dot: var(--accent-strong);
-  --decor-glow: var(--accent-soft);
-  --decor-ring: var(--border-emphasis);
-  --upload-bg: var(--surface-tint);
-  --upload-hover: var(--accent-soft);
-  --feature-bg: var(--surface-tint);
-  --feature-warm: var(--decor-one);
-  --feature-alt: var(--decor-three);
-}
-
-.platform-shell[data-platform="instagram"] {
-  --paper: #fffaf7;
-  --ink: #3b2932;
-  --muted: #77636d;
-  --line: #ecdedf;
-  --accent-strong: #a43260;
-  --accent-soft: #f8dce5;
-  --surface-tint: #fcf0f3;
-  --border-emphasis: #d7a6b8;
-  --button-bg: #873954;
-  --button-hover: #713048;
-  --focus-ring: #a43260;
-  --decor-one: #f4e2d7;
-  --decor-two: #eed2dc;
-  --decor-three: #f1e4ef;
-  --chart-1: #a43260;
-  --chart-2: #ad713a;
-  --chart-3: #8874a2;
-  --chart-4: #c97c96;
-}
-
-.platform-shell[data-platform="whatsapp"] {
-  --paper: #f7fcf9;
-  --ink: #173b2e;
-  --muted: #577264;
-  --line: #dbe9df;
-  --accent-strong: #08774f;
-  --accent-soft: #d2f0df;
-  --surface-tint: #ecf8f0;
-  --border-emphasis: #a6d4b7;
-  --button-bg: #126344;
-  --button-hover: #0b5035;
-  --focus-ring: #08774f;
-  --decor-one: #e8f3dd;
-  --decor-two: #cfeee0;
-  --decor-three: #e0f2eb;
-  --chart-1: #08774f;
-  --chart-2: #487b9c;
-  --chart-3: #a07531;
-  --chart-4: #785889;
 }
 
 .platform-shell .site-header {
   position: relative;
   z-index: 30;
-}
-
-.platform-shell .brand,
-.platform-shell .eyebrow {
-  color: var(--accent-strong);
-}
-
-.platform-shell input[type="checkbox"] {
-  accent-color: var(--accent-strong);
-}
-
-.platform-shell .site-header .product-navigation > a[aria-current="page"],
-.platform-shell .tool-menu[data-active="true"] > summary {
-  color: var(--accent-strong);
-}
-
-.platform-shell .pulse-facts,
-.platform-shell .vault-overview,
-.platform-shell .dashboard-coverage,
-.platform-shell .insight-card,
-.platform-shell .context-facts li,
-.platform-shell .history-transitions li {
-  background: var(--surface-tint);
-  border-color: var(--border-emphasis);
-}
-
-.platform-shell .insight-card:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent-strong);
-}
-
-.platform-shell .pulse-retention,
-.platform-shell .history-transitions li {
-  border-left-color: var(--border-emphasis);
-}
-
-.platform-shell .tool-tabs a[aria-current="page"] {
-  background: var(--button-bg);
-  color: var(--button-ink);
 }
 
 .social-switcher {
@@ -139,7 +41,7 @@
   flex: 0 0 36px;
   width: 36px;
   height: 36px;
-  color: var(--accent-strong);
+  color: var(--ink);
   font-size: 40px;
   font-weight: 400;
   line-height: 1;
@@ -165,7 +67,7 @@
 }
 
 .platform-current-name {
-  color: var(--accent-strong);
+  color: var(--muted);
   font-size: 11px;
   letter-spacing: 0.35px;
 }
@@ -195,10 +97,10 @@
   max-height: calc(100dvh - 110px);
   overflow-y: auto;
   padding: 10px;
-  border: 1px solid var(--border-emphasis);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--white);
-  box-shadow: 0 12px 40px #172a221a;
+  box-shadow: 0 10px 30px #263b301a;
 }
 
 .social-switcher-label {
@@ -220,12 +122,12 @@
 }
 
 .social-switcher-panel a:hover {
-  background: var(--surface-tint);
+  background: var(--lime);
 }
 
 .social-switcher-panel a[aria-current="true"] {
-  background: var(--surface-tint);
-  border-color: var(--border-emphasis);
+  background: var(--nav-item-active);
+  border-color: var(--line);
 }
 
 .social-switcher-panel .platform-mark {
@@ -261,16 +163,10 @@
   flex-shrink: 0;
   padding: 4px 7px;
   border-radius: 20px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  background: var(--badge-bg);
+  color: var(--ink);
   font-size: 10px;
   font-weight: 600;
-}
-
-.platform-shell[data-platform="whatsapp"] footer > nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
 }
 
 @media (max-width: 700px) {

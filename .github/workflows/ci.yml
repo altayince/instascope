@@ -56,7 +56,7 @@ jobs:
       - run: npm run build:dev
         env:
           NEXT_TELEMETRY_DISABLED: '1'
-      - run: npm run test:e2e -- tests/e2e/whatsapp.spec.ts
+      - run: npm run test:e2e -- tests/e2e/whatsapp.spec.ts tests/e2e/original-palette.spec.ts
         env:
           EXPECT_WHATSAPP: 'true'
           EXPECT_INDEXABLE: 'false'

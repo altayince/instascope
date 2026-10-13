@@ -45,6 +45,24 @@ async function switchPlatform(page: Page, name: "Instagram" | "WhatsApp") {
   await selector.locator("summary").click();
   await selector.getByRole("link", { name: new RegExp(`^${name}`) }).click();
 }
+async function sharedPalette(page: Page) {
+  return page.locator(".platform-shell").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return Object.fromEntries(
+      [
+        "--paper",
+        "--ink",
+        "--muted",
+        "--line",
+        "--lime",
+        "--button-bg",
+        "--focus-ring",
+        "--chart-1",
+        "--chart-2",
+      ].map((token) => [token, style.getPropertyValue(token).trim()]),
+    );
+  });
+}
 
 test("release build keeps WhatsApp routes and switcher invisible", async ({
   page,
@@ -71,7 +89,7 @@ test("release build keeps WhatsApp routes and switcher invisible", async ({
 test.describe("WhatsAppScope enabled preview", () => {
   test.skip(!enabled, "WhatsApp requires an explicit dev preview build.");
 
-  test("platform switcher changes scoped theme and navigation with native accessible dismissal", async ({
+  test("platform switcher preserves the original shared palette and changes navigation with native accessible dismissal", async ({
     page,
     request,
   }) => {
@@ -79,11 +97,18 @@ test.describe("WhatsAppScope enabled preview", () => {
     await expect(
       page.getByRole("button", { name: "Try demo", exact: true }),
     ).toBeEnabled();
-    const instagram = await page
-      .locator(".platform-shell")
-      .evaluate((node) =>
-        getComputedStyle(node).getPropertyValue("--accent-strong"),
-      );
+    const instagram = await sharedPalette(page);
+    expect(instagram).toEqual({
+      "--paper": "#faf9f5",
+      "--ink": "#263b30",
+      "--muted": "#657168",
+      "--line": "#e1e5dc",
+      "--lime": "#d9efa8",
+      "--button-bg": "#263b30",
+      "--focus-ring": "#668935",
+      "--chart-1": "#305b40",
+      "--chart-2": "#a26932",
+    });
     const selector = page.locator(".social-switcher");
     const summary = selector.locator("summary");
     await expect(summary).toHaveAccessibleName(/currently Instagram/);
@@ -104,13 +129,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       "data-platform",
       "whatsapp",
     );
-    expect(
-      await page
-        .locator(".platform-shell")
-        .evaluate((node) =>
-          getComputedStyle(node).getPropertyValue("--accent-strong"),
-        ),
-    ).not.toBe(instagram);
+    expect(await sharedPalette(page)).toEqual(instagram);
     await expect(
       page
         .getByRole("navigation", { name: "Main navigation" })
