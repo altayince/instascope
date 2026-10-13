@@ -1,6 +1,7 @@
 # InstaScope
 
-Privacy-first Instagram export analysis. No Instagram login, remote database, or archive upload.
+Privacy-first Instagram export analysis. No Instagram login or archive upload;
+relationship analysis stays in your browser.
 
 The current product direction is [relationship review in Roadmap V3](docs/PRODUCT_ROADMAP_V3.md).
 
@@ -21,15 +22,20 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
 
 ## Available tools
 
-- Followers, following, mutuals, not-following-back, and fans with search, sorting and 50-row pagination.
+- Followers, following, mutuals, not-following-back, and fans with search, sorting and 50-row pagination. Account-list CSV downloads include every filtered row, across pages.
 - InstaCleaner: manual review, selection across filters, profile links and selected CSV export. No automatic account actions.
 - Snapshot comparison: explicitly load newer and older exports; show added/missing followers, following and mutuals without causal claims.
-- [Snapshot Vault](docs/SNAPSHOT_VAULT.md): save multiple dated follower/following snapshots in this browser, compare saved history and keep a private JSON backup. No cloud sync.
+- [Snapshot Vault](docs/SNAPSHOT_VAULT.md): save multiple dated follower/following snapshots in this browser, compare saved history and keep a private JSON backup. Optionally download a calendar reminder after saving. No cloud sync.
+- Local Review Memory and Watch Circle; observed account history, Mutual Origins and Circle Pulse use only supported export/snapshot facts.
 - Wrapped: aggregate-only 1080 × 1920 PNG download and native sharing where supported.
-- Optional export insights: pending-request ages and manual CSV review, private connection lists, your own recently-unfollowed records, year/month relationship dates and a following-date Wrapped card.
+- Optional export insights: pending-request ages, private connection lists, your own recently-unfollowed records, recent sent-request records and removed suggestions. Export Doctor explains source/date coverage and available analyses.
 - Dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
-- Independent public-photo viewer UI and optional rate-limited Worker. Public upstream access is best-effort; default deployment leaves lookup off.
-- Event-name-only analytics and an isolated Worker collector. Production builds use same-origin `/api/events`; preview builds default to remote analytics off. Deploy the collector separately; see [analytics setup](docs/ANALYTICS.md).
+- Independent public-photo viewer and rate-limited Worker. Production lookup infrastructure is configured; public upstream access remains best-effort. Preview/local builds default to lookup off.
+- Deployed event-name-only aggregate analytics with an isolated Worker collector. Production builds use same-origin `/api/events`; preview builds default to remote analytics off. See [analytics](docs/ANALYTICS.md).
+
+See [current progress](docs/roadmap-progress.md) for completed/deferred scope and
+remaining evidence gaps, and [CSV/calendar utilities](docs/PRODUCT_UTILITIES.md)
+for download contents and date rules.
 
 ## Test and build
 

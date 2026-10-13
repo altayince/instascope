@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 112,
+    title: "Finish park-ready product utilities",
+    summary:
+      "Download the full filtered account list as a browser-local CSV, including results beyond the current page. Cleaner selected exports stay separate. After saving a real snapshot, download a 30-day calendar event for your next export; InstaScope sends no notification and stores no reminder.",
+  },
+  {
     issue: 110,
     title: "Enable privacy-safe aggregate product analytics",
     summary:

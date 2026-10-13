@@ -8,6 +8,13 @@ import {
   DuplicateSnapshotError,
   vaultStorageMessage,
 } from "@/lib/vault-storage";
+import {
+  createSnapshotReminder,
+  serializeSnapshotReminder,
+  type SnapshotReminder,
+} from "@/lib/snapshot-reminder";
+import type { Dataset } from "@/lib/instagram/types";
+import { download } from "@/lib/download";
 
 export function SavedSnapshotNotice() {
   const { saved, vault, storageReady, storageError } = useData();
@@ -41,16 +48,44 @@ export function SnapshotSaver() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [replacement, setReplacement] = useState<VaultSummary | null>(null);
+  const [reminderOffer, setReminderOffer] = useState<{
+    dataset: Dataset;
+    exportDate: string;
+    reminder: SnapshotReminder;
+  } | null>(null);
+  const [reminderMessage, setReminderMessage] = useState("");
   const saveButton = useRef<HTMLButtonElement>(null);
+  // Discard the old offer and its source reference when active data changes.
+  if (reminderOffer && reminderOffer.dataset !== dataset)
+    setReminderOffer(null);
+  const reminder =
+    reminderOffer?.dataset === dataset &&
+    reminderOffer.exportDate === exportDate
+      ? reminderOffer.reminder
+      : null;
   if (!dataset || dataset.metadata.demo) return null;
   async function save(replace?: VaultSummary) {
     setBusy(true);
     setMessage("");
+    setReminderOffer(null);
+    setReminderMessage("");
     try {
       const snapshot = await saveCurrent(exportDate, replace);
       setMessage(
         `Snapshot saved locally · ${formatSnapshotDate(snapshot.exportDate)}`,
       );
+      try {
+        setReminderOffer({
+          dataset: dataset!,
+          exportDate,
+          // Vault createdAt also tracks replacement revisions. Use the actual
+          // successful save time for the calendar fallback, not that revision.
+          reminder: createSnapshotReminder(snapshot.exportDate, Date.now()),
+        });
+      } catch {
+        // An optional calendar offer must never change a successful save.
+        setReminderOffer(null);
+      }
     } catch (error) {
       if (error instanceof DuplicateSnapshotError && !replace)
         setReplacement(error.snapshot);
@@ -77,6 +112,8 @@ export function SnapshotSaver() {
             onChange={(event) => {
               setExportDate(event.target.value);
               setMessage("");
+              setReminderOffer(null);
+              setReminderMessage("");
             }}
           />
         </label>
@@ -100,6 +137,53 @@ export function SnapshotSaver() {
       </p>
       {(storageError || message) && (
         <p role="status">{storageError || message}</p>
+      )}
+      {reminder && (
+        <div aria-label="Next Snapshot reminder" role="region">
+          <p>
+            All-day reminder:{" "}
+            <strong>{formatSnapshotDate(reminder.eventDate)}</strong>
+            {" · "}30 days after{" "}
+            {reminder.basis === "export-date"
+              ? "this export date"
+              : "today’s save"}{" "}
+            ({formatSnapshotDate(reminder.basisDate)})
+            {reminder.basis === "save-date"
+              ? "; the export date is old or in the future."
+              : "."}
+          </p>
+          <p className="snapshot-return-help">
+            Download a calendar event to export fresh Instagram data and return
+            to InstaScope. InstaScope sends no notification; choose any alert in
+            your calendar. This file contains no usernames or snapshot counts.
+          </p>
+          <button
+            className="button secondary"
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setReminderMessage("");
+              try {
+                download(
+                  new Blob([serializeSnapshotReminder(reminder)], {
+                    type: "text/calendar;charset=utf-8",
+                  }),
+                  `instascope-next-snapshot-${reminder.eventDate}.ics`,
+                );
+                setReminderMessage(
+                  "Open the downloaded .ics file in your calendar to add the event.",
+                );
+              } catch {
+                setReminderMessage(
+                  "The calendar file could not be downloaded. Try the reminder again.",
+                );
+              }
+            }}
+          >
+            Add 30-day reminder
+          </button>
+          {reminderMessage && <p role="status">{reminderMessage}</p>}
+        </div>
       )}
       {replacement && (
         <VaultConfirmation

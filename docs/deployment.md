@@ -8,7 +8,7 @@ On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRAN
 
 The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep preview build commands on `npm run build` and set `NEXT_PUBLIC_PREVIEW=true` for non-Cloudflare preview systems. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
 
-The live HTTP endpoint currently returns `200` rather than redirecting to HTTPS. Enable Cloudflare's [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) in the zone's SSL/TLS → Edge Certificates settings, then check that `http://instascope.me/` redirects to `https://instascope.me/`. The HTTPS canonical already identifies the preferred page; the edge redirect still needs the zone setting. Review any production `*.pages.dev` or `*.workers.dev` alias in Cloudflare and redirect it to the primary domain or block indexing there, because the same static production HTML cannot distinguish hostnames at request time.
+The 13 October 2026 live audit confirms `http://instascope.me/` returns `301` to `https://instascope.me/`; the earlier HTTP-200 finding is historical. If a future deployment loses that redirect, review Cloudflare's [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) setting. Review any production `*.pages.dev` or `*.workers.dev` alias in Cloudflare and redirect it to the primary domain or block indexing there, because the same static production HTML cannot distinguish hostnames at request time. See [current progress](roadmap-progress.md) for the dated live audit and remaining evidence gaps.
 
 1. Use Node 24; run `npm ci`.
 2. Confirm that the Cloudflare production branch is `main`, or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` for a manual production build.
@@ -65,9 +65,11 @@ Run `npm run check`, `npm run build:production` and the full `npm run test:e2e` 
 
 ## First-party aggregate product analytics
 
-INS-110 production builds compile `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` by default using the existing production/preview environment detection. Preview and local builds remain disabled unless a valid same-origin endpoint is explicitly configured. `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off` disables delivery even in production; a preserved explicit empty value also disables it. Rebuild after changing public variables. Check `out/privacy/index.html` and the deployed Privacy paragraph's `data-analytics-endpoint`; runtime Worker variables cannot change the static client.
+INS-110 / merged PR #111 implements aggregate analytics, and the owner confirms the production collector is deployed. On 13 October 2026, live Privacy compiled `/api/events`; GET returned 405 and the non-writing unknown-event probe returned 400 with the collector's expected headers. This confirms configuration, not durable event ingestion or totals.
 
-The static application deployment does **not** deploy this separate collector. Before publishing the enabled client, use the existing account session/token for the Cloudflare account owning `instascope.me`, confirm proxied DNS and Analytics Engine availability, and verify native limiter namespace `1002` does not belong to an unrelated service. The production config declares `EVENTS` for `instascope_events`, `RATE_LIMITER` at 60 events per 60 seconds, and the HTTPS route `https://instascope.me/api/events*`. Only exact `/api/events` is accepted by the handler. Existing CSP `connect-src 'self'` already permits this endpoint; no CORS or third-party endpoint is added.
+Production builds compile `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` by default using the existing production/preview environment detection. Preview and local builds remain disabled unless a valid same-origin endpoint is explicitly configured. `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off` disables delivery even in production; a preserved explicit empty value also disables it. Rebuild after changing public variables. Check `out/privacy/index.html` and the deployed Privacy paragraph's `data-analytics-endpoint`; runtime Worker variables cannot change the static client.
+
+The static application deployment does **not** deploy this separate collector. The following is the runbook for a future explicit collector deployment: use the existing account session/token for the Cloudflare account owning `instascope.me`, confirm proxied DNS and Analytics Engine availability, and verify native limiter namespace `1002` does not belong to an unrelated service. The production config declares `EVENTS` for `instascope_events`, `RATE_LIMITER` at 60 events per 60 seconds, and the HTTPS route `https://instascope.me/api/events*`. Only exact `/api/events` is accepted by the handler. Existing CSP `connect-src 'self'` already permits this endpoint; no CORS or third-party endpoint is added.
 
 ```powershell
 $env:PATH = "$PWD\.tools\node-v24.21.0-win-x64;$env:PATH"
@@ -75,7 +77,7 @@ npx.cmd --yes wrangler@4.147.0 deploy --config workers/wrangler.analytics.jsonc 
 npm.cmd run build:production
 ```
 
-Then publish the generated `out` directory through the existing static deployment. Analytics Engine creates the dataset on the first accepted write. Native rate limiter bindings are verified through Wrangler's config/deployment output, not a dashboard binding list. Limiting is approximate and per Cloudflare location. Check [current account availability and pricing](https://developers.cloudflare.com/analytics/analytics-engine/pricing/) without upgrading or assuming permanently free quotas. This PR supplies deployment configuration; it does not claim that an account binding or live route was created.
+Then publish the generated `out` directory through the existing static deployment. Analytics Engine creates the dataset on the first accepted write. Native rate limiter bindings are verified through Wrangler's config/deployment output, not a dashboard binding list. Limiting is approximate and per Cloudflare location. Check [current account availability and pricing](https://developers.cloudflare.com/analytics/analytics-engine/pricing/) without upgrading or assuming permanently free quotas. The INS-112 readiness audit changes no deployment, account settings, bindings or plan.
 
 The footer's reporting destination is the existing public repository's GitHub issue form. Repository visibility and enabled Issues were verified before linking it. Reports are public and must contain fictional examples rather than archives, account lists or credentials; GitHub sign-in is required to submit a report. If repository visibility changes, remove or replace this public link rather than pointing users at a private repository.
 
@@ -93,12 +95,11 @@ Use sampling-weighted totals, not raw row counts: `SELECT blob1 AS event, SUM(_s
 
 A configuration probe can POST `{"event":"readiness_probe"}` to `/api/events` with `Origin: https://instascope.me` and `Content-Type: application/json`. The unknown event is never persisted: `400` from the collector means it safely rejected the probe, `503` means bindings are unavailable, and `404`/HTML indicates a missing route. `429` means wait for the limiter; `204` with `DNT: 1` is a discarded request and does not prove readiness. Confirm `Cache-Control: no-store` and `X-Robots-Tag: noindex`. This checks routing/bindings, not durable event ingestion. Do not use a real product event for automated smoke checks.
 
-## Public launch gates
+## Remaining validation and owner decisions
 
-- INS-4 verified one current real JSON export locally. Real HTML and a second historical export remain outstanding (see archive-support.md).
-- Test physical mobile devices and Safari; Chromium mobile emulation is not sufficient for universal support.
-- Set domain, canonical URL, and verify robots now allows crawling.
-- Verify the domain in Google Search Console, submit `/sitemap.xml`, and inspect tool pages.
-- Verify the analytics collector before publishing an enabled production build, or explicitly disable delivery with `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off`. Payloads must contain event names alone.
-- Recheck photo delivery and rate limiting if enabling that optional service.
-- No promotional messages have been posted to social/community accounts.
+- One JSON capture and one HTML capture have been audited locally; a repeated historical export series and alternate formats remain evidence gaps. See [archive support](archive-support.md).
+- Test physical iPhone/Android devices and Safari; mobile Chromium/WebKit emulation does not establish physical-device behavior.
+- Production domain, HTTPS redirect, canonicals, robots and sitemap now pass the dated live checks. Search Console verification/submission and actual indexing require separate evidence.
+- Keep analytics payloads event-name-only. Use the non-writing readiness probe for configuration; inspect genuine product actions privately when checking ingestion.
+- Public-photo health is ready, but upstream availability and provider limits can change. Recheck when changing that service; no account/plan change is part of this parking task.
+- Further feature/growth work is deferred as described in [current progress](roadmap-progress.md).

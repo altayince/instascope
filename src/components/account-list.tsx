@@ -9,6 +9,7 @@ import { download } from "@/lib/download";
 import { requestAge } from "@/lib/analysis/insights";
 import { RelationshipDrawer } from "./relationship-drawer";
 import { useReviewMemory } from "./review-memory-provider";
+import { AccountCsvDownload } from "./account-csv-download";
 export function AccountList({
   accounts,
   selectable = false,
@@ -289,6 +290,7 @@ export function AccountList({
             ? "· Fictional accounts for demo review only"
             : "· Review manually on Instagram")}
       </p>
+      <AccountCsvDownload accounts={filtered} demo={demo} />
       {!filtered.length ? (
         <div className="empty-state">
           {emptyMessage ??

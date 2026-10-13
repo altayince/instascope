@@ -12,6 +12,7 @@ import {
 } from "@/lib/instagram/normalize";
 import { formatSnapshotDate, type VaultSnapshot } from "@/lib/snapshot-vault";
 import { ActionButton } from "./actions";
+import { AccountCsvDownload } from "./account-csv-download";
 import { useData } from "./data-provider";
 import { useCirclePulse } from "./use-circle-pulse";
 import { RelationshipDrawer } from "./relationship-drawer";
@@ -440,6 +441,10 @@ function PulseResults({
           {number(accounts.length)} matching accounts
           {accounts.length > limit ? ` · showing ${limit}` : ""}
         </p>
+        <AccountCsvDownload
+          accounts={accounts.map((entry) => profileAccount(entry.username)!)}
+          demo={demo}
+        />
         {accounts.length ? (
           <ul className="pulse-accounts">
             {accounts.slice(0, limit).map((account) => (

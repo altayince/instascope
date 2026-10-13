@@ -9,6 +9,13 @@ No Google Analytics, Meta Pixel, session replay, advertising tracker, analytics
 cookie, fingerprint, session ID or persistent anonymous ID is used. Analytics
 failure never blocks importing, analysis, local storage, downloading or navigation.
 
+INS-110 was merged in PR #111 (`840df99`), and the owner confirms production
+analytics is deployed. The 13 October 2026 non-writing audit found live Privacy
+configured for `/api/events`, GET returning 405 (`Allow: POST`) and an unknown
+`readiness_probe` POST returning 400 with `no-store` and `noindex`. This verifies
+routing/bindings without writing a metric; it does not establish durable delivery
+or event totals. [Current product status](roadmap-progress.md).
+
 ## Data contract and privacy
 
 The client sends exactly one field:
@@ -208,6 +215,9 @@ Namespace `1002` must be distinct from unrelated account limiters. See
 
 ## Production deployment and preview isolation
 
+The collector is already deployed. The following configuration and commands are
+a maintenance/redeployment runbook, not outstanding launch setup.
+
 `workers/wrangler.analytics.jsonc` declares the production dataset, limiter and
 HTTPS route:
 
@@ -254,8 +264,8 @@ assumed to inherit from another environment.
    require a rebuild. Verify the generated and live Privacy explanation.
 7. Verify the compiled endpoint in the generated Privacy page and use the
    non-writing configuration probe in [deployment.md](deployment.md) for the
-   Worker. Inspect a genuine event from a deliberate synthetic/manual tool
-   action if checking ingestion. A malformed, non-allowlisted readiness probe
+   Worker. Inspect events from genuine product actions privately when checking
+   ingestion. A malformed, non-allowlisted readiness probe
    writes no event. Readiness proves configuration only, not durable delivery or
    human authenticity. Do not submit a fabricated allowlisted “test” event into
    production totals just to make smoke green.
@@ -420,5 +430,5 @@ retention policy; disabling future delivery does not erase prior data. DNT is a
 visitor-level remote opt-out regardless of the deployment default. Local
 event-name diagnostics remain in page memory only and create no remote report.
 
-No production analytics Worker deployment, plan change or account binding is
-performed by this documentation or by opening the implementation PR.
+INS-112's CSV/calendar utilities add no analytics events or fields. Its live
+readiness audit changes no deployment, plan, account settings or bindings.

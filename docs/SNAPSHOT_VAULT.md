@@ -24,6 +24,7 @@ The original legacy key is preserved for rollback to an older deployment. New Va
 ## Product flows
 
 - Save a real loaded export with a user-entered date. Demo exports are rejected in the model as well as excluded from the UI. Different dates add records; the same date opens Replace/Cancel.
+- After a real save commits, optionally choose **Add 30-day reminder** to download an all-day calendar event. The date uses export date + 30 days when that is still future and the export date is not future; otherwise it uses the actual local save day + 30 days. The offer is temporary, separate from Vault storage, and InstaScope sends no notification. See [calendar utility details](PRODUCT_UTILITIES.md).
 - Dashboard shows saved count/latest date and links to the Vault. Snapshot Comparison also links to it.
 - Vault lists dates newest first, with follower/following totals and saved time. Compare selects a neighboring pair as a convenience; it never starts the comparison automatically.
 - Choose any older/newer saved pair, explicitly confirm the same account, and compare. Distinct IDs and strict chronological order are enforced beneath the UI. The existing `compareSnapshots` function supplies all six relationship differences and both deltas; its result UI is shared with the original comparison route.
@@ -59,7 +60,7 @@ Native API behavior: [MDN IndexedDB usage](https://developer.mozilla.org/en-US/d
 
 ## Indexing and scope
 
-Production Vault metadata is `noindex, follow`; preview metadata remains `noindex, nofollow`. The route is absent from `publicPaths` and the production sitemap. Existing public SEO URLs, titles, H1s and article copy are unchanged. No analytics infrastructure or new events are added; optional name-only Vault events can be considered in a later analytics task. Adjacent decorative deltas are deliberately omitted; explicit comparisons provide supported differences.
+Production Vault metadata is `noindex, follow`; preview metadata remains `noindex, nofollow`. The route is absent from `publicPaths` and the production sitemap. Existing public SEO URLs, titles, H1s and article copy are unchanged. Current aggregate analytics records only allowlisted event names: a committed real save may emit `snapshot_saved`, and Vault access may emit `snapshot_vault_opened`; no dates, usernames, counts or history leave the browser. CSV/calendar downloads add no events. See [analytics](ANALYTICS.md). Adjacent decorative deltas are deliberately omitted; explicit comparisons provide supported differences.
 
 Validation uses synthetic data only. Unit coverage exercises schema, normalization, comparison guards/engine parity, backup limits and unavailable-storage errors. Playwright uses actual browser IndexedDB for CRUD, atomic failures, migration/idempotence, corruption, quota errors, backup import/export, current/manual comparison compatibility, dialogs, private metadata and desktop/mobile layout. Screenshot artifacts are generated for history and comparison states.
 
@@ -85,4 +86,4 @@ Validation uses synthetic data only. Unit coverage exercises schema, normalizati
 | Generated production output | Vault canonical correct, `noindex, follow`, absent from sitemap; public crawling remains allowed |
 | Strict live production smoke | All 16 existing paths returned 200; public-photo infrastructure ready |
 
-The live smoke checks the currently deployed main branch. The new Vault route was verified in the PR's generated production output and browser tests; it will become live only after merge/deployment. Screenshots are local Playwright artifacts for desktop/mobile history and comparison states. Tested layouts have no horizontal document overflow beyond a one-pixel rounding tolerance. Windows WebKit with a mobile viewport is not physical Safari/iPhone testing; real iOS storage/eviction and private-mode behavior remain device/browser dependent. No persistence guarantee is made.
+Those 8 October checks preceded the original Vault merge/deployment. The 13 October live audit now confirms `/snapshot-vault/` responds with 200, its correct canonical and `noindex, follow`. The earlier smoke result covered the deployment available at that time. Screenshots are local Playwright artifacts for desktop/mobile history and comparison states. Tested layouts have no horizontal document overflow beyond a one-pixel rounding tolerance. Windows WebKit with a mobile viewport is not physical Safari/iPhone testing; real iOS storage/eviction and private-mode behavior remain device/browser dependent. No persistence guarantee is made.

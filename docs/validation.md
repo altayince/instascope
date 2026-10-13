@@ -1,6 +1,15 @@
 # Validation record
 
-Local validation on Windows, Node 24.21.0:
+This file preserves historical baseline and issue-level evidence. Deployment
+gates, support gaps and test counts below describe the state at each entry, not
+the current product. For the 13 October 2026 live configuration audit and current
+completed/deferred scope, use [current progress](roadmap-progress.md). Current
+archive evidence covers one locally audited JSON capture and one HTML capture;
+physical mobile/Safari and a repeated historical series remain unverified.
+
+## Historical baseline and issue records
+
+Initial local validation on Windows, Node 24.21.0:
 
 - TypeScript: passed.
 - ESLint: passed without warnings after cleanup.
