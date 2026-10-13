@@ -1,0 +1,629 @@
+"use client";
+
+import { useMemo, useState, type CSSProperties } from "react";
+import { ActionButton, ActionLink } from "@/components/actions";
+import type {
+  WhatsAppAnalysis,
+  WhatsAppCountBucket,
+  WhatsAppDataset,
+} from "@/lib/whatsapp";
+import {
+  whatsappDate,
+  whatsappNumber,
+  whatsappPeaks,
+} from "@/lib/whatsapp/stories";
+
+const CHART_PAGE_SIZE = 24;
+const monthFormatter = new Intl.DateTimeFormat("en-GB", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const monthLabel = (bucket: WhatsAppCountBucket) =>
+  monthFormatter.format(new Date(`${bucket.key}-01T12:00:00Z`));
+
+function BarChart({
+  buckets,
+  label,
+  shortLabels = false,
+  formatLabel,
+}: {
+  buckets: readonly WhatsAppCountBucket[];
+  label: string;
+  shortLabels?: boolean;
+  formatLabel?: (bucket: WhatsAppCountBucket) => string;
+}) {
+  const [selectedPage, setSelectedPage] = useState(0);
+  const lastPage = Math.max(0, Math.ceil(buckets.length / CHART_PAGE_SIZE) - 1);
+  const page = Math.min(selectedPage, lastPage);
+  const start = page * CHART_PAGE_SIZE;
+  const visibleBuckets = buckets
+    .slice(start, start + CHART_PAGE_SIZE)
+    .map((bucket) => ({
+      ...bucket,
+      label: formatLabel?.(bucket) ?? bucket.label,
+    }));
+  const maximum = useMemo(
+    () => buckets.reduce((value, bucket) => Math.max(value, bucket.count), 0),
+    [buckets],
+  );
+  const range = `Showing ${whatsappNumber(start + 1)}–${whatsappNumber(start + visibleBuckets.length)} of ${whatsappNumber(buckets.length)} values`;
+  return (
+    <div className="wa-chart">
+      <div
+        className="wa-chart-bars"
+        role="img"
+        aria-label={lastPage ? `${label}; ${range}` : label}
+        style={{ "--wa-chart-count": visibleBuckets.length } as CSSProperties}
+      >
+        {visibleBuckets.map((bucket) => (
+          <div
+            className="wa-chart-column"
+            key={bucket.key}
+            title={`${bucket.label}: ${whatsappNumber(bucket.count)} messages`}
+          >
+            <span className="wa-chart-count">
+              {whatsappNumber(bucket.count)}
+            </span>
+            <div className="wa-chart-track">
+              <i
+                style={{
+                  height: `${maximum ? (bucket.count / maximum) * 100 : 0}%`,
+                }}
+              />
+            </div>
+            <span className="wa-chart-label">
+              {shortLabels ? bucket.label.slice(0, 3) : bucket.label}
+            </span>
+          </div>
+        ))}
+      </div>
+      {lastPage > 0 && (
+        <div className="wa-chart-pagination">
+          <ActionButton
+            disabled={page === 0}
+            onClick={() => setSelectedPage(page - 1)}
+          >
+            Previous values
+          </ActionButton>
+          <span aria-live="polite">{range}</span>
+          <ActionButton
+            disabled={page === lastPage}
+            onClick={() => setSelectedPage(page + 1)}
+          >
+            Next values
+          </ActionButton>
+        </div>
+      )}
+      <details className="wa-chart-data">
+        <summary>Read chart values</summary>
+        <ul>
+          {visibleBuckets.map((bucket) => (
+            <li key={bucket.key}>
+              <span>{bucket.label}</span>
+              <strong>{whatsappNumber(bucket.count)}</strong>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  );
+}
+
+function ActivityCalendar({ analysis }: { analysis: WhatsAppAnalysis }) {
+  const months = useMemo(() => {
+    if (!analysis.first || !analysis.latest) return [];
+    const values: string[] = [];
+    let year = analysis.first.year;
+    let month = analysis.first.month;
+    while (
+      year < analysis.latest.year ||
+      (year === analysis.latest.year && month <= analysis.latest.month)
+    ) {
+      values.push(`${year}-${String(month).padStart(2, "0")}`);
+      if (month === 12) {
+        year++;
+        month = 1;
+      } else month++;
+    }
+    return values;
+  }, [analysis]);
+  const [selected, setSelected] = useState(months.length - 1);
+  const index = Math.max(0, Math.min(selected, months.length - 1));
+  const monthKey = months[index];
+  const daily = useMemo(
+    () => new Map(analysis.daily.map((bucket) => [bucket.key, bucket.count])),
+    [analysis],
+  );
+  if (!monthKey) return null;
+  const [year, month] = monthKey.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const offset = (start.getUTCDay() + 6) % 7;
+  const length = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const monthLabel = new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(start);
+  const maximum = analysis.daily.reduce(
+    (value, bucket) => Math.max(value, bucket.count),
+    0,
+  );
+  const days = Array.from({ length }, (_, day) => {
+    const date = `${monthKey}-${String(day + 1).padStart(2, "0")}`;
+    const count = daily.get(date) ?? 0;
+    return { date, day: day + 1, count };
+  });
+  return (
+    <section
+      className="wa-panel wa-calendar-panel"
+      aria-labelledby="wa-calendar-title"
+    >
+      <div className="wa-panel-heading">
+        <div>
+          <span className="wa-eyebrow">THE DATES WITH SOMETHING TO SAY</span>
+          <h3 id="wa-calendar-title">Activity calendar</h3>
+        </div>
+        <div className="wa-calendar-controls">
+          <ActionButton
+            disabled={index === 0}
+            onClick={() => setSelected(index - 1)}
+            aria-label="Previous calendar month"
+          >
+            ←
+          </ActionButton>
+          <ActionButton
+            disabled={index === months.length - 1}
+            onClick={() => setSelected(index + 1)}
+            aria-label="Next calendar month"
+          >
+            →
+          </ActionButton>
+        </div>
+      </div>
+      <p className="wa-calendar-month" aria-live="polite">
+        {monthLabel}
+      </p>
+      <div
+        className="wa-calendar"
+        role="grid"
+        aria-label={`Messages by date in ${monthLabel}`}
+      >
+        <div className="wa-calendar-week" role="row">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+            <span role="columnheader" key={day}>
+              {day}
+            </span>
+          ))}
+        </div>
+        {Array.from({ length: Math.ceil((offset + length) / 7) }, (_, week) => (
+          <div className="wa-calendar-week" role="row" key={week}>
+            {Array.from({ length: 7 }, (_, weekday) => {
+              const day = days[week * 7 + weekday - offset];
+              return day ? (
+                <div
+                  role="gridcell"
+                  tabIndex={0}
+                  key={weekday}
+                  className={`wa-calendar-day${day.count ? " is-active" : ""}`}
+                  style={
+                    {
+                      "--wa-intensity": day.count
+                        ? 0.2 + (day.count / maximum) * 0.65
+                        : 0,
+                    } as CSSProperties
+                  }
+                  aria-label={`${whatsappDate(day.date)}: ${whatsappNumber(day.count)} exported messages`}
+                  title={`${whatsappDate(day.date)}: ${whatsappNumber(day.count)} messages`}
+                >
+                  <span>{day.day}</span>
+                  <small>{day.count ? whatsappNumber(day.count) : "·"}</small>
+                </div>
+              ) : (
+                <div
+                  role="gridcell"
+                  aria-hidden="true"
+                  className="wa-calendar-empty"
+                  key={weekday}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <p className="wa-hint">
+        Darker cells contain more exported messages. An empty date means none
+        were included in this export.
+      </p>
+    </section>
+  );
+}
+
+export function WhatsAppAnalyzer({
+  dataset,
+  analysis,
+}: {
+  dataset: WhatsAppDataset;
+  analysis: WhatsAppAnalysis;
+}) {
+  const [participantPage, setParticipantPage] = useState(0);
+  const [allMonths, setAllMonths] = useState(false);
+  const participants = useMemo(
+    () =>
+      [...analysis.participants].sort(
+        (a, b) =>
+          b.messageCount - a.messageCount ||
+          a.displayName.localeCompare(b.displayName),
+      ),
+    [analysis],
+  );
+  const visibleParticipants = participants.slice(
+    participantPage * 8,
+    (participantPage + 1) * 8,
+  );
+  const maximum = participants[0]?.messageCount ?? 0;
+  const dailyPeaks = whatsappPeaks(analysis.daily);
+  const hourPeaks = whatsappPeaks(analysis.hours);
+  const months = allMonths ? analysis.monthly : analysis.monthly.slice(-12);
+  const demo = dataset.metadata.source === "demo";
+  const span = analysis.observedSpanSeconds;
+  const displayedSpan = `${whatsappNumber(Math.floor(span / 86400))} d ${Math.floor((span % 86400) / 3600)} h ${Math.floor((span % 3600) / 60)} min${dataset.metadata.timestampPrecision !== "minute" ? ` ${span % 60} s` : ""}`;
+  return (
+    <div className="wa-analysis" aria-label="Chat analysis results">
+      <div className="wa-results-heading">
+        <div>
+          <span className="wa-eyebrow">THE CONVERSATION, IN PERSPECTIVE</span>
+          <h2>Here&apos;s what your export says.</h2>
+          <p>
+            {analysis.first && analysis.latest
+              ? `${whatsappDate(analysis.first.date)} – ${whatsappDate(analysis.latest.date)}`
+              : "Recorded message dates"}{" "}
+            · Recorded times, without an inferred timezone.
+          </p>
+        </div>
+        <ActionLink variant="primary" href="/whatsapp/wrapped/">
+          Make your Wrapped <span aria-hidden="true">↗</span>
+        </ActionLink>
+      </div>
+      <div className="wa-stat-grid">
+        <div className="wa-stat wa-stat-featured">
+          <span>Exported messages</span>
+          <strong>{whatsappNumber(analysis.totals.messages)}</strong>
+          <small>Participant messages in this file</small>
+        </div>
+        <div className="wa-stat">
+          <span>Participants</span>
+          <strong>{whatsappNumber(analysis.totals.participants)}</strong>
+          <small>Distinct sender labels</small>
+        </div>
+        <div className="wa-stat">
+          <span>Active dates</span>
+          <strong>{whatsappNumber(analysis.totals.activeDays)}</strong>
+          <small>Dates with at least one message</small>
+        </div>
+        <div className="wa-stat">
+          <span>Calendar days covered</span>
+          <strong>{whatsappNumber(analysis.calendarSpanDays)}</strong>
+          <small>From first to latest date, inclusive</small>
+        </div>
+      </div>
+      <div className="wa-evidence-note">
+        <span aria-hidden="true">↳</span>
+        <p>
+          {demo ? "These results use fictional demo data. " : ""}This export is
+          a record of included messages. It cannot prove who read a message, how
+          anyone felt, or whether the chat history is complete.
+        </p>
+      </div>
+      <div className="wa-analysis-grid">
+        <section
+          className="wa-panel wa-recorded-span"
+          aria-labelledby="wa-recorded-span-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">
+                THE DATES AND CLOCK VALUES IN YOUR FILE
+              </span>
+              <h3 id="wa-recorded-span-title">Recorded range</h3>
+            </div>
+            <span className="wa-panel-badge">
+              {dataset.metadata.timestampPrecision === "mixed"
+                ? "Mixed minute / second precision"
+                : `${dataset.metadata.timestampPrecision} precision`}
+            </span>
+          </div>
+          <dl className="wa-recorded-times">
+            <div>
+              <dt>Earliest exported message</dt>
+              <dd>
+                {analysis.first?.local.replace("T", " · ") ?? "Unavailable"}
+              </dd>
+            </div>
+            <div>
+              <dt>Latest exported message</dt>
+              <dd>
+                {analysis.latest?.local.replace("T", " · ") ?? "Unavailable"}
+              </dd>
+            </div>
+            <div>
+              <dt>Observed span in written clock values</dt>
+              <dd>{displayedSpan}</dd>
+            </div>
+          </dl>
+          <p className="wa-hint">
+            These are the numeric dates and times recorded in the export,
+            without message contents. No timezone or daylight-saving adjustment
+            is inferred; the span is a wall-clock comparison.
+          </p>
+        </section>
+        <section
+          className="wa-panel wa-participants"
+          aria-labelledby="wa-participants-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">EVERY CONTRIBUTION COUNTS</span>
+              <h3 id="wa-participants-title">Messages by participant</h3>
+            </div>
+            <span className="wa-panel-badge">
+              {whatsappNumber(participants.length)} labels
+            </span>
+          </div>
+          <p>
+            Message counts and each participant&apos;s share of exported
+            messages.
+          </p>
+          <div className="wa-participant-bars">
+            {visibleParticipants.map((participant, position) => (
+              <div className="wa-participant-row" key={participant.id}>
+                <div className="wa-participant-label">
+                  <span className="wa-participant-avatar" aria-hidden="true">
+                    {String(participantPage * 8 + position + 1).padStart(
+                      2,
+                      "0",
+                    )}
+                  </span>
+                  <span title={participant.displayName}>
+                    {participant.displayName}
+                  </span>
+                  <strong>
+                    {whatsappNumber(participant.messageCount)}{" "}
+                    <small>
+                      {analysis.totals.messages
+                        ? (
+                            (participant.messageCount /
+                              analysis.totals.messages) *
+                            100
+                          ).toFixed(1)
+                        : "0"}
+                      %
+                    </small>
+                  </strong>
+                </div>
+                <div className="wa-participant-track" aria-hidden="true">
+                  <i
+                    style={{
+                      width: `${maximum ? (participant.messageCount / maximum) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+                <p className="wa-participant-extras">
+                  Media markers: {whatsappNumber(participant.mediaMessages)} ·
+                  Links: {whatsappNumber(participant.links)} · Emoji:{" "}
+                  {participant.emoji === null
+                    ? "unavailable"
+                    : whatsappNumber(participant.emoji)}
+                </p>
+              </div>
+            ))}
+          </div>
+          {participants.length > 8 && (
+            <div className="wa-participant-pagination">
+              <ActionButton
+                disabled={participantPage === 0}
+                onClick={() => setParticipantPage(participantPage - 1)}
+              >
+                Previous participants
+              </ActionButton>
+              <span aria-live="polite">
+                {participantPage * 8 + 1}–
+                {Math.min((participantPage + 1) * 8, participants.length)} of{" "}
+                {whatsappNumber(participants.length)}
+              </span>
+              <ActionButton
+                disabled={(participantPage + 1) * 8 >= participants.length}
+                onClick={() => setParticipantPage(participantPage + 1)}
+              >
+                Next participants
+              </ActionButton>
+            </div>
+          )}
+          <p className="wa-hint">
+            Sender labels come from the file and may not uniquely identify a
+            person. Equal counts are tied. Media, links and emoji use the same
+            supported text counts as the totals.
+          </p>
+        </section>
+        <ActivityCalendar analysis={analysis} />
+        <section
+          className="wa-panel wa-years-panel"
+          aria-labelledby="wa-years-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">THE YEARS IN THIS EXPORT</span>
+              <h3 id="wa-years-title">Messages by year</h3>
+            </div>
+          </div>
+          <p>
+            Message counts for each recorded calendar year. A year may contain
+            only part of the conversation.
+          </p>
+          <BarChart
+            buckets={analysis.yearly}
+            label="Number of exported messages in each recorded year"
+          />
+        </section>
+        <section
+          className="wa-panel wa-months-panel"
+          aria-labelledby="wa-months-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">
+                HOW THE CHAT MOVES THROUGH TIME
+              </span>
+              <h3 id="wa-months-title">Messages by month</h3>
+            </div>
+            {analysis.monthly.length > 12 && (
+              <ActionButton
+                variant="tertiary"
+                onClick={() => setAllMonths(!allMonths)}
+              >
+                {allMonths ? "Latest 12 months" : "All recorded months"}
+              </ActionButton>
+            )}
+          </div>
+          <p>
+            {!allMonths && analysis.monthly.length > 12
+              ? `Latest 12 of ${whatsappNumber(analysis.monthly.length)} recorded months.`
+              : "Recorded months with exported messages."}{" "}
+            This is message activity, rather than a complete history of the
+            chat.
+          </p>
+          <BarChart
+            key={allMonths ? "all-months" : "latest-months"}
+            buckets={months}
+            formatLabel={monthLabel}
+            label="Number of exported messages in each recorded month"
+          />
+        </section>
+        <section
+          className="wa-panel wa-hours-panel"
+          aria-labelledby="wa-hours-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">AROUND THE CLOCK</span>
+              <h3 id="wa-hours-title">Time of day</h3>
+            </div>
+          </div>
+          <p>All exported dates, grouped by the hour written in the file.</p>
+          <BarChart
+            buckets={analysis.hours.map((bucket) => ({
+              ...bucket,
+              label: `${bucket.key.padStart(2, "0")}:00`,
+            }))}
+            label="Number of exported messages in each hourly bucket"
+          />
+          <p className="wa-chart-takeaway">
+            {hourPeaks.length === 1
+              ? `${hourPeaks[0].label} has the highest count: ${whatsappNumber(hourPeaks[0].count)} messages.`
+              : hourPeaks.length
+                ? `${whatsappNumber(hourPeaks.length)} hourly buckets tie at ${whatsappNumber(hourPeaks[0].count)} messages each.`
+                : "No hourly activity is available."}
+          </p>
+        </section>
+        <section className="wa-panel" aria-labelledby="wa-weekdays-title">
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">A WEEK, ADDED UP</span>
+              <h3 id="wa-weekdays-title">Days of the week</h3>
+            </div>
+          </div>
+          <p>Message counts across all recorded dates, by calendar weekday.</p>
+          <BarChart
+            buckets={analysis.weekdays}
+            label="Number of exported messages on each weekday"
+            shortLabels
+          />
+        </section>
+        <section
+          className="wa-panel wa-content-panel"
+          aria-labelledby="wa-extras-title"
+        >
+          <div className="wa-panel-heading">
+            <div>
+              <span className="wa-eyebrow">MORE IN THE TEXT</span>
+              <h3 id="wa-extras-title">The extras</h3>
+            </div>
+          </div>
+          <dl className="wa-extra-counts">
+            <div>
+              <dt>Recognized media placeholders</dt>
+              <dd>{whatsappNumber(analysis.totals.mediaMessages)}</dd>
+            </div>
+            <div>
+              <dt>HTTP(S) link occurrences</dt>
+              <dd>{whatsappNumber(analysis.totals.links)}</dd>
+            </div>
+            <div>
+              <dt>Messages containing links</dt>
+              <dd>{whatsappNumber(analysis.totals.messagesWithLinks)}</dd>
+            </div>
+            <div>
+              <dt>Supported emoji occurrences</dt>
+              <dd>
+                {analysis.totals.emoji === null
+                  ? "Unavailable"
+                  : whatsappNumber(analysis.totals.emoji)}
+              </dd>
+            </div>
+            <div>
+              <dt>Recorded system events</dt>
+              <dd>{whatsappNumber(analysis.totals.systemEvents)}</dd>
+            </div>
+          </dl>
+          <p className="wa-hint">
+            Media counts rely on supported text markers. Attachments are not
+            inspected. Emoji counts cover supported graphemes. System events are
+            excluded from message charts.
+          </p>
+        </section>
+        <section
+          className="wa-panel wa-small-facts"
+          aria-labelledby="wa-small-facts-title"
+        >
+          <span className="wa-eyebrow">SMALL FACTS, CLEAR LIMITS</span>
+          <h3 id="wa-small-facts-title">A few recorded high points</h3>
+          <dl>
+            <div>
+              <dt>
+                {dailyPeaks.length === 1
+                  ? "Highest message count on a date"
+                  : "Highest message count, tied dates"}
+              </dt>
+              <dd>
+                {dailyPeaks.length
+                  ? `${whatsappNumber(dailyPeaks[0].count)} messages${dailyPeaks.length > 1 ? ` on each of ${whatsappNumber(dailyPeaks.length)} dates` : ` on ${whatsappDate(dailyPeaks[0].key, true)}`}`
+                  : "Unavailable"}
+              </dd>
+            </div>
+            <div>
+              <dt>Longest consecutive run of active dates</dt>
+              <dd>
+                {analysis.longestStreak
+                  ? `${whatsappNumber(analysis.longestStreak.days)} dates · ${whatsappDate(analysis.longestStreak.from, true)} – ${whatsappDate(analysis.longestStreak.to, true)}`
+                  : "Unavailable"}
+              </dd>
+            </div>
+            <div>
+              <dt>Longest recorded interval between messages</dt>
+              <dd>
+                {analysis.longestGap
+                  ? `${whatsappNumber(Math.floor(analysis.longestGap.wallClockSeconds / 3600))} h ${Math.floor((analysis.longestGap.wallClockSeconds % 3600) / 60)} min${dataset.metadata.timestampPrecision !== "minute" ? ` ${analysis.longestGap.wallClockSeconds % 60} s` : ""}`
+                  : "No interval to measure"}
+              </dd>
+            </div>
+          </dl>
+          <p className="wa-hint">
+            Intervals compare the wall-clock values in the export. Timezone and
+            daylight-saving changes are unknown. Several runs or intervals may
+            share the same maximum.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { siteUrl, isIndexable } from "@/lib/site";
-import { ToolNavigation } from "@/components/tool-navigation";
+import { PlatformShell } from "@/components/platform-shell";
 import { DataProvider } from "@/components/data-provider";
 import { ReviewMemoryProvider } from "@/components/review-memory-provider";
 import "./globals.css";
@@ -28,47 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <DataProvider>
           <ReviewMemoryProvider>
-            <a className="skip-link" href="#main">
-              Skip to content
-            </a>
-            <header className="site-header">
-              <Link className="brand" href="/" aria-label="InstaScope home">
-                <span className="brand-mark" aria-hidden="true">
-                  ◎
-                </span>{" "}
-                insta<span>scope</span>
-              </Link>
-              <ToolNavigation />
-              <span className="header-note">
-                <i /> Your data stays yours
-              </span>
-            </header>
-            {children}
-            <footer>
-              <Link className="brand" href="/">
-                ◎ instascope
-              </Link>
-              <p>A little clarity for your social circle.</p>
-              <nav aria-label="Footer navigation">
-                <Link href="/guides/">Guides</Link>
-                <Link href="/privacy/">Privacy</Link>
-                <Link href="/how-to-download-instagram-followers-data/">
-                  Export guide
-                </Link>
-                <Link href="/changelog/">What’s new</Link>
-                <a
-                  href="https://github.com/altayince/instascope/issues/new?template=bug_report.yml"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Report a problem on GitHub (opens in a new tab)"
-                >
-                  Report a problem
-                </a>
-              </nav>
-              <small>
-                Independent tool. Not affiliated with Instagram or Meta.
-              </small>
-            </footer>
+            <PlatformShell>{children}</PlatformShell>
           </ReviewMemoryProvider>
         </DataProvider>
       </body>
