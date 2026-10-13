@@ -117,6 +117,53 @@ describe("local WhatsApp structural format detection", () => {
   });
 });
 
+describe("malformed WhatsApp date-header boundaries", () => {
+  it.each([
+    "[14/XX/26, 9:45 AM] Synthetic B: Invalid date component",
+    "[14/Mar/26, 9:45 AM] Synthetic B: Unsupported month component",
+    "14/XX/26, 9:45 AM - Synthetic B: Invalid date component",
+    "14/Mar/26, 9:45 AM - Synthetic B: Unsupported month component",
+    "[14//26, 9:45 AM] Synthetic B: Missing date component",
+  ])(
+    "rejects unsupported date components instead of appending %s",
+    (header) => {
+      const source = `[3/14/26, 9:44 AM] Synthetic A: First record\n${header}`;
+      const report = detectWhatsAppFormat(source);
+      expect(report.status).toBe("unsupported");
+      expect(report.candidateFormats).toEqual([]);
+      expect(report.unsupportedLookingRecords).toBe(1);
+      expect(() => parseWhatsApp(source, "mdy-12h")).toThrow(
+        /unsupported or mixed/,
+      );
+    },
+  );
+
+  it("rejects malformed date-shaped preamble rather than skipping it", () => {
+    const source = [
+      "[14/XX/26, 9:45 AM] Synthetic B: Invalid first record",
+      "[3/14/26, 9:46 AM] Synthetic A: Valid later record",
+    ].join("\n");
+    expect(detectWhatsAppFormat(source).status).toBe("unsupported");
+    expect(() => parseWhatsApp(source, "mdy-12h")).toThrow(
+      /unsupported or mixed/,
+    );
+  });
+
+  it("preserves ordinary bracketed prose that lacks a numeric date component", () => {
+    const continuation = [
+      "[A fictional note]",
+      "[Reminder, 9:45 AM]",
+      "[notes/for/later, 9:45 AM]",
+      "[14/XX/26 is a fictional example without a clock]",
+    ].join("\n");
+    const source = `[3/14/26, 9:44 AM] Synthetic A: First record\n${continuation}`;
+    expect(detectWhatsAppFormat(source).status).toBe("supported");
+    expect(parseWhatsApp(source, "mdy-12h").messages[0].content).toBe(
+      `First record\n${continuation}`,
+    );
+  });
+});
+
 describe("explicit WhatsApp year and Doctor source semantics", () => {
   it("parses the structural YY fixtures with recorded precision and continuation text", () => {
     const fixture = (name: string) =>

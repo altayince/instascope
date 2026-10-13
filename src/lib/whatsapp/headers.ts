@@ -8,6 +8,16 @@ export type WhatsAppHeader = {
   wrapper: "ios" | "android";
 };
 
+// This is only an unsupported-header guard, never a date interpretation. At least
+// one complete numeric component, two date separators and a comma-clock prefix
+// distinguish it from arbitrary bracketed prose. Every component is bounded.
+const dateComponent = "[\\p{L}\\d]{0,12}";
+const dateWithNumericComponent = `(?:\\d{1,4}[/.-]${dateComponent}[/.-]${dateComponent}|${dateComponent}[/.-]\\d{1,4}[/.-]${dateComponent}|${dateComponent}[/.-]${dateComponent}[/.-]\\d{1,4})`;
+const unsupportedDateHeader = new RegExp(
+  `^\\[?${dateWithNumericComponent},[ \\u00a0\\u202f]*\\d{1,2}[:.]`,
+  "u",
+);
+
 /** Only numeric headers in the verified iOS and existing Android wrappers. */
 export function readWhatsAppHeader(line: string): WhatsAppHeader | null {
   const text = line.replace(/^[\u200e\u200f]+/, "");
@@ -34,6 +44,7 @@ export function readWhatsAppHeader(line: string): WhatsAppHeader | null {
 export function isWhatsAppHeaderLike(line: string): boolean {
   const text = line.replace(/^[ \t\u00a0\u202f\u200e\u200f]+/, "");
   return (
+    unsupportedDateHeader.test(text) ||
     /^\[?(?:\d{1,4}[/.-]){1,2}\d{1,4}(?:,|[ \u00a0\u202f]+\d{1,2}[:.])/.test(
       text,
     ) ||
