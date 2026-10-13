@@ -20,18 +20,27 @@ const txt = (text = source) => ({
   buffer: Buffer.from(text),
 });
 async function openChat(page: Page, file = txt()) {
-  await page
-    .getByLabel("Export date/time format", { exact: true })
-    .selectOption("dmy-24h");
-  await page
-    .getByLabel("Upload WhatsApp chat export", { exact: true })
-    .setInputFiles(file);
+  await confirmChat(page, file);
   await expect(
     page
       .locator(".wa-stat")
       .filter({ hasText: "Exported messages" })
       .locator("strong"),
   ).toHaveText("6");
+}
+async function confirmChat(page: Page, file = txt(), format = "dmy-24h") {
+  await page
+    .getByLabel("Upload WhatsApp chat export", { exact: true })
+    .setInputFiles(file);
+  await expect(
+    page.getByRole("region", { name: "Detected export format" }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Export date/time format", { exact: true })
+    .selectOption(format);
+  await page
+    .getByRole("button", { name: "Confirm format and open chat" })
+    .click();
 }
 async function fits(page: Page) {
   expect(
@@ -243,7 +252,7 @@ test.describe("WhatsAppScope enabled preview", () => {
     await page.goto("/whatsapp/chat-analyzer/");
     await expect(
       page.getByRole("button", { name: "Open chat export" }),
-    ).toBeDisabled();
+    ).toBeEnabled();
     await openChat(page);
     for (const [label, value] of [
       ["Participants", "2"],
@@ -358,17 +367,226 @@ test.describe("WhatsAppScope enabled preview", () => {
       .setInputFiles({ ...zip, buffer: zip.buffer.subarray(0, 40) });
     await expect(page.locator(".wa-error")).toBeVisible();
     for (const file of [
-      txt("13/10/26, 9:00 - Name: unsupported year"),
+      txt("13/10/6, 9:00 - Synthetic: unsupported year width"),
       txt("31/02/2025, 09:00 - Name: impossible date"),
       txt("not an export"),
     ]) {
       await page
         .getByLabel("Upload WhatsApp chat export", { exact: true })
         .setInputFiles(file);
-      await expect(page.locator(".wa-error")).toBeVisible();
+      const detection = page.getByRole("region", {
+        name: "Detected export format",
+      });
+      await expect(
+        detection.getByText("Unsupported", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Confirm format and open chat" }),
+      ).toBeDisabled();
+      await expect(
+        page
+          .locator(".wa-stat")
+          .filter({ hasText: "Exported messages" })
+          .locator("strong"),
+      ).toHaveText("6");
     }
     await openChat(page);
     await expect(page.locator(".wa-error")).toHaveCount(0);
+  });
+
+  test("ambiguous YY input requires a new deliberate format choice and cancellation preserves the loaded chat", async ({
+    page,
+  }) => {
+    await page.goto("/whatsapp/chat-analyzer/");
+    await page.getByRole("button", { name: "Try the fictional demo" }).click();
+    const messageTotal = page
+      .locator(".wa-stat")
+      .filter({ hasText: "Exported messages" })
+      .locator("strong");
+    await expect(messageTotal).toHaveText("24");
+    const file = txt(
+      "[6/7/26, 9:45 AM] Synthetic A: Hello\n[6/8/26, 9:46 AM] Synthetic B: Hello",
+    );
+    await page
+      .getByLabel("Upload WhatsApp chat export", { exact: true })
+      .setInputFiles(file);
+    const detection = page.getByRole("region", {
+      name: "Detected export format",
+    });
+    await expect(
+      detection.getByText("Needs user selection", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Export date/time format", { exact: true }),
+    ).toHaveValue("");
+    const confirm = page.getByRole("button", {
+      name: "Confirm format and open chat",
+    });
+    await expect(confirm).toBeDisabled();
+    await expect(messageTotal).toHaveText("24");
+    await page
+      .getByLabel("Export date/time format", { exact: true })
+      .selectOption("mdy-12h");
+    await expect(confirm).toBeEnabled();
+    await confirm.click();
+    await expect(messageTotal).toHaveText("2");
+    await expect(page.locator(".wa-recorded-times")).toContainText(
+      "2026-06-07",
+    );
+    await expect(page.locator(".wa-recorded-times")).toContainText(
+      "2026-06-08",
+    );
+    await page
+      .getByLabel("Upload WhatsApp chat export", { exact: true })
+      .setInputFiles(file);
+    await expect(
+      detection.getByText("Needs user selection", { exact: true }),
+    ).toBeVisible();
+    await expect(confirm).toBeDisabled();
+    await page
+      .getByRole("button", { name: "Cancel import", exact: true })
+      .click();
+    await expect(detection).toHaveCount(0);
+    await expect(messageTotal).toHaveText("2");
+    await fits(page);
+  });
+
+  test("supported iOS YY evidence waits for confirmation and Doctor reports only aggregate source coverage", async ({
+    page,
+  }) => {
+    const evidence = [
+      "SYNTHETIC_PRIVATE_PREAMBLE",
+      "[3/14/26, 12:00:01 AM] SYNTHETIC_PRIVATE_LABEL: SYNTHETIC_PRIVATE_BODY",
+      "A fictional continuation line.",
+      "[3/14/26, 12:05 PM] Synthetic B: https://synthetic-private.invalid/secret",
+      "[3/15/26, 1:02:03 PM] SYNTHETIC_PRIVATE_LABEL: A fictional final line.",
+    ].join("\n");
+    await page.goto("/whatsapp/chat-analyzer/");
+    await page
+      .getByLabel("Upload WhatsApp chat export", { exact: true })
+      .setInputFiles({
+        ...txt(evidence),
+        name: "synthetic-private-filename.txt",
+      });
+    const detection = page.getByRole("region", {
+      name: "Detected export format",
+    });
+    await expect(
+      detection.getByText("Supported", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Export date/time format", { exact: true }),
+    ).toHaveValue("mdy-12h");
+    await expect(page.locator(".wa-stat")).toHaveCount(0);
+    await expect(detection).not.toContainText(
+      /SYNTHETIC_PRIVATE|synthetic-private|secret/,
+    );
+    await page
+      .getByRole("button", { name: "Confirm format and open chat" })
+      .click();
+    await expect(
+      page
+        .locator(".wa-stat")
+        .filter({ hasText: "Exported messages" })
+        .locator("strong"),
+    ).toHaveText("3");
+    const doctor = page.getByRole("region", { name: "Chat Export Doctor" });
+    await expect(doctor).toBeVisible();
+    await expect(doctor).toContainText(/iOS|bracket/i);
+    await expect(doctor).toContainText(/2-digit|two-digit|2 digit/i);
+    await expect(doctor).toContainText(/mixed|second/i);
+    await expect(doctor).not.toContainText(
+      /SYNTHETIC_PRIVATE|synthetic-private|secret/,
+    );
+    await expect(page.locator(".wa-recorded-times")).toContainText(
+      "2026-03-14",
+    );
+    await expect(page.locator("main")).not.toContainText(
+      "SYNTHETIC_PRIVATE_PREAMBLE",
+    );
+    await fits(page);
+  });
+
+  test("a synthetic localized iOS ZIP accepts Markdown companions and reports bounded factual event coverage", async ({
+    page,
+  }) => {
+    const records = await readFile(
+      "tests/fixtures/whatsapp/ios-de-markers.txt",
+      "utf8",
+    );
+    const archive = {
+      name: "synthetic-private-archive.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.from(
+        zipSync({
+          "synthetic-private-chat.txt": strToU8(records),
+          "chat.md": strToU8(
+            "SYNTHETIC_PRIVATE_COMPANION_BODY https://example.invalid/private-companion",
+          ),
+          "synthetic-private-image.jpg": new Uint8Array(32),
+        }),
+      ),
+    };
+    await page.goto("/whatsapp/chat-analyzer/");
+    await confirmChat(page, archive, "mdy-12h");
+    await expect(
+      page
+        .locator(".wa-stat")
+        .filter({ hasText: "Exported messages" })
+        .locator("strong"),
+    ).toHaveText("9");
+    const doctor = page.getByRole("region", { name: "Chat Export Doctor" });
+    await expect(doctor).toBeVisible();
+    await expect(
+      doctor
+        .locator(".wa-doctor-coverage > div")
+        .filter({ hasText: "Ignored non-TXT ZIP files" })
+        .locator("dd"),
+    ).toHaveText("2");
+    await expect(
+      doctor.getByText("Partially supported", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      doctor
+        .locator(".wa-doctor-coverage > div")
+        .filter({ hasText: "Unclassified marker-like records" })
+        .locator("dd"),
+    ).toHaveText("1");
+    for (const label of [
+      "Image omitted",
+      "Video omitted",
+      "Voice / audio omitted",
+      "Sticker omitted",
+      "GIF omitted",
+      "Document omitted",
+      "Deleted-message marker",
+      "Call marker",
+      "Location-share marker",
+    ])
+      await expect(doctor.locator(".wa-doctor-details")).toContainText(label);
+    await expect(doctor.locator(".wa-doctor-details")).toContainText("German");
+    await expect(doctor).not.toContainText(
+      /Synthetic A|Synthetic B|synthetic-private|SYNTHETIC_PRIVATE|example\.invalid|chat\.md|\[Anruf\]|synthetic-document|maps\.google\.com|q=0/,
+    );
+    await expect(
+      page
+        .locator(".wa-extra-counts > div")
+        .filter({ hasText: "Recognized media placeholders" })
+        .locator("dd"),
+    ).toHaveText("6");
+    await expect(
+      page
+        .locator(".wa-extra-counts > div")
+        .filter({ hasText: "Recorded system events" })
+        .locator("dd"),
+    ).toHaveText("1");
+    await expect(
+      page
+        .locator(".wa-extra-counts > div")
+        .filter({ hasText: "HTTP(S) link occurrences" })
+        .locator("dd"),
+    ).toHaveText("0");
+    await fits(page);
   });
 
   test("Wrapped cards are anonymous, keyboard navigable and locally export true portrait PNGs", async ({
@@ -471,18 +689,13 @@ test.describe("WhatsAppScope enabled preview", () => {
     page,
   }) => {
     await page.goto("/whatsapp/chat-analyzer/");
-    await page
-      .getByLabel("Export date/time format", { exact: true })
-      .selectOption("dmy-24h");
     const records = (many: boolean) =>
       Array.from(
         { length: 9 },
         (_, index) =>
           `01/01/2025, 09:00 - ${many ? `Label ${index + 1}` : "Replacement label"}: Message`,
       ).join("\n");
-    await page
-      .getByLabel("Upload WhatsApp chat export", { exact: true })
-      .setInputFiles(txt(records(true)));
+    await confirmChat(page, txt(records(true)));
     const participants = page.locator(".wa-participants");
     await expect(participants.locator(".wa-participant-row")).toHaveCount(8);
     await participants
@@ -490,9 +703,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       .click();
     await expect(participants.locator(".wa-participant-row")).toHaveCount(1);
     await expect(participants).toContainText("Label 9");
-    await page
-      .getByLabel("Upload WhatsApp chat export", { exact: true })
-      .setInputFiles(txt(records(false)));
+    await confirmChat(page, txt(records(false)));
     await expect(participants.locator(".wa-participant-row")).toHaveCount(1);
     await expect(participants).toContainText("Replacement label");
     await expect(
@@ -505,16 +716,12 @@ test.describe("WhatsAppScope enabled preview", () => {
     page,
   }) => {
     await page.goto("/whatsapp/chat-analyzer/");
-    await page
-      .getByLabel("Export date/time format", { exact: true })
-      .selectOption("dmy-24h");
-    await page
-      .getByLabel("Upload WhatsApp chat export", { exact: true })
-      .setInputFiles(
-        txt(
-          "[01/01/2025, 09:00:00] First: hello\n[01/01/2025, 09:00:30] Second: hello",
-        ),
-      );
+    await confirmChat(
+      page,
+      txt(
+        "[01/01/2025, 09:00:00] First: hello\n[01/01/2025, 09:00:30] Second: hello",
+      ),
+    );
     await expect(page.locator(".wa-recorded-times")).toContainText(
       "0 d 0 h 0 min 30 s",
     );
@@ -531,16 +738,11 @@ test.describe("WhatsAppScope enabled preview", () => {
     page,
   }) => {
     await page.goto("/whatsapp/chat-analyzer/");
-    await page
-      .getByLabel("Export date/time format", { exact: true })
-      .selectOption("dmy-24h");
     const text = Array.from(
       { length: 26 },
       (_, index) => `01/01/${2000 + index}, 09:00 - Synthetic label: Hello`,
     ).join("\n");
-    await page
-      .getByLabel("Upload WhatsApp chat export", { exact: true })
-      .setInputFiles(txt(text));
+    await confirmChat(page, txt(text));
     const years = page.locator(".wa-years-panel");
     await expect(years.locator(".wa-chart-column")).toHaveCount(24);
     await years
@@ -581,7 +783,7 @@ test.describe("WhatsAppScope enabled preview", () => {
           if (
             message &&
             typeof message === "object" &&
-            "format" in message &&
+            ("format" in message || "operation" in message) &&
             "files" in message
           ) {
             this.held = true;
@@ -638,6 +840,70 @@ test.describe("WhatsAppScope enabled preview", () => {
         .locator("strong"),
     ).toHaveText("24");
     await expect(page.locator(".wa-error")).toHaveCount(0);
+  });
+
+  test("cancelling parsing terminates a pending replacement and keeps the previous accepted dataset", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const metrics = { pending: 0, terminated: 0 };
+      Object.assign(window, { waPendingParser: metrics });
+      const NativeWorker = window.Worker;
+      let holdNextParse = true;
+      window.Worker = class extends NativeWorker {
+        held = false;
+        postMessage(message: unknown) {
+          if (
+            holdNextParse &&
+            message &&
+            typeof message === "object" &&
+            "format" in message &&
+            "files" in message
+          ) {
+            holdNextParse = false;
+            this.held = true;
+            metrics.pending++;
+          } else super.postMessage(message);
+        }
+        terminate() {
+          if (this.held) {
+            metrics.pending--;
+            metrics.terminated++;
+            this.held = false;
+          }
+          super.terminate();
+        }
+      } as typeof Worker;
+    });
+    await page.goto("/whatsapp/chat-analyzer/");
+    await page.getByRole("button", { name: "Try the fictional demo" }).click();
+    await confirmChat(page);
+    await expect(page.locator(".wa-import-panel")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+    const total = page
+      .locator(".wa-stat")
+      .filter({ hasText: "Exported messages" })
+      .locator("strong");
+    await expect(total).toHaveText("24");
+    await page
+      .getByRole("button", { name: "Cancel import", exact: true })
+      .click();
+    await expect(page.locator(".wa-import-panel")).toHaveAttribute(
+      "aria-busy",
+      "false",
+    );
+    await expect(total).toHaveText("24");
+    expect(
+      await page.evaluate(
+        () =>
+          (window as unknown as { waPendingParser: unknown }).waPendingParser,
+      ),
+    ).toEqual({ pending: 0, terminated: 1 });
+    await openChat(page);
+    await expect(page.locator(".wa-error")).toHaveCount(0);
+    await fits(page);
   });
 
   test("fictional demo and platform switches keep Instagram and WhatsApp data independent", async ({

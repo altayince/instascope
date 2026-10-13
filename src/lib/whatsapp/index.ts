@@ -1,4 +1,4 @@
-export { readWhatsApp } from "./browser";
+export { readWhatsApp, inspectWhatsAppExport } from "./browser";
 export { parseWhatsApp } from "./parser";
 export { analyzeWhatsApp } from "./analysis";
 export { createWhatsAppDemo, WHATSAPP_DEMO_TEXT } from "./demo";

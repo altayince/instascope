@@ -11,7 +11,7 @@ export function parseWhatsAppTimestamp(
   const dateMatch =
     format.dateOrder === "ymd"
       ? /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(date)
-      : /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(date);
+      : /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(date);
   const clockMatch =
     /^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:[ \u00a0\u202f]+(AM|PM))?$/i.exec(clock);
   if (
@@ -21,15 +21,20 @@ export function parseWhatsAppTimestamp(
   )
     throw new WhatsAppImportError(
       "format",
-      "The timestamps do not match the selected format. Choose the matching date order and clock. Only four-digit years and English AM/PM are supported.",
+      "The timestamps do not match the selected format. Choose the matching date order and clock. Slash dates support two- or four-digit years; year-first dates require four digits. Only English AM/PM is supported.",
     );
   const parts = dateMatch.slice(1).map(Number);
-  const [year, month, day] =
+  const [sourceYear, month, day] =
     format.dateOrder === "ymd"
       ? parts
       : format.dateOrder === "dmy"
         ? [parts[2], parts[1], parts[0]]
         : [parts[2], parts[0], parts[1]];
+  const sourceYearWidth = (
+    format.dateOrder === "ymd" ? dateMatch[1] : dateMatch[3]
+  ).length as 2 | 4;
+  // The verified recent slash format has YY. Never use a moving century pivot.
+  const year = sourceYearWidth === 2 ? 2000 + sourceYear : sourceYear;
   let hour = Number(clockMatch[1]);
   const minute = Number(clockMatch[2]),
     second = Number(clockMatch[3] ?? 0);
@@ -67,6 +72,7 @@ export function parseWhatsAppTimestamp(
     minute,
     second,
     precision,
+    sourceYearWidth,
     date: calendarDate,
     local: `${calendarDate}T${pad(hour)}:${pad(minute)}${precision === "second" ? `:${pad(second)}` : ""}`,
   };

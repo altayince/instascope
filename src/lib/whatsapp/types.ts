@@ -9,6 +9,53 @@ export type WhatsAppFormat = {
   timeConvention: "24h" | "12h";
 };
 
+/** Aggregate structural evidence only: never include source text or identifiers. */
+export type WhatsAppFormatDetection = {
+  status: "supported" | "ambiguous" | "unsupported";
+  confidence: "exact" | "needs-selection" | "unsupported";
+  candidateFormats: WhatsAppFormatId[];
+  detectedFormat: WhatsAppFormatId | null;
+  wrappers: ("ios" | "android")[];
+  yearWidths: (2 | 4)[];
+  clockStyles: ("12h" | "24h")[];
+  timestampPrecision: "minute" | "second" | "mixed" | null;
+  headerCount: number;
+  unsupportedLookingRecords: number;
+  preambleLines: number;
+  continuationLines: number;
+};
+
+export type WhatsAppInspection = {
+  detection: WhatsAppFormatDetection;
+  source: "txt" | "zip";
+  ignoredCompanionFiles: number;
+};
+
+export type WhatsAppEventKind =
+  WhatsAppMediaKind | "call" | "deleted-message" | "location";
+
+export type WhatsAppRecordEvent = {
+  kind: WhatsAppEventKind;
+  locale: "en" | "de";
+};
+
+/** Loaded-source coverage; counts and fixed parser facts, never message samples. */
+export type WhatsAppExportDoctor = {
+  status: "supported" | "partially-supported";
+  detection: WhatsAppFormatDetection;
+  selectedFormat: WhatsAppFormatId;
+  participantLabels: number;
+  eventTypes: { kind: WhatsAppEventKind; count: number }[];
+  localizedMarkers: {
+    locale: "en" | "de";
+    kind: WhatsAppEventKind;
+    count: number;
+  }[];
+  ignoredCompanionFiles: number;
+  unclassifiedMarkerRecords: number;
+  sourceLimitations: string[];
+};
+
 /** A Gregorian wall-clock value from the export, with no inferred timezone. */
 export type WhatsAppTimestamp = {
   year: number;
@@ -18,6 +65,8 @@ export type WhatsAppTimestamp = {
   minute: number;
   second: number;
   precision: "minute" | "second";
+  /** Slash-export YY means 2000 + YY; the original width remains explicit. */
+  sourceYearWidth?: 2 | 4;
   date: string;
   local: string;
 };
@@ -29,6 +78,7 @@ export type WhatsAppWarning = {
     | "participant-labels"
     | "media-placeholders"
     | "ignored-attachments"
+    | "ignored-preamble"
     | "out-of-order"
     | "emoji-unavailable";
   message: string;
@@ -45,6 +95,7 @@ export type WhatsAppMessage = {
   timestamp: WhatsAppTimestamp;
   content: string;
   media?: WhatsAppMediaKind;
+  event?: WhatsAppRecordEvent;
   links: string[];
   /** One entry per supported emoji grapheme; null when segmentation is unavailable. */
   emoji: string[] | null;
@@ -54,6 +105,7 @@ export type WhatsAppSystemEvent = {
   id: number;
   timestamp: WhatsAppTimestamp;
   content: string;
+  event?: WhatsAppRecordEvent;
 };
 
 export type WhatsAppDataset = {
@@ -66,6 +118,7 @@ export type WhatsAppDataset = {
     warnings: WhatsAppWarning[];
     timestampPrecision: "minute" | "second" | "mixed";
     ignoredAttachments: number;
+    doctor: WhatsAppExportDoctor;
   };
 };
 

@@ -1,4 +1,4 @@
-# WhatsAppScope foundation (INS-114)
+# WhatsAppScope: local importer and Chat Export Doctor
 
 WhatsAppScope is an unreleased member of the InstaScope product family. Work
 starts from `dev`; the review PR targets `dev` only. This task performs no main
@@ -52,7 +52,10 @@ enabled preview WhatsApp builds; no CI deployment is added.
 ## Explicitly supported input
 
 Choose one UTF-8 `.txt`, or one single-disk ZIP32 containing exactly one chat
-`.txt`. Attachments are ignored, never decompressed or interpreted as messages.
+`.txt`. Non-TXT companions and attachments are counted and ignored, never
+decompressed or interpreted as messages. A chat TXT plus a Markdown companion
+works; a second TXT remains ambiguous even if named like a readme. No source
+filenames are displayed by format detection or the Doctor.
 Multiple TXT candidates, encrypted/multipart/ZIP64/damaged archives, invalid
 UTF-8 and resource-limit breaches fail with a controlled explanation.
 
@@ -61,23 +64,38 @@ entries, 200,000 records and 10,000 participant labels (256 characters each).
 The import worker has a 45-second timeout. These are safety ceilings, not a
 promise that every phone can comfortably analyze a chat at the maximum size.
 
-The format selector requires a deliberate date-order and clock choice. Initial
-synthetic fixtures cover DMY, MDY and YMD numeric dates with **four-digit years**,
-24-hour clocks or English AM/PM, and Android `date, time - sender: content` or iOS
-`[date, time] sender: content` wrappers. Optional seconds are retained as source
-precision. These fixtures demonstrate those exact parser contracts; no genuine
-WhatsApp archive was supplied for this task, and universal export compatibility
-is not claimed. Two-digit years/centuries, named/localized months, translated
-AM/PM and unknown wrappers require verified evidence before support is widened.
-DMY/MDY use slash-separated dates; YMD uses hyphens. Years are 1000–9999.
+Selecting a file first runs structural detection in a local worker. Every
+recognized timestamp header contributes to the candidate intersection. The UI
+shows wrapper, date-order candidates, year width, clock convention, precision
+and coverage before parsing. The user must confirm even an unambiguous result;
+DMY/MDY ambiguity requires a deliberate choice. The original manual format
+selector remains available. Invalid, mixed or unsupported timestamp headers
+cannot silently become message continuations.
+
+Synthetic regression fixtures cover DMY/MDY slash dates, YMD hyphen dates,
+24-hour clocks or English AM/PM, and Android `date, time - sender: content` or
+iOS `[date, time] sender: content` wrappers. Slash DMY/MDY supports YY alongside
+YYYY. **The explicit century rule is 2000 + YY (00–99 means 2000–2099)**, with no
+rolling pivot or current-year guess. Historical YYYY dates remain unchanged;
+year width and optional seconds remain source facts. YMD requires YYYY.
+
+INS-120 used one private local iPhone ZIP to verify slash YY, MDY, English AM/PM,
+second precision, generic preamble/continuation structure and the bounded German
+markers below. It is evidence for those exact structures, not every iPhone,
+Android, locale or WhatsApp version. No private records, names, filenames,
+coordinates, URLs or media were copied into the repository or review material.
+Named/localized months, translated AM/PM and unknown wrappers need further
+verified evidence. Four-digit years are 1000–9999.
 
 Dates must be valid Gregorian calendar dates and clock values. Exports provide
 no timezone; stored calendar fields and duration/gap calculations describe
 recorded wall-clock values, not exact UTC elapsed time. Day/month/hour/weekday
 charts use those recorded fields, not an inferred viewer timezone.
 
-Multiline text continues the preceding record. A pasted line identical to an
-export header is inherently ambiguous; the UI explains that text exports do not
+Untimestamped preamble is counted and discarded, never rendered as a message
+sample. Its presence makes coverage partial. Multiline text continues the
+preceding record. A pasted line identical to an export header is inherently
+ambiguous; the UI explains that text exports do not
 prove every boundary. Header-shaped unsupported/mixed formats are rejected.
 Sender labels are grouped exactly as exported, not treated as verified account
 identity. System lines without a sender delimiter are separate from participant
@@ -96,10 +114,44 @@ relationship. No compatibility, love, toxicity or personality scoring exists.
 Participant lists and longer charts use bounded pagination; all recorded values
 remain reachable. The activity calendar renders one selected month at a time.
 
-Media counts recognize exact whole English omission markers only; they do not
-recover or inspect files. Link counts do not visit URLs or claim uniqueness.
+Media counts recognize complete existing English omission markers and verified
+German angle markers for images, video, voice messages, stickers and GIFs. The
+document marker family is explicit, but filename/caption-bearing variants remain
+unclassified: their contents and extensions are not used to infer media type.
+Exact German deleted-message and call markers receive factual event types.
+Call records without a sender delimiter remain system events; no duration or
+direction is reconstructed. The verified location record shape requires an
+in-range coordinate pair and an exactly matching Google Maps query in a complete
+record. Its URL/coordinates stay local and do not enter link/emoji share totals.
+Prose, incomplete markers and unverified variants are not treated as events.
+No attachment is inspected or recovered. Link counts do not visit URLs or claim
+uniqueness.
 Emoji counts require native `Intl.Segmenter` plus supported Unicode emoji
 sequence matching; unsupported runtimes show unavailable instead of zero.
+
+## Chat Export Doctor and product truth
+
+The loaded workspace shows Supported or Partially supported coverage, wrapper,
+chosen date order, year width, clock/seconds precision, participant-label count,
+recognized event kinds/locales, unclassified marker-like record count, preamble
+count, and ignored non-TXT ZIP count. Unsupported structure or
+ambiguity appears during preflight and cannot be confirmed without a compatible
+choice. The Doctor contains only aggregate facts and fixed explanations, never
+message bodies, participant names, file names, URL or coordinate samples.
+
+- **Source facts:** recorded wall-clock fields, labels, recognized marker types,
+  and skipped/unsupported structure.
+- **Derived metrics:** counts and activity buckets from the supplied participant
+  records; recorded spans/gaps are not UTC elapsed time or relationship history.
+- **Unavailable:** read receipts, exact seen times, reply-to relationships,
+  reactions, attachment contents, verified account identities, inferred call
+  duration/direction or relationship/personality conclusions.
+
+Detection and confirmation each use the same bounded reader and ZIP integrity
+checks. Staged files and results are ephemeral. Cancel, replacement, clear and
+unmount terminate pending workers and discard staged references; failed imports
+keep the previously accepted chat available. No server, storage, analytics event
+or production binding was added for the Doctor.
 
 ## Privacy and Wrapped
 

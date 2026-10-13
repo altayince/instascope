@@ -7,6 +7,7 @@ import { useWhatsApp } from "./provider";
 import { WhatsAppImport } from "./import";
 import { WhatsAppAnalyzer } from "./analyzer";
 import { WhatsAppWrapped } from "./wrapped";
+import { WhatsAppDoctor } from "./doctor";
 import "./whatsapp.css";
 import { useBrowserReady } from "@/components/use-browser-ready";
 
@@ -185,6 +186,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
               </ul>
             </details>
           )}
+          <WhatsAppDoctor dataset={dataset} />
           {mode === "analyzer" && (
             <WhatsAppAnalyzer
               key={revision}

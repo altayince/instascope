@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 120,
+          title: "Support verified WhatsApp exports and add Chat Export Doctor",
+          summary:
+            "Preview-only WhatsAppScope checks export structure locally before explicit format confirmation, supports verified two-digit years and German record markers, and shows factual source coverage without message samples. Ambiguous dates require a choice; archive safety limits and production isolation stay intact.",
+        },
+        {
           issue: 118,
           title: "Restore the shared original InstaScope visual theme",
           summary:

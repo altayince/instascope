@@ -1,14 +1,25 @@
 import { WhatsAppImportError } from "./errors";
-import { importWhatsApp, type WhatsAppNamedBlob } from "./import";
+import {
+  importWhatsApp,
+  inspectWhatsApp,
+  type WhatsAppNamedBlob,
+} from "./import";
 import type { WhatsAppFormatId } from "./types";
 
 self.onmessage = async (
-  event: MessageEvent<{ files: WhatsAppNamedBlob[]; format: WhatsAppFormatId }>,
+  event: MessageEvent<{
+    files: WhatsAppNamedBlob[];
+    format: WhatsAppFormatId;
+    operation?: "inspect";
+  }>,
 ) => {
   try {
-    self.postMessage({
-      dataset: await importWhatsApp(event.data.files, event.data.format),
-    });
+    if (event.data.operation === "inspect")
+      self.postMessage({ inspection: await inspectWhatsApp(event.data.files) });
+    else
+      self.postMessage({
+        dataset: await importWhatsApp(event.data.files, event.data.format),
+      });
   } catch (error) {
     self.postMessage({
       error:

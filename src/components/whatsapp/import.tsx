@@ -5,19 +5,35 @@ import { WHATSAPP_FORMATS, type WhatsAppFormatId } from "@/lib/whatsapp";
 import { ActionButton } from "@/components/actions";
 import { useWhatsApp } from "./provider";
 import { useBrowserReady } from "@/components/use-browser-ready";
+import { WhatsAppFormatEvidence } from "./doctor";
+import { whatsappNumber } from "@/lib/whatsapp/stories";
 
 export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
-  const { format, setFormat, busy, error, importFiles, startDemo, dataset } =
-    useWhatsApp();
+  const {
+    format,
+    setFormat,
+    busy,
+    phase,
+    inspection,
+    error,
+    importFiles,
+    confirmImport,
+    cancelImport,
+    startDemo,
+    dataset,
+  } = useWhatsApp();
   const picker = useRef<HTMLInputElement>(null);
   const ready = useBrowserReady();
   const [dragging, setDragging] = useState(false);
   const selected = WHATSAPP_FORMATS.find((item) => item.id === format);
+  const detection = inspection?.detection;
   async function read(files: readonly File[]) {
     if (!files.length) return;
-    const success = await importFiles(files);
+    await importFiles(files);
     if (picker.current) picker.current.value = "";
-    if (success) onImported?.();
+  }
+  async function confirm() {
+    if (await confirmImport()) onImported?.();
   }
   return (
     <section
@@ -46,14 +62,15 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
               ZIP to your device.
             </li>
             <li>
-              Check a timestamp in the file, choose the matching format here,
-              then open it.
+              Open the file here. Review its locally detected format, choose the
+              date order if needed, and confirm before analysis.
             </li>
           </ol>
           <p>
-            Supported formats use numeric dates with four-digit years and dash
-            or bracket timestamp wrappers. Two-digit years and other localized
-            date layouts are not supported in this first version.
+            Supported formats use numeric dates, dash or bracket timestamp
+            wrappers, and 24-hour clocks or English AM/PM. Slash dates may use
+            two- or four-digit years; two-digit years mean 2000–2099. Named
+            months and translated AM/PM are not supported.
           </p>
         </details>
         <p className="wa-local-note">
@@ -94,6 +111,42 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
             />
           </svg>
         </span>
+        {inspection && detection && (
+          <section
+            className="wa-format-detection"
+            aria-labelledby="wa-detection-title"
+            aria-live="polite"
+          >
+            <h3 id="wa-detection-title">Detected export format</h3>
+            <span className="wa-panel-badge">
+              {detection.status === "supported"
+                ? "Supported"
+                : detection.status === "ambiguous"
+                  ? "Needs user selection"
+                  : "Unsupported"}
+            </span>
+            <p>
+              {detection.confidence === "exact"
+                ? "One supported format matches the timestamp records. Review it and confirm before analysis."
+                : detection.confidence === "needs-selection"
+                  ? "More than one date order fits these timestamps. Choose the order used in your export; we will not guess."
+                  : "These records do not fit one supported format. No new chat was imported. Try a fresh chat TXT export."}
+            </p>
+            <WhatsAppFormatEvidence detection={detection} />
+            <p className="wa-hint">
+              {whatsappNumber(detection.unsupportedLookingRecords)}{" "}
+              unsupported-looking records ·{" "}
+              {whatsappNumber(detection.preambleLines)} preamble lines ·{" "}
+              {whatsappNumber(inspection.ignoredCompanionFiles)} ignored non-TXT
+              ZIP files
+            </p>
+            {detection.yearWidths.includes(2) && (
+              <p className="wa-hint">
+                Two-digit years mean 2000–2099. Export clocks have no timezone.
+              </p>
+            )}
+          </section>
+        )}
         <label htmlFor="wa-format">Export date/time format</label>
         <select
           id="wa-format"
@@ -103,10 +156,17 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
             setFormat(event.target.value as WhatsAppFormatId | "")
           }
           aria-describedby="wa-format-help"
+          aria-required={Boolean(detection)}
         >
           <option value="">Choose a format…</option>
           {WHATSAPP_FORMATS.map((item) => (
-            <option key={item.id} value={item.id}>
+            <option
+              key={item.id}
+              value={item.id}
+              disabled={Boolean(
+                detection && !detection.candidateFormats.includes(item.id),
+              )}
+            >
               {item.label}
             </option>
           ))}
@@ -116,8 +176,12 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
             <>
               Example timestamp: <code>{selected.sample}</code>
             </>
+          ) : detection?.status === "unsupported" ? (
+            "No new chat has been imported. Choose another export with a supported timestamp layout."
+          ) : detection ? (
+            "Choose the date order used in this export. Ambiguous dates are never guessed."
           ) : (
-            "We do not guess the date order or timezone. Choose the format you see in your export."
+            "Open your export to detect its format locally, or choose a format manually. We do not guess date order or timezone."
           )}
         </p>
         <input
@@ -131,11 +195,13 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
         />
         <ActionButton
           variant="primary"
-          disabled={!ready || busy || !format}
+          disabled={!ready || busy}
           onClick={() => picker.current?.click()}
         >
           {busy
-            ? "Reading chat locally…"
+            ? phase === "detecting"
+              ? "Checking format locally…"
+              : "Reading chat locally…"
             : dataset
               ? "Open another chat export"
               : "Open chat export"}
@@ -144,12 +210,30 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
         <p className="wa-import-types">
           .txt up to 20 MB · .zip up to 1 GB · one chat
           <br />
-          Or drop your file here after choosing its format.
+          Or drop your file here. Confirm its format before analysis.
         </p>
+        {detection && (
+          <ActionButton
+            variant="primary"
+            disabled={
+              !ready || busy || !format || detection.status === "unsupported"
+            }
+            onClick={() => void confirm()}
+          >
+            Confirm format and open chat
+          </ActionButton>
+        )}
+        {(busy || inspection) && (
+          <ActionButton variant="tertiary" onClick={cancelImport}>
+            Cancel import
+          </ActionButton>
+        )}
         <div className="wa-import-feedback" aria-live="polite">
           {busy && (
             <p role="status">
-              Reading and analyzing on this device. Please keep this tab open.
+              {phase === "detecting"
+                ? "Checking the export structure on this device. Please keep this tab open."
+                : "Reading and analyzing on this device. Please keep this tab open."}
             </p>
           )}
           {error && (
