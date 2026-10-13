@@ -100,12 +100,25 @@ export default function Privacy() {
         Wrapped images contain aggregate relationship statistics and dates, not
         individual usernames. Pending requests, close friends, blocked or
         restricted accounts, story visibility lists and your unfollow history
-        stay local and are excluded from Wrapped images. Cleaner and
-        request-review CSV files contain the accounts you select; keep them
-        private unless you choose to share them. Review flags and private notes
-        never enter Wrapped, shared images or selected-account CSV files.
+        stay local and are excluded from Wrapped images. “Download CSV” contains
+        the full filtered account list, including other pages, with profile URLs
+        and recorded calendar dates where available. Cleaner’s selected CSV
+        contains only the accounts you select. These files are created in your
+        browser; keep them private unless you choose to share them. Review flags
+        and private notes never enter Wrapped, shared images or any account CSV.
         Opening a profile takes you to Instagram, which has its own privacy
         practices.
+      </p>
+      <h2>A calendar event, without notifications from us.</h2>
+      <p>
+        After saving a real snapshot, you can download a calendar file to remind
+        yourself to export fresh Instagram data and return. It contains a generic
+        event and future calendar date, with no usernames, snapshot counts,
+        notes or archive contents. Its random calendar-event identifier stays
+        only in the temporary offer and downloaded file; it is not a tracking
+        identifier. InstaScope stores no reminder and sends nothing to a calendar
+        service or analytics. Import the file and choose any alert in your own
+        calendar. InstaScope sends no notification.
       </p>
       <h2>Product events, without your social graph.</h2>
       <p

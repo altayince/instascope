@@ -20,6 +20,7 @@ import { useReviewMemory } from "./review-memory-provider";
 import { useVaultHistoryIndex } from "./use-vault-history";
 import { RelationshipDrawer } from "./relationship-drawer";
 import { ActionButton } from "./actions";
+import { AccountCsvDownload } from "./account-csv-download";
 import { useVisibleProductSurface } from "./use-product-event";
 import "./watch-circle.css";
 
@@ -308,6 +309,12 @@ function WatchCircleContents({
                 )}
                 <details className="watch-observations">
                   <summary>Review watched accounts</summary>
+                  <AccountCsvDownload
+                    accounts={model.observations.map((entry) =>
+                      account(entry.username)!,
+                    )}
+                    demo={demo}
+                  />
                   <ul>
                     {model.observations.slice(0, visibleLimit).map((entry) => (
                       <li key={entry.username}>
