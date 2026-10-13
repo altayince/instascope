@@ -1,9 +1,9 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 permissions:
   contents: read
 jobs:
@@ -41,4 +41,27 @@ jobs:
         if: failure()
         with:
           name: browser-test-results
+          path: test-results/
+  whatsapp-tests:
+    if: github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:dev
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npm run test:e2e -- tests/e2e/whatsapp.spec.ts
+        env:
+          EXPECT_WHATSAPP: 'true'
+          EXPECT_INDEXABLE: 'false'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: whatsapp-browser-results
           path: test-results/

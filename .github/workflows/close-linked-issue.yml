@@ -2,7 +2,7 @@ name: Close Linked Issue
 
 on:
   pull_request_target:
-    branches: [main]
+    branches: [main, dev]
     types:
       - closed
 
@@ -21,7 +21,7 @@ jobs:
           script: |
             // Metadata only. Never check out or execute code from the PR head.
             const pr = context.payload.pull_request;
-            if (context.payload.action !== 'closed' || pr.base.ref !== 'main' ||
+            if (context.payload.action !== 'closed' || !['main', 'dev'].includes(pr.base.ref) ||
                 pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
             const branch = context.payload.pull_request.head.ref;
             const match = branch.match(/^(feature|bugfix)\/INS-(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*$/);
