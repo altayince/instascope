@@ -1,18 +1,21 @@
 name: Close Linked Issue
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [main, dev]
     types:
       - closed
 
-permissions:
-  issues: write
-  pull-requests: read
+permissions: {}
 
 jobs:
-  close-issue-on-pr-close:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  close-issue-on-pr-merge:
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'dev')
+    permissions:
+      issues: write
     runs-on: ubuntu-latest
     steps:
       - name: Close linked issue from branch number
@@ -20,18 +23,26 @@ jobs:
         with:
           script: |
             // Metadata only. Never check out or execute code from the PR head.
+            // Repeat the job guards so a bypassed guard cannot close an issue.
             const pr = context.payload.pull_request;
-            if (context.payload.action !== 'closed' || !['main', 'dev'].includes(pr.base.ref) ||
-                pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
-            const branch = context.payload.pull_request.head.ref;
-            const match = branch.match(/^(feature|bugfix)\/INS-(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*$/);
+            if (context.payload.action !== 'closed' || pr?.merged !== true ||
+                !['main', 'dev'].includes(pr.base?.ref) ||
+                pr.head?.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            const branch = pr.head.ref;
+            const match = typeof branch === 'string'
+              ? branch.match(/^(feature|bugfix)\/INS-(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*$/)
+              : null;
 
             if (!match) {
-              core.setFailed(`Branch "${branch}" does not follow the INS ticket pattern.`);
+              core.setFailed('Branch does not follow the INS ticket pattern.');
               return;
             }
 
             const issueNumber = Number(match[2]);
+            if (!Number.isSafeInteger(issueNumber) || issueNumber <= 0) {
+              core.setFailed('INS ticket must be a positive safe integer.');
+              return;
+            }
 
             try {
               const { data: issue } = await github.rest.issues.get({
@@ -43,14 +54,14 @@ jobs:
                 core.setFailed('Branch ticket must reference an issue, not a pull request.');
                 return;
               }
-              if (issue.state === 'closed') return;
+              if (issue.state === 'closed' && issue.state_reason === 'completed') return;
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
                 state: "closed",
-                state_reason: pr.merged ? "completed" : "not_planned",
+                state_reason: "completed",
               });
-            } catch (error) {
-              core.setFailed(`Could not close issue #${issueNumber}: ${error.message}`);
+            } catch {
+              core.setFailed(`Could not close INS issue #${issueNumber}.`);
             }
