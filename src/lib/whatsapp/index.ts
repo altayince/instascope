@@ -2,6 +2,20 @@ export { readWhatsApp, inspectWhatsAppExport } from "./browser";
 export { parseWhatsApp } from "./parser";
 export { analyzeWhatsApp } from "./analysis";
 export {
+  analyzeConversationRhythm,
+  SESSION_GAP_MINUTES,
+  SILENCE_BREAK_HOURS,
+  RAPID_TRANSITION_MINUTES,
+} from "./rhythm";
+export type {
+  WhatsAppParticipantTransition,
+  WhatsAppConversationSession,
+  WhatsAppDelaySummary,
+  WhatsAppParticipantRhythm,
+  WhatsAppConversationRhythm,
+  WhatsAppRhythmResult,
+} from "./rhythm-types";
+export {
   analyzeFilteredWhatsApp,
   getWhatsAppFilterOptions,
   DEFAULT_WHATSAPP_FILTERS,

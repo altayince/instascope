@@ -194,7 +194,52 @@ and hour values disclosure provide counts without relying on color. Large cell
 counts may be visually truncated; the labels and disclosure retain exact values.
 Calendar arithmetic
 does not infer a timezone, UTC event time, daylight-saving adjustment or online
-presence. No sessions, word analysis, Wrapped V2, Vault or awards are implemented.
+presence. Conversation-rhythm definitions below extend this filtered view;
+word analysis, Wrapped V2, Vault and awards remain outside this work.
+
+## Analyzer V2 Part 2: recorded rhythm and dynamics
+
+Rhythm uses only participant messages inside the selected date scope, sorted by
+recorded wall-clock fields, then the accepted source record ID for equal values.
+System events neither start nor split sessions and do not create transitions.
+Same-timestamp order is deterministic source order, not evidence of real event
+sequence; a zero delay means matching written clock values. No timezone, DST
+correction, reply metadata or inferred elapsed time is added.
+
+Conversation-relative rhythm is **unavailable whenever one participant filter is
+selected**. The existing participant-only overview/charts remain usable. Choose
+Everyone to calculate rhythm from all matching labels. A date filter cuts the
+record sequence: its first message begins a recorded session, but never qualifies
+as a long-gap starter without a predecessor inside the subset. Sessions at the
+selection edges may be fragments; no outside message or missing history is used.
+The accepted export, Chat Export Doctor and Wrapped remain unchanged.
+
+| Metric | Definition and evidence | Classification and limits |
+| --- | --- | --- |
+| Conversation sessions | A new session starts at the first matching message or a consecutive participant-message gap **greater than 30 minutes** (`SESSION_GAP_MINUTES`). Exactly 30 minutes stays in the same session. | Derived grouping, not a verified real conversation. Totals, median messages and longest count/span describe selected records; equal longest values are ties. |
+| Started recorded sessions | The exported label on the first participant message in each defined session. | Exact count under the derived session definition; not proof of who initiated conversations outside this export. |
+| Long-gap starters / silence breakers | A previous matching participant message exists and its gap to the next is **at least 6 hours** (`SILENCE_BREAK_HOURS`). Credit the next sender, even when the label is unchanged. | Derived threshold; total qualifying gaps, their median and longest recorded gap describe absence of supplied participant messages. They do not prove actual silence, complete history or no communication elsewhere. |
+| Participant transitions | Two consecutive matching participant messages have different exported labels, including across session boundaries. Record from/to labels, date/clock context, delay and same-session status; never bodies. | Exact adjacency count from accepted records. Contact labels are not verified people; adjacency is not a reply-to relationship or causality. |
+| Next-message timing after another participant | All transitions where that label is the next sender. Show count, median, p25/p75 and delay buckets. | Derived wall-clock delay summaries, including long intervals across sessions; not response, read or seen timing. Missing observations have unavailable summaries. |
+| Rapid transitions | Different adjacent labels, delay **at most 5 minutes** (`RAPID_TRANSITION_MINUTES`), and both messages in the same defined session. | Derived product threshold; next-sender counts and share of their observed transitions are not chemistry, closeness, attention or responsiveness scores. No share exists without transitions. |
+
+Delay buckets have non-overlapping second boundaries: `[0, 60)`, `[60, 300)`,
+`[300, 1800)`, `[1800, 21600)`, and `[21600, infinity)`. Thus exactly five minutes
+belongs to the third bucket and may still be rapid; exactly thirty minutes belongs
+to the fourth bucket but still shares a session. Median/p25/p75 use linear
+interpolation at rank `(n - 1) × p` in sorted delays; even-count medians average
+the two central values. Fractional derived values do not add precision to source
+timestamps. Empty medians/quartiles/spans/shares are unavailable, not fabricated
+zeros. A single message defines one session and a zero recorded session span,
+without a preceding gap or transition. Equal participant values remain ties;
+the UI provides no awards or inferred winners.
+
+These are explainable calculations from accepted local records, not new source
+evidence. Real replies, read/seen timing, intent, interest, affection and
+relationship/personality interpretation remain **unavailable**. The rhythm model
+retains no message bodies or link lists, stays in memory, and is never uploaded,
+persisted or added to analytics. Native tables/text values and bounded participant
+pagination keep every aggregate reachable without rendering a message transcript.
 
 ## Privacy and Wrapped
 

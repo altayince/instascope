@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 128,
+          title: "Add WhatsApp recorded conversation rhythm and dynamics",
+          summary:
+            "Preview-only Chat Analyzer describes recorded sessions, session starters, six-hour gaps and next-sender transition timing with medians, distributions and rapid transitions. Date filters recompute locally; conversation-relative dynamics are unavailable with one participant selected. No reply, read-time or relationship inference is added.",
+        },
+        {
           issue: 126,
           title: "Add WhatsApp Analyzer filters and recorded activity heatmap",
           summary:
