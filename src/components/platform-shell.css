@@ -1,28 +1,14 @@
-/* Shared shell structure. Both platforms inherit the original root palette. */
-.platform-shell {
-  min-height: 100vh;
-  background: var(--paper);
-  color: var(--ink);
-}
-
-.platform-shell .site-header {
-  position: relative;
-  z-index: 30;
-}
-
+/* Only the top-left identity menu adds styles; the page chrome comes from main. */
 .social-switcher {
-  position: relative;
-  flex-shrink: 0;
   max-width: 100%;
 }
 
+.social-switcher[open] {
+  position: relative;
+}
+
 .social-switcher > summary {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  gap: 12px;
-  padding: 4px 0;
-  border-radius: 8px;
+  position: relative;
   list-style: none;
   cursor: pointer;
 }
@@ -35,57 +21,32 @@
   display: none;
 }
 
-.platform-mark {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
-  color: var(--ink);
-  font-size: 40px;
-  font-weight: 400;
-  line-height: 1;
-}
-
-.platform-mark svg {
+.social-switcher .brand-mark svg {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 1em;
+  height: 1em;
 }
 
-.platform-brand-copy {
-  display: grid;
-  gap: 1px;
-  line-height: 1.1;
-}
-
-.platform-product-name {
-  color: var(--ink);
-  font-size: 26px;
+.social-switcher .platform-brand-size,
+.social-switcher .platform-brand-identity {
+  display: flex;
+  align-items: center;
   font-weight: 700;
-  letter-spacing: -1.3px;
 }
 
-.platform-current-name {
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.35px;
+.platform-brand-size {
+  visibility: hidden;
 }
 
-.platform-chevron {
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  margin: 0 4px 4px 2px;
-  border-right: 1.5px solid var(--muted);
-  border-bottom: 1.5px solid var(--muted);
-  transform: rotate(45deg);
+.platform-brand-identity {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
-.social-switcher[open] .platform-chevron {
-  margin-top: 4px;
-  margin-bottom: 0;
-  transform: rotate(225deg);
+.platform-brand-size > span:not(.brand-mark),
+.platform-brand-identity > span:not(.brand-mark) {
+  font-weight: 400;
 }
 
 .social-switcher-panel {
@@ -126,15 +87,19 @@
 }
 
 .social-switcher-panel a[aria-current="true"] {
-  background: var(--nav-item-active);
+  background: #eef2e7;
   border-color: var(--line);
 }
 
 .social-switcher-panel .platform-mark {
-  flex-basis: 30px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 30px;
   width: 30px;
   height: 30px;
   font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .social-switcher-panel .platform-mark svg {
@@ -163,22 +128,13 @@
   flex-shrink: 0;
   padding: 4px 7px;
   border-radius: 20px;
-  background: var(--badge-bg);
+  background: #edf1e7;
   color: var(--ink);
   font-size: 10px;
   font-weight: 600;
 }
 
 @media (max-width: 700px) {
-  .social-switcher > summary {
-    gap: 9px;
-  }
-
-  .platform-product-name {
-    font-size: 23px;
-    letter-spacing: -1px;
-  }
-
   .social-switcher-panel {
     top: calc(100% + 8px);
   }

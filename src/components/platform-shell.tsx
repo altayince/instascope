@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getActivePlatform, type PlatformDefinition } from "@/lib/platforms";
 import { ToolNavigation } from "./tool-navigation";
-import { PlatformMark, SocialSwitcher } from "./social-switcher";
+import { SocialSwitcher } from "./social-switcher";
 import { WhatsAppProvider } from "./whatsapp/provider";
+import "./platform-shell.css";
 
 const whatsappEnabled = process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true";
 
@@ -89,12 +90,8 @@ function PlatformFooter({ platform }: { platform: PlatformDefinition }) {
   if (platform.chrome.kind === "instagram") return <InstagramFooter />;
   return (
     <footer>
-      <Link
-        className="brand"
-        href={platform.basePath}
-        aria-label={`${platform.productName} home`}
-      >
-        <PlatformMark mark={platform.mark} /> {platform.productName}
+      <Link className="brand" href={platform.basePath}>
+        ◎ instascope
       </Link>
       <p>{platform.chrome.footer.tagline}</p>
       <nav aria-label="Footer navigation">
@@ -117,11 +114,11 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
   const active = getActivePlatform(pathname, whatsappEnabled);
   return (
     <WhatsAppProvider>
-      <div className="platform-shell" data-platform={active.id}>
+      <>
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <header className="site-header">
+        <header className="site-header" data-platform={active.id}>
           <SocialSwitcher active={active} />
           <PlatformNavigation platform={active} pathname={pathname} />
           <span className="header-note">
@@ -130,7 +127,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
         </header>
         {children}
         <PlatformFooter platform={active} />
-      </div>
+      </>
     </WhatsAppProvider>
   );
 }

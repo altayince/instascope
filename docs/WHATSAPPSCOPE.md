@@ -31,9 +31,11 @@ enabled preview WhatsApp builds; no CI deployment is added.
 
 - `platforms.ts` is the route/identity, navigation and footer registry; only Instagram and
   WhatsApp are exposed. The shared shell chooses navigation and brand identity
-  from the active route. Both platforms use the same original InstaScope palette,
-  surfaces, controls and focus styles; no platform-specific pink/mint theme layer
-  is applied. Disabled builds retain the existing Instagram shell. Typography,
+  from the active route. Both platforms use current main's InstaScope styles.
+  `globals.css` and `actions.css` are restored directly from main, with no
+  platform theme variables or page wrapper styles. The header retains main's
+  geometry, navigation and privacy note; only its top-left brand opens the native
+  platform selector. Disabled builds retain the existing Instagram shell. Typography,
   spacing and generic actions stay shared. Wrapped uses the existing InstaScope
   card palettes for its screen preview and local PNG output.
   Each platform has an explicit availability decision; WhatsApp opt-in cannot
@@ -180,3 +182,24 @@ build with `npm run build:dev`, set `EXPECT_WHATSAPP=true`, and run
 configuration includes desktop/mobile Chromium and iPhone WebKit emulation;
 install those browsers with `npx playwright install chromium webkit` if needed.
 Restore the production artifact with `npm run build:production` after review.
+
+### Actual main visual reference (INS-122)
+
+The visual source is main commit `4163a28836af20a5774f76a990c921066eb903f5`.
+Build that checkout independently with `NEXT_PUBLIC_SITE_URL=https://instascope.me`
+and `NEXT_PUBLIC_PREVIEW=true`, so optional remote services are disabled on both
+local builds. Build the proposed dev branch with `build:dev`, then
+set `MAIN_VISUAL_REFERENCE_DIR` to the absolute main checkout directory and run:
+
+```text
+npx playwright test --config playwright.main-visual.config.ts
+```
+
+The dedicated suite serves both static exports and compares full-page rendered
+pixels plus computed styles and geometry on desktop/mobile Chromium. Only the
+top-left identity is masked. It covers landing and fictional loaded states for
+Dashboard, Followers, Cleaner, Wrapped and Vault, plus related tools and guides.
+Instagram Wrapped remains `/instagram-wrapped/`; `/wrapped/` keeps its existing
+404. CI repeats the comparison against that pinned main commit and retains both
+screenshots. No personal exports, reconstructed token baseline, production
+deployment or main merge is involved.

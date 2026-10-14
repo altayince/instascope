@@ -29,9 +29,15 @@ const platformMarks: Record<PlatformMarkId, ReactNode> = {
   ),
 };
 
-export function PlatformMark({ mark }: { mark: PlatformMarkId }) {
+export function PlatformMark({
+  mark,
+  className = "platform-mark",
+}: {
+  mark: PlatformMarkId;
+  className?: string;
+}) {
   return (
-    <span className="platform-mark" aria-hidden="true">
+    <span className={className} aria-hidden="true">
       {platformMarks[mark]}
     </span>
   );
@@ -79,13 +85,27 @@ export function SocialSwitcher({ active }: { active: PlatformDefinition }) {
 
   return (
     <details className="social-switcher" ref={details}>
-      <summary aria-label={`Switch platform, currently ${active.name}`}>
-        <PlatformMark mark={active.mark} />
-        <span className="platform-brand-copy">
-          <span className="platform-product-name">{active.productName}</span>
-          <span className="platform-current-name">{active.name}</span>
-        </span>
-        <span className="platform-chevron" aria-hidden="true" />
+      <summary
+        className="brand"
+        aria-label={`Switch platform, currently ${active.name}`}
+      >
+        {active.id === "instagram" ? (
+          <>
+            <PlatformMark mark={active.mark} className="brand-mark" />{" "}
+            insta<span>scope</span>
+          </>
+        ) : (
+          <>
+            <span className="platform-brand-size" aria-hidden="true">
+              <span className="brand-mark">◎</span>{" "}
+              insta<span>scope</span>
+            </span>
+            <span className="platform-brand-identity">
+              <PlatformMark mark={active.mark} className="brand-mark" />{" "}
+              whatsapp<span>scope</span>
+            </span>
+          </>
+        )}
       </summary>
       <div className="social-switcher-panel">
         <p className="social-switcher-label">Choose your platform</p>
