@@ -155,6 +155,47 @@ unmount terminate pending workers and discard staged references; failed imports
 keep the previously accepted chat available. No server, storage, analytics event
 or production binding was added for the Doctor.
 
+## Analyzer V2 Part 1: view-only filters
+
+Chat Analyzer offers All time (the supplied export), a recorded year/month, or
+an inclusive custom calendar-date range, combined with Everyone or one exact
+exported participant label. Gregorian dates are validated strictly, including
+leap dates and range order; invalid or incomplete choices show validation instead
+of silently displaying all-time results. Filter choices stay in this view's
+memory, never in URLs, browser storage or analytics. A newly accepted export
+resets the view; a failed replacement retains the accepted source.
+
+Pure filter functions select new record arrays and reuse the existing analysis.
+They do not reparse, normalize again or mutate accepted records. The loaded-chat
+banner, original export, reading notes and Chat Export Doctor describe the whole
+source. Wrapped continues using the whole loaded chat; Analyzer filters do not
+change its stories or shared output.
+
+The filtered overview and existing calendar, year/month, hour, weekday,
+participant, media/link/emoji, streak and gap figures describe matching records
+only. Messages per active date divides matching participant messages by recorded
+dates with at least one such message; it is unavailable when there are none.
+An empty subset does not imply an empty original export or missing conversation.
+Unknown emoji capability remains unavailable, including an empty subset.
+
+Everyone includes date-matched system events separately from participant
+messages. Selecting one label excludes all senderless system events: the source
+does not identify their participant. Recognized call counts use only existing
+typed call markers, separating sender-labelled and senderless records. A label
+on a record is not evidence of call direction, duration or a verified caller.
+Unsupported or absent markers are not inferred into call events. Participant
+gaps and streaks refer to that label's included messages, not conversation silence,
+reply behavior or relationship dynamics. Calendar counts exclude system events.
+
+The 7×24 heatmap counts participant messages by their recorded calendar weekday
+(Monday first) and hour (00–23). Intensity scales to the largest cell in the
+selected subset; exact cell labels/tooltips and a keyboard-reachable Read weekday
+and hour values disclosure provide counts without relying on color. Large cell
+counts may be visually truncated; the labels and disclosure retain exact values.
+Calendar arithmetic
+does not infer a timezone, UTC event time, daylight-saving adjustment or online
+presence. No sessions, word analysis, Wrapped V2, Vault or awards are implemented.
+
 ## Privacy and Wrapped
 
 Files, text, sender labels, media, URLs and derived private statistics stay local.

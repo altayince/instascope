@@ -52,11 +52,11 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run build:dev
         env:
           NEXT_TELEMETRY_DISABLED: '1'
-      - run: npm run test:e2e -- tests/e2e/whatsapp.spec.ts
+      - run: npm run test:e2e -- --config playwright.whatsapp.config.ts
         env:
           EXPECT_WHATSAPP: 'true'
           EXPECT_INDEXABLE: 'false'
