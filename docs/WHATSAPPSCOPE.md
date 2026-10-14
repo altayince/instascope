@@ -1,4 +1,4 @@
-# WhatsAppScope: local importer and Chat Export Doctor
+# WhatsAppScope: local import and factual analysis
 
 WhatsAppScope is an unreleased member of the InstaScope product family. Work
 starts from `dev`; the review PR targets `dev` only. This task performs no main
@@ -195,7 +195,8 @@ counts may be visually truncated; the labels and disclosure retain exact values.
 Calendar arithmetic
 does not infer a timezone, UTC event time, daylight-saving adjustment or online
 presence. Conversation-rhythm definitions below extend this filtered view;
-word analysis, Wrapped V2, Vault and awards remain outside this work.
+Message Patterns & Content below extends the same selected view. Wrapped V2,
+Vault and awards remain deferred.
 
 ## Analyzer V2 Part 2: recorded rhythm and dynamics
 
@@ -240,6 +241,63 @@ relationship/personality interpretation remain **unavailable**. The rhythm model
 retains no message bodies or link lists, stays in memory, and is never uploaded,
 persisted or added to analytics. Native tables/text values and bounded participant
 pagination keep every aggregate reachable without rendering a message transcript.
+
+## Analyzer V2 Part 3: Message Patterns & Content
+
+These pure modules consume the accepted messages selected by Part 1, without
+reparsing or changing the export, Doctor or Wrapped. All-time, year, month,
+inclusive range and participant filters apply. Results describe the selected
+subsequence, not missing history. No new parser formats or markers are added.
+
+| Metric                                   | Calculation and limits                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consecutive-message runs                 | Sort by recorded wall-clock, then accepted source record ID (input order as a final tie-break). Consecutive equal labels form a run; another label ends it. System events neither lengthen nor split runs. No time/session threshold applies. Buckets are 1, 2, 3–5, 6–10 and 11+. A participant filter removes intervening labels, so its runs describe that selected subsequence, not the full conversation.                                                                                                                                                                        |
+| Highest recorded 10-minute message burst | Maximum participant-message count in an inclusive rolling `[end − 10 minutes, end]` window (`BURST_WINDOW_MINUTES = 10`). Exactly ten minutes counts. Evaluate distinct recorded message end times, including all equal-time messages. Ties count distinct maximum end times, even when windows overlap; show up to three first/last included recorded-clock examples. Per-label windows count only that label. No timezone, online presence or inferred excitement.                                                                                                                  |
+| Messages containing a question mark      | Count literal ASCII `?` across all selected participant records, including URL query strings. Show messages containing it, total occurrences and share of selected messages; this is not semantic question detection. Other question-mark glyphs do not count. Empty shares are unavailable.                                                                                                                                                                                                                                                                                          |
+| Text lengths                             | Ordinary nonempty participant text only: exclude existing typed media, call, deleted-message and location records, and existing known omission-prefix-with-extra-content records. NFC-normalize and trim edges, then count Unicode code points, including internal spaces/newlines, punctuation, URLs and emoji code points. These are neither UTF-16 units nor visual graphemes. Word units count URL-stripped letter/mark runs before lexical thresholds/stopwords. Median, p25 and p75 linearly interpolate sorted observations at `(n − 1) × p`; empty summaries are unavailable. |
+| Media and emoji                          | Reuse the accepted seven-kind media taxonomy and supported emoji graphemes; do not inspect attachments or infer unknown media. Show exact marker/occurrence counts and attributable per-label counts. Source-wide emoji-unavailable remains unavailable even if a filter removes the affected record or selects no messages.                                                                                                                                                                                                                                                          |
+
+**Lexical rules.** Strip scheme URLs, `www` URLs, common nonhierarchical URI
+forms and email addresses locally, without fetching them. Bare hostnames with
+neither scheme nor `www` remain text. NFC plus Unicode default lowercase is
+fixed for every export; fold the combining dot produced by capital `İ` to `i`,
+preserving lowercase dotless `ı`, German umlauts and `ß`. Without language
+detection, ASCII capital `I` lowercases to `i`; Turkish I/ı variants and German
+ß/ss variants may therefore remain separate. No stemming or language detection.
+Tokens are Unicode letter/mark runs; apostrophes and hyphens delimit them.
+Pure numbers, punctuation and emoji are not words. Use the union of separately
+maintained Turkish, German and English stopwords on every export, so a word can
+be excluded even when it is a stopword in another language. Require 2–40 code
+points and at least two occurrences for displayed top words. Eligible-word
+denominators include all surviving occurrences, including singletons. Show up to
+20 words overall/per label, sorted by count then binary normalized spelling.
+The deterministic local flex word cloud displays that same bounded list with a
+count-list fallback. No raw message samples are rendered.
+
+**Words used disproportionately often.** Compare each label with all other
+selected labels aggregated, not raw counts. Require at least 20 eligible words
+for both populations and at least three own occurrences of a candidate. For own
+count `c`, other count `d`, own total `N` and other total `M`:
+
+```text
+own per 1,000 = 1,000 × (c + 0.5) / (N + 1)
+others per 1,000 = 1,000 × (d + 0.5) / (M + 1)
+ratio = own per 1,000 / others per 1,000
+```
+
+Require ratio ≥ 2; show at most ten, sorted by ratio, own count, then normalized
+spelling. The 0.5 smoothing keeps a zero other count finite. One selected label,
+insufficient evidence or an explicit participant filter makes comparison
+unavailable. Enough evidence with no qualifying word is an empty result, not a
+personality conclusion. Filter changes recalculate the denominators and words.
+
+Exact evidence comprises recognized media markers, supported emoji occurrences,
+literal question marks and lexical counts under these declared rules. Runs,
+rolling bursts, length summaries, top-word selection and normalized comparison
+are derived, with the same calculation disclosure available in the UI. Sentiment,
+intent, personality, relationship quality, real replies and read/seen data remain
+unavailable. Content, words, labels and derived private statistics stay in local
+memory: no logs, storage, URL parameters, analytics or network payloads are added.
 
 ## Privacy and Wrapped
 

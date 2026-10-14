@@ -22,6 +22,7 @@ import {
 import { WhatsAppAnalysisFilters } from "./analysis-filters";
 import { WhatsAppActivityHeatmap } from "./activity-heatmap";
 import { WhatsAppRhythm } from "./rhythm";
+import { WhatsAppMessageContent } from "./message-content";
 
 const CHART_PAGE_SIZE = 24;
 const monthFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -756,6 +757,10 @@ function WhatsAppAnalyzerResults({
       <WhatsAppRhythm
         result={result.rhythm}
         precision={dataset.metadata.timestampPrecision}
+      />
+      <WhatsAppMessageContent
+        result={result.content}
+        participantSelected={participant !== null}
       />
     </>
   );
