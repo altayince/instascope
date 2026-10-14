@@ -249,9 +249,14 @@ test.describe("WhatsAppScope enabled preview", () => {
       ["Participants", "2"],
       ["Active dates", "5"],
       ["Calendar days covered", "8"],
+      ["Recognized media messages", "1"],
+      ["Link occurrences", "1"],
     ])
       await expect(
-        page.locator(".wa-stat").filter({ hasText: label }).locator("strong"),
+        page
+          .locator(".wa-stat")
+          .filter({ has: page.getByText(label, { exact: true }) })
+          .locator("strong"),
       ).toHaveText(value);
     await expect(
       page.getByRole("heading", { name: "Messages by participant" }),
@@ -264,17 +269,12 @@ test.describe("WhatsAppScope enabled preview", () => {
     await expect(page.locator(".wa-recorded-times")).toContainText(
       "2025-01-07 · 20:00",
     );
-    for (const [label, count] of [
-      ["Recognized media placeholders", "1"],
-      ["HTTP(S) link occurrences", "1"],
-      ["Recorded system events", "1"],
-    ])
-      await expect(
-        page
-          .locator(".wa-extra-counts > div")
-          .filter({ hasText: label })
-          .locator("dd"),
-      ).toHaveText(count);
+    await expect(
+      page
+        .locator(".wa-extra-counts > div")
+        .filter({ hasText: "Recorded system events" })
+        .locator("dd"),
+    ).toHaveText("1");
     await expect(page.locator("main")).toContainText(
       "without an inferred timezone",
     );
@@ -561,9 +561,9 @@ test.describe("WhatsAppScope enabled preview", () => {
     );
     await expect(
       page
-        .locator(".wa-extra-counts > div")
-        .filter({ hasText: "Recognized media placeholders" })
-        .locator("dd"),
+        .locator(".wa-stat")
+        .filter({ hasText: "Recognized media messages" })
+        .locator("strong"),
     ).toHaveText("6");
     await expect(
       page
@@ -573,9 +573,9 @@ test.describe("WhatsAppScope enabled preview", () => {
     ).toHaveText("1");
     await expect(
       page
-        .locator(".wa-extra-counts > div")
-        .filter({ hasText: "HTTP(S) link occurrences" })
-        .locator("dd"),
+        .locator(".wa-stat")
+        .filter({ hasText: "Link occurrences" })
+        .locator("strong"),
     ).toHaveText("0");
     await fits(page);
   });

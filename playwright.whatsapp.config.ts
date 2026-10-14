@@ -4,7 +4,7 @@ import base from "./playwright.config";
 /** Enabled dev-build review, including an emulated iPhone WebKit project. */
 export default defineConfig({
   ...base,
-  testMatch: "**/whatsapp.spec.ts",
+  testMatch: ["**/whatsapp.spec.ts", "**/whatsapp-filters.spec.ts"],
   outputDir: "test-results/whatsapp",
   projects: [
     ...base.projects!,

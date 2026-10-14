@@ -8,10 +8,19 @@ import type {
   WhatsAppDataset,
 } from "@/lib/whatsapp";
 import {
+  analyzeFilteredWhatsApp,
+  DEFAULT_WHATSAPP_FILTERS,
+  getWhatsAppFilterOptions,
+  type WhatsAppAnalysisFilters as AnalysisFilters,
+  type WhatsAppFilteredAnalysis,
+} from "@/lib/whatsapp/filters";
+import {
   whatsappDate,
   whatsappNumber,
   whatsappPeaks,
 } from "@/lib/whatsapp/stories";
+import { WhatsAppAnalysisFilters } from "./analysis-filters";
+import { WhatsAppActivityHeatmap } from "./activity-heatmap";
 
 const CHART_PAGE_SIZE = 24;
 const monthFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -232,8 +241,8 @@ function ActivityCalendar({ analysis }: { analysis: WhatsAppAnalysis }) {
         ))}
       </div>
       <p className="wa-hint">
-        Darker cells contain more exported messages. An empty date means none
-        were included in this export.
+        Darker cells contain more selected exported messages. An empty date
+        means no participant messages match the current filters on that date.
       </p>
     </section>
   );
@@ -241,11 +250,72 @@ function ActivityCalendar({ analysis }: { analysis: WhatsAppAnalysis }) {
 
 export function WhatsAppAnalyzer({
   dataset,
-  analysis,
+  analysis: sourceAnalysis,
 }: {
   dataset: WhatsAppDataset;
   analysis: WhatsAppAnalysis;
 }) {
+  const [filters, setFilters] = useState<AnalysisFilters>(
+    DEFAULT_WHATSAPP_FILTERS,
+  );
+  const options = useMemo(() => getWhatsAppFilterOptions(dataset), [dataset]);
+  const result = useMemo(
+    () => analyzeFilteredWhatsApp(dataset, filters),
+    [dataset, filters],
+  );
+  return (
+    <div className="wa-analysis" aria-label="Chat analysis results">
+      <div className="wa-results-heading">
+        <div>
+          <span className="wa-eyebrow">THE CONVERSATION, IN PERSPECTIVE</span>
+          <h2>Here&apos;s what your export says.</h2>
+          <p>
+            Loaded export: {whatsappNumber(sourceAnalysis.totals.messages)}{" "}
+            messages
+            {sourceAnalysis.first &&
+              sourceAnalysis.latest &&
+              ` · ${whatsappDate(sourceAnalysis.first.date)} – ${whatsappDate(sourceAnalysis.latest.date)}`}
+            . Recorded times, without an inferred timezone.
+          </p>
+        </div>
+        <ActionLink variant="primary" href="/whatsapp/wrapped/">
+          Make your Wrapped <span aria-hidden="true">↗</span>
+        </ActionLink>
+      </div>
+      <WhatsAppAnalysisFilters
+        filters={filters}
+        options={options}
+        firstDate={sourceAnalysis.first?.date ?? ""}
+        latestDate={sourceAnalysis.latest?.date ?? ""}
+        onChange={setFilters}
+      />
+      {result.ok ? (
+        <WhatsAppAnalyzerResults
+          key={JSON.stringify(filters)}
+          dataset={dataset}
+          result={result}
+          sourceMessageCount={sourceAnalysis.totals.messages}
+        />
+      ) : (
+        <p className="wa-filter-error" role="alert">
+          {result.error} No filtered results are shown until the selection is
+          valid.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WhatsAppAnalyzerResults({
+  dataset,
+  result,
+  sourceMessageCount,
+}: {
+  dataset: WhatsAppDataset;
+  result: Extract<WhatsAppFilteredAnalysis, { ok: true }>;
+  sourceMessageCount: number;
+}) {
+  const { analysis, heatmap, overview, participant } = result;
   const [participantPage, setParticipantPage] = useState(0);
   const [allMonths, setAllMonths] = useState(false);
   const participants = useMemo(
@@ -269,44 +339,93 @@ export function WhatsAppAnalyzer({
   const span = analysis.observedSpanSeconds;
   const displayedSpan = `${whatsappNumber(Math.floor(span / 86400))} d ${Math.floor((span % 86400) / 3600)} h ${Math.floor((span % 3600) / 60)} min${dataset.metadata.timestampPrecision !== "minute" ? ` ${span % 60} s` : ""}`;
   return (
-    <div className="wa-analysis" aria-label="Chat analysis results">
-      <div className="wa-results-heading">
-        <div>
-          <span className="wa-eyebrow">THE CONVERSATION, IN PERSPECTIVE</span>
-          <h2>Here&apos;s what your export says.</h2>
+    <>
+      <section
+        className="wa-filtered-overview"
+        aria-label="Filtered chat overview"
+      >
+        <h3>Filtered overview</h3>
+        <p>
+          {whatsappNumber(analysis.totals.messages)} of{" "}
+          {whatsappNumber(sourceMessageCount)} exported participant messages
+          match.
+          {participant && (
+            <>
+              {" "}
+              Figures describe messages and recognized events attributable to
+              the exported label <strong>{participant.displayName}</strong>.
+              Senderless system events are excluded because their participant is
+              unknown.
+            </>
+          )}
+        </p>
+        <div className="wa-stat-grid">
+          <div className="wa-stat wa-stat-featured">
+            <span>Exported messages</span>
+            <strong>{whatsappNumber(analysis.totals.messages)}</strong>
+            <small>Participant messages matching the filters</small>
+          </div>
+          <div className="wa-stat">
+            <span>Active dates</span>
+            <strong>{whatsappNumber(analysis.totals.activeDays)}</strong>
+            <small>Dates with at least one matching message</small>
+          </div>
+          <div className="wa-stat">
+            <span>Messages per active date</span>
+            <strong
+              className={
+                overview.messagesPerActiveDate === null
+                  ? "wa-stat-unavailable"
+                  : undefined
+              }
+            >
+              {overview.messagesPerActiveDate === null
+                ? "Unavailable"
+                : whatsappNumber(overview.messagesPerActiveDate)}
+            </strong>
+            <small>Matching messages ÷ their active dates</small>
+          </div>
+          <div className="wa-stat">
+            <span>Recognized media messages</span>
+            <strong>{whatsappNumber(analysis.totals.mediaMessages)}</strong>
+            <small>Supported text markers; attachments are not inspected</small>
+          </div>
+          <div className="wa-stat">
+            <span>Link occurrences</span>
+            <strong>{whatsappNumber(analysis.totals.links)}</strong>
+            <small>HTTP(S) links in matching participant messages</small>
+          </div>
+          <div className="wa-stat">
+            <span>Recognized call events</span>
+            <strong>{whatsappNumber(overview.recognizedCallEvents)}</strong>
+            <small>
+              {participant
+                ? "Supported call markers in this label’s messages only"
+                : `${whatsappNumber(overview.attributedCallEvents)} sender-labelled markers; ${whatsappNumber(overview.unattributedCallEvents)} senderless system markers`}
+            </small>
+          </div>
+          <div className="wa-stat">
+            <span>Participants</span>
+            <strong>{whatsappNumber(analysis.totals.participants)}</strong>
+            <small>Sender labels with matching messages</small>
+          </div>
+          <div className="wa-stat">
+            <span>Calendar days covered</span>
+            <strong>{whatsappNumber(analysis.calendarSpanDays)}</strong>
+            <small>From first to latest matching message, inclusive</small>
+          </div>
+        </div>
+      </section>
+      {!analysis.totals.messages && (
+        <div className="wa-filter-empty" role="status">
+          <h3>No exported messages match these filters.</h3>
           <p>
-            {analysis.first && analysis.latest
-              ? `${whatsappDate(analysis.first.date)} – ${whatsappDate(analysis.latest.date)}`
-              : "Recorded message dates"}{" "}
-            · Recorded times, without an inferred timezone.
+            Choose another date or participant, or reset filters to see the full
+            export. Senderless system events may still match Everyone; they do
+            not count as participant messages.
           </p>
         </div>
-        <ActionLink variant="primary" href="/whatsapp/wrapped/">
-          Make your Wrapped <span aria-hidden="true">↗</span>
-        </ActionLink>
-      </div>
-      <div className="wa-stat-grid">
-        <div className="wa-stat wa-stat-featured">
-          <span>Exported messages</span>
-          <strong>{whatsappNumber(analysis.totals.messages)}</strong>
-          <small>Participant messages in this file</small>
-        </div>
-        <div className="wa-stat">
-          <span>Participants</span>
-          <strong>{whatsappNumber(analysis.totals.participants)}</strong>
-          <small>Distinct sender labels</small>
-        </div>
-        <div className="wa-stat">
-          <span>Active dates</span>
-          <strong>{whatsappNumber(analysis.totals.activeDays)}</strong>
-          <small>Dates with at least one message</small>
-        </div>
-        <div className="wa-stat">
-          <span>Calendar days covered</span>
-          <strong>{whatsappNumber(analysis.calendarSpanDays)}</strong>
-          <small>From first to latest date, inclusive</small>
-        </div>
-      </div>
+      )}
       <div className="wa-evidence-note">
         <span aria-hidden="true">↳</span>
         <p>
@@ -328,6 +447,7 @@ export function WhatsAppAnalyzer({
               <h3 id="wa-recorded-span-title">Recorded range</h3>
             </div>
             <span className="wa-panel-badge">
+              Source:{" "}
               {dataset.metadata.timestampPrecision === "mixed"
                 ? "Mixed minute / second precision"
                 : `${dataset.metadata.timestampPrecision} precision`}
@@ -335,13 +455,13 @@ export function WhatsAppAnalyzer({
           </div>
           <dl className="wa-recorded-times">
             <div>
-              <dt>Earliest exported message</dt>
+              <dt>Earliest selected exported message</dt>
               <dd>
                 {analysis.first?.local.replace("T", " · ") ?? "Unavailable"}
               </dd>
             </div>
             <div>
-              <dt>Latest exported message</dt>
+              <dt>Latest selected exported message</dt>
               <dd>
                 {analysis.latest?.local.replace("T", " · ") ?? "Unavailable"}
               </dd>
@@ -371,8 +491,8 @@ export function WhatsAppAnalyzer({
             </span>
           </div>
           <p>
-            Message counts and each participant&apos;s share of exported
-            messages.
+            Message counts and each participant&apos;s share of the selected
+            exported messages.
           </p>
           <div className="wa-participant-bars">
             {visibleParticipants.map((participant, position) => (
@@ -441,8 +561,10 @@ export function WhatsAppAnalyzer({
           )}
           <p className="wa-hint">
             Sender labels come from the file and may not uniquely identify a
-            person. Equal counts are tied. Media, links and emoji use the same
-            supported text counts as the totals.
+            person. Shares use only the filtered subset; selecting one label
+            does not describe their share of the whole conversation. Equal
+            counts are tied. Media, links and emoji use the same supported text
+            counts as the totals.
           </p>
         </section>
         <ActivityCalendar analysis={analysis} />
@@ -509,7 +631,9 @@ export function WhatsAppAnalyzer({
               <h3 id="wa-hours-title">Time of day</h3>
             </div>
           </div>
-          <p>All exported dates, grouped by the hour written in the file.</p>
+          <p>
+            Selected exported dates, grouped by the hour written in the file.
+          </p>
           <BarChart
             buckets={analysis.hours.map((bucket) => ({
               ...bucket,
@@ -532,13 +656,14 @@ export function WhatsAppAnalyzer({
               <h3 id="wa-weekdays-title">Days of the week</h3>
             </div>
           </div>
-          <p>Message counts across all recorded dates, by calendar weekday.</p>
+          <p>Selected message counts by recorded calendar weekday.</p>
           <BarChart
             buckets={analysis.weekdays}
             label="Number of exported messages on each weekday"
             shortLabels
           />
         </section>
+        <WhatsAppActivityHeatmap counts={heatmap} />
         <section
           className="wa-panel wa-content-panel"
           aria-labelledby="wa-extras-title"
@@ -550,14 +675,6 @@ export function WhatsAppAnalyzer({
             </div>
           </div>
           <dl className="wa-extra-counts">
-            <div>
-              <dt>Recognized media placeholders</dt>
-              <dd>{whatsappNumber(analysis.totals.mediaMessages)}</dd>
-            </div>
-            <div>
-              <dt>HTTP(S) link occurrences</dt>
-              <dd>{whatsappNumber(analysis.totals.links)}</dd>
-            </div>
             <div>
               <dt>Messages containing links</dt>
               <dd>{whatsappNumber(analysis.totals.messagesWithLinks)}</dd>
@@ -601,7 +718,11 @@ export function WhatsAppAnalyzer({
               </dd>
             </div>
             <div>
-              <dt>Longest consecutive run of active dates</dt>
+              <dt>
+                {participant
+                  ? "Longest consecutive run of this participant’s active dates"
+                  : "Longest consecutive run of active dates"}
+              </dt>
               <dd>
                 {analysis.longestStreak
                   ? `${whatsappNumber(analysis.longestStreak.days)} dates · ${whatsappDate(analysis.longestStreak.from, true)} – ${whatsappDate(analysis.longestStreak.to, true)}`
@@ -609,7 +730,11 @@ export function WhatsAppAnalyzer({
               </dd>
             </div>
             <div>
-              <dt>Longest recorded interval between messages</dt>
+              <dt>
+                {participant
+                  ? "Longest recorded interval between this participant’s messages"
+                  : "Longest recorded interval between messages"}
+              </dt>
               <dd>
                 {analysis.longestGap
                   ? `${whatsappNumber(Math.floor(analysis.longestGap.wallClockSeconds / 3600))} h ${Math.floor((analysis.longestGap.wallClockSeconds % 3600) / 60)} min${dataset.metadata.timestampPrecision !== "minute" ? ` ${analysis.longestGap.wallClockSeconds % 60} s` : ""}`
@@ -618,12 +743,15 @@ export function WhatsAppAnalyzer({
             </div>
           </dl>
           <p className="wa-hint">
+            {participant
+              ? `These runs and intervals describe only the selected label ${participant.displayName}’s matching messages, not conversation silence or other participants’ activity. `
+              : "Runs and intervals use only the participant messages matching the date filter, not proof of conversation silence. "}
             Intervals compare the wall-clock values in the export. Timezone and
             daylight-saving changes are unknown. Several runs or intervals may
             share the same maximum.
           </p>
         </section>
       </div>
-    </div>
+    </>
   );
 }

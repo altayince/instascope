@@ -591,6 +591,85 @@
 .wa-results-heading .button {
   flex-shrink: 0;
 }
+.wa-analysis-filters {
+  padding: 18px;
+  margin: 22px 0 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  min-width: 0;
+}
+.wa-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+.wa-filter-controls label {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 11px;
+}
+.wa-filter-controls select,
+.wa-filter-controls input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px;
+  font-size: 12px;
+}
+.wa-filter-controls .button {
+  min-height: 44px;
+  font-size: 11px;
+}
+.wa-analysis-filters .wa-filter-scope {
+  margin: 14px 0 5px;
+  font-size: 12px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.wa-analysis-filters .wa-hint {
+  margin: 0;
+}
+.wa-filtered-overview h3 {
+  margin: 0 0 10px;
+}
+.wa-filtered-overview > p {
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.wa-stat strong.wa-stat-unavailable {
+  font-size: 20px;
+}
+.wa-filter-empty,
+.wa-filter-error {
+  margin: 22px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+}
+.wa-filter-empty h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.wa-filter-empty p,
+.wa-filter-error {
+  font-size: 12px;
+}
+.wa-filter-empty p {
+  margin: 0;
+}
+.wa-filter-error {
+  color: #8d3220;
+  background: #f9e7e1;
+  border-color: #e8bcaf;
+}
 .wa-stat-grid {
   display: grid;
   grid-template-columns: 1.2fr repeat(3, 1fr);
@@ -835,6 +914,7 @@
 }
 .wa-months-panel,
 .wa-hours-panel,
+.wa-heatmap-panel,
 .wa-small-facts,
 .wa-years-panel,
 .wa-recorded-span {
@@ -955,6 +1035,64 @@
   font-size: 11px;
   margin: 18px 0 0;
   color: var(--ink);
+}
+.wa-heatmap-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 22px 0 12px;
+  padding-bottom: 8px;
+}
+.wa-heatmap-table {
+  border-collapse: separate;
+  border-spacing: 3px;
+  width: 100%;
+  min-width: 660px;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+.wa-heatmap-table caption {
+  text-align: left;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.wa-heatmap-table th {
+  font-weight: 400;
+  font-size: 9px;
+  text-align: center;
+  color: var(--muted);
+}
+.wa-heatmap-table tr > th:first-child {
+  width: 64px;
+  text-align: left;
+}
+.wa-heatmap-table td {
+  background: #eef2e7;
+  border-radius: 3px;
+  height: 29px;
+  padding: 3px 1px;
+  text-align: center;
+  font-size: 8px;
+  color: var(--ink);
+}
+.wa-heatmap-table td.is-active {
+  background: color-mix(
+    in srgb,
+    var(--lime) calc(var(--wa-intensity) * 100%),
+    var(--paper)
+  );
+}
+.wa-heatmap-table td > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wa-heatmap-values h4 {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 12px;
+  margin: 18px 0 8px;
 }
 .wa-extra-counts {
   margin: 25px 0 22px;
@@ -1441,6 +1579,7 @@
   }
   .wa-months-panel,
   .wa-hours-panel,
+  .wa-heatmap-panel,
   .wa-small-facts,
   .wa-years-panel,
   .wa-recorded-span {

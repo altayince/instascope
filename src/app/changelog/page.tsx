@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 126,
+          title: "Add WhatsApp Analyzer filters and recorded activity heatmap",
+          summary:
+            "Preview-only Chat Analyzer filters by recorded year, month, inclusive date range and exported participant label. Existing charts and facts recompute locally; a weekday/hour heatmap exposes exact counts. Source coverage and Wrapped remain unfiltered, and senderless events are never assigned to a participant.",
+        },
+        {
           issue: 122,
           title: "Match dev product visuals to current main",
           summary:
