@@ -54,21 +54,22 @@ async function switchPlatform(page: Page, name: "Instagram" | "WhatsApp") {
   await selector.locator("summary").click();
   await selector.getByRole("link", { name: new RegExp(`^${name}`) }).click();
 }
-async function sharedPalette(page: Page) {
-  return page.locator(".platform-shell").evaluate((node) => {
-    const style = getComputedStyle(node);
+async function sharedControls(page: Page) {
+  return page.evaluate(() => {
     return Object.fromEntries(
-      [
-        "--paper",
-        "--ink",
-        "--muted",
-        "--line",
-        "--lime",
-        "--button-bg",
-        "--focus-ring",
-        "--chart-1",
-        "--chart-2",
-      ].map((token) => [token, style.getPropertyValue(token).trim()]),
+      ["body", ".site-header", ".header-note", ".primary"].map((selector) => {
+        const style = getComputedStyle(document.querySelector(selector)!);
+        return [
+          selector,
+          {
+            color: style.color,
+            background: style.backgroundColor,
+            border: style.border,
+            fontFamily: style.fontFamily,
+            boxShadow: style.boxShadow,
+          },
+        ];
+      }),
     );
   });
 }
@@ -106,18 +107,7 @@ test.describe("WhatsAppScope enabled preview", () => {
     await expect(
       page.getByRole("button", { name: "Try demo", exact: true }),
     ).toBeEnabled();
-    const instagram = await sharedPalette(page);
-    expect(instagram).toEqual({
-      "--paper": "#faf9f5",
-      "--ink": "#263b30",
-      "--muted": "#657168",
-      "--line": "#e1e5dc",
-      "--lime": "#d9efa8",
-      "--button-bg": "#263b30",
-      "--focus-ring": "#668935",
-      "--chart-1": "#305b40",
-      "--chart-2": "#a26932",
-    });
+    const instagram = await sharedControls(page);
     const selector = page.locator(".social-switcher");
     const summary = selector.locator("summary");
     await expect(summary).toHaveAccessibleName(/currently Instagram/);
@@ -134,11 +124,12 @@ test.describe("WhatsAppScope enabled preview", () => {
     await expect(page).toHaveURL(/\/whatsapp\/$/);
     await expect(summary).toHaveAccessibleName(/currently WhatsApp/);
     await expect(selector).not.toHaveAttribute("open");
-    await expect(page.locator(".platform-shell")).toHaveAttribute(
+    await expect(page.locator(".site-header")).toHaveAttribute(
       "data-platform",
       "whatsapp",
     );
-    expect(await sharedPalette(page)).toEqual(instagram);
+    await expect(page.locator(".wa-hero")).toBeVisible();
+    expect(await sharedControls(page)).toEqual(instagram);
     await expect(
       page
         .getByRole("navigation", { name: "Main navigation" })

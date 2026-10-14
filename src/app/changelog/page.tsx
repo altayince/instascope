@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 122,
+          title: "Match dev product visuals to current main",
+          summary:
+            "Development previews reuse the current main stylesheet and header geometry. Only the top-left platform identity opens the switcher; WhatsAppScope uses the same controls, surfaces and story palettes. Independent main/dev screenshot and computed-style comparisons guard desktop and mobile parity.",
+        },
+        {
           issue: 120,
           title: "Support verified WhatsApp exports and add Chat Export Doctor",
           summary:

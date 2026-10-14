@@ -137,9 +137,9 @@ export function WhatsAppWrapped({
           aria-describedby="wa-deck-hint"
           style={
             {
-              "--wa-story-bg": theme.background,
-              "--wa-story-ink": theme.ink,
-              "--wa-story-accent": theme.accent,
+              "--story-bg": theme.background,
+              "--story-ink": theme.ink,
+              "--story-accent": theme.accent,
             } as CSSProperties
           }
           onKeyDown={(event) => {

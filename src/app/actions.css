@@ -14,19 +14,19 @@
   text-align: center;
 }
 .primary {
-  background: var(--button-bg);
-  color: var(--button-ink);
+  background: var(--ink);
+  color: var(--white);
 }
 .primary:hover {
-  background: var(--button-hover);
+  background: #3c5242;
 }
 .secondary {
-  border-color: var(--secondary-border);
+  border-color: #b9c5b8;
   background: var(--white);
 }
 .secondary:hover {
   border-color: var(--ink);
-  background: var(--secondary-hover);
+  background: #f1f4ec;
 }
 .tertiary {
   background: transparent;
@@ -34,7 +34,7 @@
   font-weight: 400;
 }
 .tertiary:hover {
-  background: var(--tertiary-hover);
+  background: #edf0e7;
   color: var(--ink);
 }
 .danger {

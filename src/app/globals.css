@@ -1,6 +1,5 @@
 @import "./actions.css";
 @import "../components/circle-pulse.css";
-@import "../components/platform-shell.css";
 
 :root {
   --paper: #faf9f5;
@@ -11,36 +10,6 @@
   --white: #fff;
   --serif: Georgia, "Times New Roman", serif;
   --sans: Arial, Helvetica, sans-serif;
-  --accent-strong: #668935;
-  --accent-soft: #d9efa8;
-  --surface-tint: #eef2e7;
-  --border-emphasis: #b5c4a8;
-  --button-bg: var(--ink);
-  --button-ink: var(--white);
-  --button-hover: #3c5242;
-  --secondary-border: #b9c5b8;
-  --secondary-hover: #f1f4ec;
-  --tertiary-hover: #edf0e7;
-  --focus-ring: #668935;
-  --nav-active: #eaf0df;
-  --nav-item-active: #eef2e7;
-  --badge-bg: #eef1e7;
-  --badge-border: #e0e8d5;
-  --status-dot: #598155;
-  --decor-glow: #eaf0dc;
-  --decor-ring: #ccd7bf;
-  --decor-one: #dfbfa3;
-  --decor-two: #d5e9a9;
-  --decor-three: #e2cfdc;
-  --upload-bg: #f1f4eb;
-  --upload-hover: #e0edca;
-  --feature-bg: #f0f1e8;
-  --feature-warm: #f3ece3;
-  --feature-alt: #eeeaf1;
-  --chart-1: #305b40;
-  --chart-2: #a26932;
-  --chart-3: #668935;
-  --chart-4: #8874a2;
 }
 * {
   box-sizing: border-box;
@@ -99,7 +68,7 @@ input[type="checkbox"] {
   accent-color: var(--ink);
 }
 :focus-visible {
-  outline: 3px solid var(--focus-ring);
+  outline: 3px solid #668935;
   outline-offset: 4px;
 }
 h1,
@@ -206,7 +175,7 @@ small {
 }
 .product-navigation > a[aria-current="page"],
 .product-navigation .tool-menu[data-active="true"] > summary {
-  background: var(--nav-active);
+  background: #eaf0df;
   font-weight: 600;
 }
 .tool-menu {
@@ -237,7 +206,7 @@ small {
   background: var(--lime);
 }
 .tool-menu-links a[aria-current="page"] {
-  background: var(--nav-item-active);
+  background: #eef2e7;
   font-weight: 600;
 }
 .nav-section-note {
@@ -258,7 +227,7 @@ small {
 .pill i {
   width: 6px;
   height: 6px;
-  background: var(--status-dot);
+  background: #598155;
   border-radius: 50%;
   display: inline-block;
 }
@@ -274,8 +243,8 @@ small {
   align-items: center;
   gap: 9px;
   padding: 7px 12px;
-  background: var(--badge-bg);
-  border: 1px solid var(--badge-border);
+  background: #eef1e7;
+  border: 1px solid #e0e8d5;
   border-radius: 30px;
   font-size: 10px;
   letter-spacing: 1px;
@@ -310,11 +279,11 @@ small {
   position: relative;
   display: grid;
   place-items: center;
-  background: radial-gradient(ellipse, var(--decor-glow) 0%, transparent 65%);
+  background: radial-gradient(ellipse, #eaf0dc 0%, transparent 65%);
 }
 .orbit {
   position: absolute;
-  border: 1px solid var(--decor-ring);
+  border: 1px solid #ccd7bf;
   border-radius: 50%;
   transform: rotate(-25deg);
 }
@@ -365,17 +334,17 @@ small {
 .dot-one {
   top: 37px;
   left: 32%;
-  background: var(--decor-one);
+  background: #dfbfa3;
 }
 .dot-two {
   right: 7%;
   top: 48%;
-  background: var(--decor-two);
+  background: #d5e9a9;
 }
 .dot-three {
   bottom: 30px;
   left: 23%;
-  background: var(--decor-three);
+  background: #e2cfdc;
 }
 .floating-note {
   position: absolute;
@@ -452,15 +421,15 @@ small {
   font-size: 11px;
 }
 .upload {
-  border: 1px dashed var(--border-emphasis);
-  background: var(--upload-bg);
+  border: 1px dashed #b5c4a8;
+  background: #f1f4eb;
   border-radius: 15px;
   text-align: center;
   padding: 36px 24px;
   position: relative;
 }
 .upload.dragging {
-  background: var(--upload-hover);
+  background: #e0edca;
   border-color: var(--ink);
 }
 .upload-icon {
@@ -570,7 +539,7 @@ small {
   padding: 30px;
   border-radius: 18px;
   border: 1px solid var(--line);
-  background: var(--surface-tint);
+  background: #eef2e7;
   box-shadow: 0 20px 60px #263b300c;
 }
 .result-preview h2 {
@@ -614,17 +583,17 @@ small {
   padding: 30px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--feature-bg);
+  background: #f0f1e8;
   transition: transform 0.15s;
 }
 .feature-card:hover {
   transform: translateY(-4px);
 }
 .feature-card.instagram-cleaner {
-  background: var(--feature-warm);
+  background: #f3ece3;
 }
 .feature-card.instagram-wrapped {
-  background: var(--feature-alt);
+  background: #eeeaf1;
 }
 .feature-icon {
   display: block;
@@ -899,7 +868,7 @@ footer > nav a {
   font-size: 13px;
 }
 .timeline-bar {
-  background: var(--surface-tint);
+  background: #eef2e7;
   height: 20px;
   border-radius: 4px;
   overflow: hidden;
@@ -907,7 +876,7 @@ footer > nav a {
 .timeline-bar > span {
   display: block;
   height: 100%;
-  background: var(--accent-strong);
+  background: #668935;
   min-width: 3px;
 }
 .tool-tabs a {
@@ -1223,7 +1192,7 @@ footer > nav a {
 .notice,
 .snapshot-status {
   font-size: 13px;
-  background: var(--surface-tint);
+  background: #eef2e7;
   padding: 20px;
   border-radius: 10px;
   margin: 20px 0;
@@ -2294,10 +2263,10 @@ footer > nav a {
   border-radius: 12px;
 }
 .vault-followers-point {
-  fill: var(--chart-1);
+  fill: #305b40;
 }
 .vault-following-point {
-  fill: var(--chart-2);
+  fill: #a26932;
 }
 .vault-legend {
   display: flex;
@@ -2307,10 +2276,10 @@ footer > nav a {
   font-size: 0.85rem;
 }
 .vault-legend span:first-child {
-  color: var(--chart-1);
+  color: #305b40;
 }
 .vault-legend span:last-child {
-  color: var(--chart-2);
+  color: #a26932;
 }
 .vault-account-history {
   margin-top: 28px;
