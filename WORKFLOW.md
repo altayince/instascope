@@ -8,7 +8,7 @@ InstaScope follows the MUZ/GLA issue-first, task-branch, PR-only workflow.
 4. Update `src/app/changelog/page.tsx`: issue number, issue title, short summary, newest first, at most ten entries.
 5. Open a PR targeting main, assign `altayince`, add it to INS, and link the issue with `Fixes #<issue>`.
 6. Review the diff, wait for `quality`, `browser-tests`, `validate-branch`, and `validate-ownership`. Merge only after they pass. No second-person approval is required for this single-user project.
-7. Closing a task PR closes its matching INS issue, whether merged or not. Merged work closes as completed; an unmerged closed PR closes as not planned. The metadata-only `pull_request_target` workflow maps the same-repository INS branch number to an issue and never checks out PR code.
+7. Only a merged same-repository task PR closes its matching INS issue as completed. A PR closed without merge leaves its issue open. The metadata-only `pull_request` workflow listens for closed events targeting `main` or `dev`, validates the INS branch ticket, and never checks out or executes PR code. See `docs/github-setup.md` for the branch-specific rollout status.
 
 Install hooks after every clone: `powershell -ExecutionPolicy Bypass -File scripts/install-githooks.ps1`.
 Local hooks complement server-side protection; they do not replace it.
