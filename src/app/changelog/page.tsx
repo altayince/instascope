@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 130,
+          title: "Add WhatsApp message patterns and local content analysis",
+          summary:
+            "Preview-only Chat Analyzer adds selected-message runs, rolling recorded ten-minute bursts, literal question marks, text lengths, media and emoji leaderboards, and local word frequencies. Date and participant filters apply without reparsing; comparison evidence, calculation rules and unavailable states remain explicit. No chat content leaves the browser, and Wrapped stays unchanged.",
+        },
+        {
           issue: 128,
           title: "Add WhatsApp recorded conversation rhythm and dynamics",
           summary:

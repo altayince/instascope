@@ -623,6 +623,17 @@
   padding: 10px;
   font-size: 12px;
 }
+/* WebKit can report native selected text beyond a select's own bounds. */
+.wa-filter-controls label:has(> select) {
+  overflow: clip;
+}
+.wa-filter-controls select {
+  text-overflow: ellipsis;
+}
+.wa-filter-controls select:focus-visible {
+  /* Keep the shared focus ring visible inside the clipped field. */
+  outline-offset: -3px;
+}
 .wa-filter-controls .button {
   min-height: 44px;
   font-size: 11px;
@@ -1365,6 +1376,306 @@
   line-height: 1.6;
   margin: 6px 0;
 }
+.wa-message-content {
+  margin-top: 22px;
+  max-width: 100%;
+}
+.wa-message-content h4 {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+  margin: 0 0 18px;
+}
+.wa-message-content h5 {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+.wa-message-content .wa-message-content-group {
+  border-top: 1px solid var(--line);
+  padding-top: 23px;
+  margin-top: 26px;
+  min-width: 0;
+}
+.wa-message-content .wa-message-content-pattern-summaries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 27px;
+}
+.wa-message-content .wa-message-content-pattern-summaries > div,
+.wa-message-content .wa-message-content-pattern-bottom > div,
+.wa-message-content .wa-message-content-two-columns > div {
+  min-width: 0;
+}
+.wa-message-content .wa-message-content-facts {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.wa-message-content .wa-message-content-facts dt {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.wa-message-content .wa-message-content-facts dd {
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0;
+}
+.wa-message-content .wa-message-content-pattern-summaries > div:first-child dd,
+.wa-message-content
+  .wa-message-content-pattern-summaries
+  > div:nth-child(2)
+  dd {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+}
+.wa-message-content .wa-message-content-facts.is-inline {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 22px;
+}
+.wa-message-content .wa-message-content-facts > div {
+  min-width: 0;
+}
+.wa-message-content .wa-message-content-pattern-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 30px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 25px;
+}
+.wa-message-content .wa-message-content-burst-context p {
+  margin: 14px 0 8px;
+}
+.wa-message-content .wa-message-content-burst-context ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.wa-message-content .wa-message-content-burst-context li {
+  overflow-wrap: anywhere;
+}
+.wa-message-content .wa-message-content-counts {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 25px;
+  margin: 15px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.wa-message-content .wa-message-content-counts li,
+.wa-message-content .wa-message-content-word-list li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 12px;
+}
+.wa-message-content .wa-message-content-counts span,
+.wa-message-content .wa-message-content-word-list span {
+  overflow-wrap: anywhere;
+}
+.wa-message-content .wa-message-content-counts strong,
+.wa-message-content .wa-message-content-word-list strong {
+  font-weight: 500;
+}
+.wa-message-content .wa-message-content-counts.has-bars {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 15px;
+}
+.wa-message-content .wa-message-content-counts.has-bars span,
+.wa-message-content .wa-message-content-counts.has-bars strong {
+  grid-column: 1 / -1;
+}
+.wa-message-content .wa-message-content-counts.has-bars strong {
+  font-size: 20px;
+}
+.wa-message-content .wa-message-content-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #eef2e7;
+}
+.wa-message-content .wa-message-content-track i {
+  display: block;
+  height: 100%;
+  background: #305b40;
+}
+.wa-message-content .wa-message-content-counts li:nth-child(2n) i {
+  background: #a26932;
+}
+.wa-message-content .wa-message-content-participants,
+.wa-message-content .wa-message-content-methodology {
+  border-top: 1px solid var(--line);
+  margin-top: 23px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.wa-message-content summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.wa-message-content summary:focus-visible,
+.wa-message-content .wa-message-content-table-scroll:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.wa-message-content .wa-message-content-participant-rows > details {
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.wa-message-content .wa-message-content-participant-rows > details > summary {
+  font-size: 12px;
+  font-weight: 500;
+}
+.wa-message-content .wa-message-content-participant-body {
+  padding: 8px 0 21px;
+  min-width: 0;
+}
+.wa-message-content .wa-message-content-participant-body h5 {
+  margin-top: 22px;
+}
+.wa-message-content .wa-message-content-participant-body > h5:first-child,
+.wa-message-content .wa-message-content-participant-body > div h5:first-child {
+  margin-top: 0;
+}
+.wa-message-content .wa-message-content-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 14px 0;
+}
+.wa-message-content .wa-message-content-pagination .button {
+  min-height: 44px;
+  font-size: 10px;
+}
+.wa-message-content .wa-message-content-pagination > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.wa-message-content .wa-message-content-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+.wa-message-content .wa-message-content-word-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.wa-message-content .wa-message-content-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 9px 15px;
+  max-width: 100%;
+  padding: 21px 13px;
+  margin: 16px 0;
+  border-radius: 7px;
+  background: #eef2e7;
+  line-height: 1.4;
+}
+.wa-message-content .wa-message-content-cloud span {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.wa-message-content .wa-message-content-values {
+  font-size: 11px;
+  border-top: 1px solid var(--line);
+  margin-top: 15px;
+}
+.wa-message-content .wa-message-content-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.wa-message-content .wa-message-content-comparison-table {
+  width: 100%;
+  min-width: 680px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.wa-message-content .wa-message-content-comparison-table caption {
+  text-align: left;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 0 0 12px;
+}
+.wa-message-content .wa-message-content-comparison-table th,
+.wa-message-content .wa-message-content-comparison-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.wa-message-content .wa-message-content-comparison-table th {
+  font-weight: 500;
+}
+.wa-message-content .wa-message-content-comparison-table thead th {
+  font-size: 10px;
+  color: var(--muted);
+  background: #eef2e7;
+}
+.wa-message-content .wa-message-content-methodology {
+  color: var(--muted);
+}
+.wa-message-content .wa-message-content-methodology summary {
+  color: var(--ink);
+}
+.wa-message-content .wa-message-content-truth {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 12px 0;
+}
+.wa-message-content .wa-message-content-truth dt {
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.wa-message-content .wa-message-content-truth dd {
+  margin: 0;
+}
+.wa-message-content .wa-message-content-methodology > ul {
+  padding-left: 19px;
+  margin: 18px 0 0;
+}
+.wa-message-content .wa-message-content-methodology > ul > li {
+  margin-top: 12px;
+}
 .wa-wrapped {
   display: grid;
   grid-template-columns: minmax(300px, 430px) 1fr;
@@ -2027,5 +2338,37 @@
 @media (prefers-reduced-motion: reduce) {
   .wa-import-panel {
     transition: none;
+  }
+}
+@media (max-width: 760px) {
+  .wa-message-content .wa-panel-heading {
+    align-items: flex-start;
+  }
+  .wa-message-content .wa-panel-badge {
+    align-self: flex-start;
+  }
+  .wa-message-content .wa-message-content-pattern-summaries,
+  .wa-message-content .wa-message-content-pattern-bottom,
+  .wa-message-content .wa-message-content-two-columns,
+  .wa-message-content .wa-message-content-truth {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .wa-message-content .wa-message-content-counts.has-bars {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .wa-message-content .wa-message-content-counts.has-bars span,
+  .wa-message-content .wa-message-content-counts.has-bars strong {
+    grid-column: auto;
+  }
+  .wa-message-content .wa-message-content-counts.has-bars span {
+    align-self: center;
+  }
+  .wa-message-content .wa-message-content-pagination {
+    justify-content: center;
+  }
+  .wa-message-content .wa-message-content-pagination .button {
+    width: 100%;
   }
 }

@@ -1,6 +1,13 @@
 export { readWhatsApp, inspectWhatsAppExport } from "./browser";
 export { parseWhatsApp } from "./parser";
 export { analyzeWhatsApp } from "./analysis";
+export { analyzeWhatsAppContent } from "./content-analysis";
+export {
+  analyzeWhatsAppMessagePatterns,
+  BURST_WINDOW_MINUTES,
+} from "./message-patterns";
+export { analyzeWhatsAppText } from "./text-analysis";
+export type * from "./content-types";
 export {
   analyzeConversationRhythm,
   SESSION_GAP_MINUTES,
