@@ -1,0 +1,10 @@
+[3/14/26, 9:00:01 AM] Synthetic A: <Bild ausgelassen>
+[3/14/26, 9:01:02 AM] Synthetic B: <Video ausgelassen>
+[3/14/26, 9:02:03 AM] Synthetic A: <Sprachnachricht ausgelassen>
+[3/14/26, 9:03:04 AM] Synthetic B: <Sticker ausgelassen>
+[3/14/26, 9:04:05 AM] Synthetic A: <GIF ausgelassen>
+[3/14/26, 9:05:06 AM] Synthetic B: Du hast diese Nachricht gelöscht.
+[3/14/26, 9:06:07 AM] - [Anruf]
+[3/14/26, 9:07:08 AM] Synthetic A: <Dokument ausgelassen>
+[3/14/26, 9:08:09 AM] Synthetic B: Standort: 0, 0 - https://maps.google.com/?q=0,0
+[3/14/26, 9:09:10 AM] Synthetic A: <Dokument ausgelassen>: synthetic-document.pdf

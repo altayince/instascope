@@ -1,7 +1,11 @@
 import { WhatsAppImportError, type WhatsAppErrorCode } from "./errors";
 import { getWhatsAppFormat } from "./formats";
 import { WHATSAPP_LIMITS, validateWhatsAppSelection } from "./limits";
-import type { WhatsAppDataset, WhatsAppFormatId } from "./types";
+import type {
+  WhatsAppDataset,
+  WhatsAppFormatId,
+  WhatsAppInspection,
+} from "./types";
 
 const cancelled = () =>
   new WhatsAppImportError(
@@ -9,13 +13,13 @@ const cancelled = () =>
     "Chat reading was cancelled. Choose a file to start again.",
   );
 
-export async function readWhatsApp(
+async function localReader<T extends WhatsAppDataset | WhatsAppInspection>(
   files: readonly File[],
-  format: WhatsAppFormatId,
+  format: WhatsAppFormatId | undefined,
   signal?: AbortSignal,
-): Promise<WhatsAppDataset> {
+): Promise<T> {
   validateWhatsAppSelection(files);
-  getWhatsAppFormat(format);
+  if (format !== undefined) getWhatsAppFormat(format);
   if (signal?.aborted) throw cancelled();
   return new Promise((resolve, reject) => {
     let worker: Worker;
@@ -54,6 +58,7 @@ export async function readWhatsApp(
     worker.onmessage = (
       event: MessageEvent<{
         dataset?: WhatsAppDataset;
+        inspection?: WhatsAppInspection;
         error?: { code: WhatsAppErrorCode; message: string };
       }>,
     ) => {
@@ -65,7 +70,10 @@ export async function readWhatsApp(
             event.data.error.message,
           ),
         );
-      else if (event.data.dataset) resolve(event.data.dataset);
+      else if (format === undefined && event.data.inspection)
+        resolve(event.data.inspection as T);
+      else if (format !== undefined && event.data.dataset)
+        resolve(event.data.dataset as T);
       else
         reject(
           new WhatsAppImportError(
@@ -99,7 +107,11 @@ export async function readWhatsApp(
       return;
     }
     try {
-      worker.postMessage({ files: [...files], format });
+      worker.postMessage(
+        format === undefined
+          ? { operation: "inspect", files: [...files] }
+          : { files: [...files], format },
+      );
     } catch {
       if (!finish()) return;
       reject(
@@ -110,4 +122,19 @@ export async function readWhatsApp(
       );
     }
   });
+}
+
+export function readWhatsApp(
+  files: readonly File[],
+  format: WhatsAppFormatId,
+  signal?: AbortSignal,
+): Promise<WhatsAppDataset> {
+  return localReader<WhatsAppDataset>(files, format, signal);
+}
+
+export function inspectWhatsAppExport(
+  files: readonly File[],
+  signal?: AbortSignal,
+): Promise<WhatsAppInspection> {
+  return localReader<WhatsAppInspection>(files, undefined, signal);
 }

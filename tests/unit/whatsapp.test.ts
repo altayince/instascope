@@ -7,6 +7,7 @@ import { WhatsAppImportError } from "../../src/lib/whatsapp/errors";
 import { WHATSAPP_FORMATS } from "../../src/lib/whatsapp/formats";
 import {
   importWhatsApp,
+  inspectWhatsApp,
   type WhatsAppNamedBlob,
 } from "../../src/lib/whatsapp/import";
 import {
@@ -202,14 +203,14 @@ describe("isolated WhatsApp parsing and normalization", () => {
   });
 
   it.each([
-    ["14/03/25, 09:15 - Mira: Hello", "dmy-24h"],
+    ["14/03/5, 09:15 - Mira: Hello", "dmy-24h"],
     ["14/03/2025, 09:15 - Mira: Hello", "mdy-24h"],
     ["14.03.2025, 09:15 - Mira: Hello", "dmy-24h"],
     ["14/03/2025, 09:15 PM - Mira: Hello", "dmy-24h"],
     ["14/03/2025, 09:15 - Mira: Hello", "dmy-12h"],
     ["14/03/2025, 9:15 vorm. - Mira: Hello", "dmy-12h"],
   ] as const)(
-    "does not guess mismatched date order, century, separator, clock or locale",
+    "does not guess mismatched date order, unsupported year width, separator, clock or locale",
     (input, format) =>
       expect(() => parseWhatsApp(input, format)).toThrow(WhatsAppImportError),
   );
@@ -237,12 +238,9 @@ describe("isolated WhatsApp parsing and normalization", () => {
     ).toContain("cannot be distinguished");
   });
 
-  it("rejects empty, arbitrary preamble, NUL and system-only exports with static errors", () => {
+  it("rejects empty, non-export, NUL and system-only exports with static errors", () => {
     expect(() => parseWhatsApp("\n", "dmy-24h")).toThrow(
       /no supported chat records/,
-    );
-    expect(() => parseWhatsApp("PRIVATE LABEL\n" + text, "dmy-24h")).toThrow(
-      /does not start/,
     );
     expect(() => parseWhatsApp("\u0000" + text, "dmy-24h")).toThrow(/UTF-8/);
     expect(() =>
@@ -436,6 +434,53 @@ describe("factual WhatsApp activity analysis", () => {
 });
 
 describe("bounded local WhatsApp TXT/ZIP imports", () => {
+  it("accepts one chat TXT with harmless Markdown/media companions and reports only their count", async () => {
+    const archive = zipSync({
+      "synthetic-private-chat.txt": strToU8(
+        "[3/14/26, 9:45:46 AM] Synthetic A: A fictional line.",
+      ),
+      "chat.md": strToU8("SYNTHETIC_PRIVATE_COMPANION_CONTENT"),
+      "synthetic-private-attachment.jpg": new Uint8Array([1, 2, 3]),
+    });
+    const dataset = await importWhatsApp([file(archive)], "mdy-12h");
+    expect(dataset.messages).toHaveLength(1);
+    expect(dataset.metadata.source).toBe("zip");
+    expect(dataset.metadata.ignoredAttachments).toBe(2);
+    expect(dataset.metadata.doctor.ignoredCompanionFiles).toBe(2);
+    expect(JSON.stringify(dataset.metadata.doctor)).not.toMatch(
+      /synthetic-private|chat\.md|SYNTHETIC_PRIVATE/,
+    );
+    expect(JSON.stringify(dataset)).not.toContain(
+      "SYNTHETIC_PRIVATE_COMPANION_CONTENT",
+    );
+    const inspection = await inspectWhatsApp([file(archive)]);
+    expect(inspection.source).toBe("zip");
+    expect(inspection.ignoredCompanionFiles).toBe(2);
+    expect(inspection.detection.detectedFormat).toBe("mdy-12h");
+    expect(JSON.stringify(inspection)).not.toMatch(
+      /synthetic-private|chat\.md|SYNTHETIC_PRIVATE/,
+    );
+  });
+
+  it("inspects ZIPs through the same integrity, ambiguity and size guards used by import", async () => {
+    const damaged = smallZip(0);
+    const payload = new TextDecoder().decode(damaged).indexOf("Mira");
+    damaged[payload] = 78;
+    await expect(inspectWhatsApp([file(damaged)])).rejects.toThrow(/integrity/);
+    await expect(
+      inspectWhatsApp([
+        file(zipSync({ "one.txt": strToU8(text), "two.txt": strToU8(text) })),
+      ]),
+    ).rejects.toThrow(/more than one TXT/);
+    const oversized = smallZip();
+    new DataView(oversized.buffer, oversized.byteOffset).setUint32(
+      centralOffset(oversized) + 24,
+      WHATSAPP_LIMITS.textBytes + 1,
+      true,
+    );
+    await expect(inspectWhatsApp([file(oversized)])).rejects.toThrow(/20 MB/);
+  });
+
   it.each([0, 6] as const)(
     "reads stored/deflated single-chat ZIPs (level %i), excluding media",
     async (level) => {

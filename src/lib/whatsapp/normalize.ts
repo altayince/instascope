@@ -1,6 +1,8 @@
 import type {
   WhatsAppDataset,
   WhatsAppFormatId,
+  WhatsAppFormatDetection,
+  WhatsAppEventKind,
   WhatsAppMediaKind,
   WhatsAppTimestamp,
   WhatsAppWarning,
@@ -8,6 +10,7 @@ import type {
 import { WHATSAPP_LIMITS } from "./limits";
 import { WhatsAppImportError } from "./errors";
 import { wallClockValue } from "./timestamp";
+import { classifyWhatsAppEvent, hasUnclassifiedWhatsAppMarker } from "./events";
 
 export type WhatsAppRawRecord = {
   timestamp: WhatsAppTimestamp;
@@ -15,21 +18,24 @@ export type WhatsAppRawRecord = {
   content: string;
 };
 
-const mediaPlaceholders = new Map<string, WhatsAppMediaKind>([
-  ["<Media omitted>", "unspecified"],
-  ["image omitted", "image"],
-  ["video omitted", "video"],
-  ["audio omitted", "audio"],
-  ["sticker omitted", "sticker"],
-  ["GIF omitted", "gif"],
-  ["document omitted", "document"],
+const mediaKinds = new Set<WhatsAppMediaKind>([
+  "unspecified",
+  "image",
+  "video",
+  "audio",
+  "sticker",
+  "gif",
+  "document",
 ]);
 
-/** Only complete, known English omission markers; never guess attachment filenames. */
+/** Only complete verified omission markers; never guess attachment filenames. */
 export function detectWhatsAppMedia(
   content: string,
 ): WhatsAppMediaKind | undefined {
-  return mediaPlaceholders.get(content.replace(/^[\u200e\u200f]/, ""));
+  const event = classifyWhatsAppEvent(content);
+  return event && mediaKinds.has(event.kind as WhatsAppMediaKind)
+    ? (event.kind as WhatsAppMediaKind)
+    : undefined;
 }
 
 /** Explicit HTTP(S) links only. URLs with credentials or control characters are excluded. */
@@ -100,14 +106,30 @@ export const WHATSAPP_BASE_WARNINGS: readonly WhatsAppWarning[] = [
   {
     code: "media-placeholders",
     message:
-      "Media counts include only complete supported English omission markers. Attachment filenames, captions and translated markers are not inferred; media files are never opened.",
+      "Media counts include only complete supported English or verified German omission markers. Attachment filenames, captions and other translated markers are not inferred; media files are never opened.",
   },
 ];
 
 export function normalizeWhatsApp(
   records: readonly WhatsAppRawRecord[],
   format: WhatsAppFormatId,
+  detection?: WhatsAppFormatDetection,
 ): WhatsAppDataset {
+  // A direct normalization call has no raw headers to inspect. Do not invent source evidence.
+  const sourceDetection: WhatsAppFormatDetection = detection ?? {
+    status: "unsupported",
+    confidence: "unsupported",
+    candidateFormats: [],
+    detectedFormat: null,
+    wrappers: [],
+    yearWidths: [],
+    clockStyles: [],
+    timestampPrecision: null,
+    headerCount: 0,
+    unsupportedLookingRecords: 0,
+    preambleLines: 0,
+    continuationLines: 0,
+  };
   const dataset: WhatsAppDataset = {
     participants: [],
     messages: [],
@@ -118,14 +140,50 @@ export function normalizeWhatsApp(
       warnings: WHATSAPP_BASE_WARNINGS.map((warning) => ({ ...warning })),
       timestampPrecision: "minute",
       ignoredAttachments: 0,
+      doctor: {
+        status: sourceDetection.preambleLines
+          ? "partially-supported"
+          : "supported",
+        detection: sourceDetection,
+        selectedFormat: format,
+        participantLabels: 0,
+        eventTypes: [],
+        localizedMarkers: [],
+        ignoredCompanionFiles: 0,
+        unclassifiedMarkerRecords: 0,
+        sourceLimitations: [
+          "Dates and times are recorded wall-clock values; the export supplies no timezone.",
+          "Two-digit slash years are interpreted as 2000 + YY, without a moving century guess.",
+          "Pasted timestamp-shaped text cannot be distinguished from new export records.",
+          "Sender labels are not verified people or accounts; renamed or identical labels cannot be resolved.",
+          "Media contents, read receipts, seen times, reply-to relationships and reactions are unavailable.",
+          "Call markers do not establish call duration or direction, and no relationship or personality conclusions are derived.",
+          "Recognized location-share content is excluded from link and emoji statistics.",
+        ],
+      },
     },
   };
   const participantIds = new Map<string, string>();
   const precisions = new Set<WhatsAppTimestamp["precision"]>();
+  const eventCounts = new Map<WhatsAppEventKind, number>();
+  const markerCounts = new Map<
+    string,
+    { locale: "en" | "de"; kind: WhatsAppEventKind; count: number }
+  >();
   let previous = -Infinity,
     unordered = 0,
     missingEmoji = false;
   for (const [index, record] of records.entries()) {
+    const event = classifyWhatsAppEvent(record.content);
+    if (!event && hasUnclassifiedWhatsAppMarker(record.content))
+      dataset.metadata.doctor.unclassifiedMarkerRecords++;
+    if (event) {
+      eventCounts.set(event.kind, (eventCounts.get(event.kind) ?? 0) + 1);
+      const key = `${event.locale}:${event.kind}`;
+      const entry = markerCounts.get(key) ?? { ...event, count: 0 };
+      entry.count++;
+      markerCounts.set(key, entry);
+    }
     precisions.add(record.timestamp.precision);
     const value = wallClockValue(record.timestamp);
     if (value < previous) unordered++;
@@ -135,6 +193,7 @@ export function normalizeWhatsApp(
         id: index + 1,
         timestamp: record.timestamp,
         content: record.content,
+        event,
       });
       continue;
     }
@@ -152,7 +211,8 @@ export function normalizeWhatsApp(
         displayName: record.sender,
       });
     }
-    const emoji = extractWhatsAppEmoji(record.content);
+    const emoji =
+      event?.kind === "location" ? [] : extractWhatsAppEmoji(record.content);
     if (emoji === null) missingEmoji = true;
     dataset.messages.push({
       id: index + 1,
@@ -160,7 +220,9 @@ export function normalizeWhatsApp(
       timestamp: record.timestamp,
       content: record.content,
       media: detectWhatsAppMedia(record.content),
-      links: extractWhatsAppLinks(record.content),
+      event,
+      links:
+        event?.kind === "location" ? [] : extractWhatsAppLinks(record.content),
       emoji,
     });
   }
@@ -188,5 +250,32 @@ export function normalizeWhatsApp(
       message:
         "This browser cannot segment emoji reliably. Emoji statistics are unavailable; try a current browser.",
     });
+  dataset.metadata.doctor.participantLabels = dataset.participants.length;
+  dataset.metadata.doctor.eventTypes = [...eventCounts]
+    .map(([kind, count]) => ({ kind, count }))
+    .sort((left, right) => left.kind.localeCompare(right.kind));
+  dataset.metadata.doctor.localizedMarkers = [...markerCounts.values()].sort(
+    (left, right) =>
+      `${left.locale}:${left.kind}`.localeCompare(
+        `${right.locale}:${right.kind}`,
+      ),
+  );
+  if (dataset.metadata.doctor.unclassifiedMarkerRecords) {
+    dataset.metadata.doctor.status = "partially-supported";
+    dataset.metadata.doctor.sourceLimitations.push(
+      "Some typed omission markers contain extra text. Filenames and captions are not interpreted, so recognized media counts may underreport these records.",
+    );
+  }
+  if (sourceDetection.preambleLines) {
+    dataset.metadata.warnings.push({
+      code: "ignored-preamble",
+      count: sourceDetection.preambleLines,
+      message:
+        "Untimestamped preamble lines were skipped. They are not counted as messages or system events.",
+    });
+    dataset.metadata.doctor.sourceLimitations.push(
+      "Untimestamped preamble was skipped; only supported timestamped records were analyzed.",
+    );
+  }
   return dataset;
 }

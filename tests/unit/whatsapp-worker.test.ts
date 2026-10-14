@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readWhatsApp } from "../../src/lib/whatsapp/browser";
+import {
+  inspectWhatsAppExport,
+  readWhatsApp,
+} from "../../src/lib/whatsapp/browser";
 import { createWhatsAppDemo } from "../../src/lib/whatsapp/demo";
+import { detectWhatsAppFormat } from "../../src/lib/whatsapp/detection";
 import { WhatsAppImportError } from "../../src/lib/whatsapp/errors";
 import { WHATSAPP_LIMITS } from "../../src/lib/whatsapp/limits";
 
@@ -32,6 +36,95 @@ afterEach(() => {
 });
 
 describe("local WhatsApp worker lifecycle", () => {
+  it("inspects local structural evidence without a format or UI-thread file reading", async () => {
+    setup();
+    const file = chat();
+    const read = vi.spyOn(file, "arrayBuffer");
+    const result = inspectWhatsAppExport([file]);
+    expect(worker().postMessage).toHaveBeenCalledWith({
+      operation: "inspect",
+      files: [file],
+    });
+    expect(read).not.toHaveBeenCalled();
+    const inspection = {
+      detection: detectWhatsAppFormat("14/03/2025, 09:00 - Synthetic: Hello"),
+      source: "txt" as const,
+      ignoredCompanionFiles: 0,
+    };
+    worker().onmessage?.({ data: { inspection } } as MessageEvent);
+    expect(await result).toEqual(inspection);
+    expect(worker().terminate).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("cancels inspection and ignores late structural results", async () => {
+    setup();
+    const controller = new AbortController();
+    const result = inspectWhatsAppExport([chat()], controller.signal);
+    const rejection = expect(result).rejects.toMatchObject({
+      code: "cancelled",
+    });
+    controller.abort("SYNTHETIC PRIVATE REASON");
+    await rejection;
+    worker().onmessage?.({
+      data: {
+        inspection: {
+          detection: detectWhatsAppFormat(
+            "14/03/2025, 09:00 - Synthetic: Hello",
+          ),
+        },
+      },
+    } as MessageEvent);
+    expect(worker().terminate).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("times out inspection and terminates its worker", async () => {
+    setup();
+    const result = inspectWhatsAppExport([chat()]);
+    const rejection = expect(result).rejects.toMatchObject({ code: "timeout" });
+    await vi.advanceTimersByTimeAsync(WHATSAPP_LIMITS.workerTimeoutMs);
+    await rejection;
+    expect(worker().terminate).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("rejects invalid inspection selections and pre-aborted signals before spawning", async () => {
+    setup();
+    await expect(inspectWhatsAppExport([])).rejects.toMatchObject({
+      code: "selection",
+    });
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      inspectWhatsAppExport([chat()], controller.signal),
+    ).rejects.toMatchObject({ code: "cancelled" });
+    expect(FakeWorker.instances).toHaveLength(0);
+  });
+
+  it.each(["inspect", "parse"] as const)(
+    "rejects a %s worker response from the wrong import stage",
+    async (stage) => {
+      setup();
+      const result =
+        stage === "inspect"
+          ? inspectWhatsAppExport([chat()])
+          : readWhatsApp([chat()], "dmy-24h");
+      const rejection = expect(result).rejects.toMatchObject({
+        code: "worker",
+      });
+      worker().onmessage?.({
+        data:
+          stage === "inspect"
+            ? { dataset: createWhatsAppDemo() }
+            : { inspection: {} },
+      } as MessageEvent);
+      await rejection;
+      expect(worker().terminate).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
+
   it("passes the File and explicit format without reading on the UI thread, then terminates", async () => {
     setup();
     const file = chat();
