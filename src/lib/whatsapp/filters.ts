@@ -1,4 +1,6 @@
 import { analyzeWhatsApp } from "./analysis";
+import { analyzeConversationRhythm } from "./rhythm";
+import type { WhatsAppRhythmResult } from "./rhythm-types";
 import { calendarDayValue } from "./timestamp";
 import type {
   WhatsAppAnalysis,
@@ -37,6 +39,8 @@ export type WhatsAppFilteredAnalysis =
         unattributedCallEvents: number;
       };
       participant: WhatsAppParticipant | null;
+      /** Conversation-relative metrics require Everyone, not a sender-only subset. */
+      rhythm: WhatsAppRhythmResult;
     };
 
 const validYear = (year: number) =>
@@ -205,5 +209,12 @@ export function analyzeFilteredWhatsApp(
       unattributedCallEvents,
     },
     participant,
+    rhythm:
+      participant === null
+        ? {
+            available: true,
+            analysis: analyzeConversationRhythm(messages, dataset.participants),
+          }
+        : { available: false, reason: "participant-filter" },
   };
 }

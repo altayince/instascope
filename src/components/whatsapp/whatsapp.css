@@ -1138,6 +1138,233 @@
   border-top: 1px solid var(--line);
   padding-top: 50px;
 }
+.wa-rhythm {
+  margin-top: 22px;
+  max-width: 100%;
+}
+.wa-rhythm h4 {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0 0 16px;
+}
+.wa-rhythm-summaries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 25px;
+  margin: 27px 0 30px;
+}
+.wa-rhythm-summaries > div {
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.wa-rhythm-summaries dl {
+  display: grid;
+  gap: 15px;
+  margin: 0;
+}
+.wa-rhythm-summaries dt {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+.wa-rhythm-summaries dd {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+.wa-rhythm-summaries dl > div:first-child dd {
+  font-size: 31px;
+  letter-spacing: -0.8px;
+}
+.wa-rhythm-summaries .wa-hint {
+  margin: 18px 0 0;
+}
+.wa-rhythm-distribution,
+.wa-rhythm-participants {
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 25px;
+  min-width: 0;
+}
+.wa-rhythm-distribution h4,
+.wa-rhythm-participants h4 {
+  margin-bottom: 8px;
+}
+.wa-rhythm-delay-counts {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  padding: 0;
+  margin: 13px 0 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.wa-rhythm-delay-counts li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  min-width: 0;
+}
+.wa-rhythm-delay-counts span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.wa-rhythm-delay-counts strong {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.wa-rhythm-delay-counts.has-bars {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+.wa-rhythm-delay-counts.has-bars span {
+  grid-column: 1 / -1;
+  min-height: 30px;
+}
+.wa-rhythm-delay-counts.has-bars strong {
+  font-size: 23px;
+}
+.wa-rhythm-delay-track {
+  grid-column: 1 / -1;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #eef2e7;
+}
+.wa-rhythm-delay-track i {
+  display: block;
+  height: 100%;
+  background: #305b40;
+}
+.wa-rhythm-delay-counts li:nth-child(2n) .wa-rhythm-delay-track i {
+  background: #a26932;
+}
+.wa-rhythm-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  margin-top: 18px;
+  padding-bottom: 9px;
+}
+.wa-rhythm-table-scroll:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.wa-rhythm-table {
+  width: 100%;
+  min-width: 1080px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.55;
+}
+.wa-rhythm-table caption {
+  text-align: left;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.wa-rhythm-table th,
+.wa-rhythm-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.wa-rhythm-table th {
+  font-weight: 500;
+}
+.wa-rhythm-table thead th {
+  font-size: 10px;
+  color: var(--muted);
+  background: #eef2e7;
+}
+.wa-rhythm-table tr > :first-child {
+  width: 160px;
+}
+.wa-rhythm-table tr > :last-child {
+  width: 215px;
+}
+.wa-rhythm-table td small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+}
+.wa-rhythm-participant-buckets summary {
+  cursor: pointer;
+  min-height: 32px;
+}
+.wa-rhythm-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+}
+.wa-rhythm-pagination .button {
+  font-size: 10px;
+  min-height: 44px;
+}
+.wa-rhythm-pagination > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.wa-rhythm-precision {
+  margin-top: 22px;
+}
+.wa-rhythm-methodology {
+  border-top: 1px solid var(--line);
+  padding-top: 5px;
+  margin-top: 20px;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.wa-rhythm-methodology summary {
+  cursor: pointer;
+  padding: 12px 0;
+  min-height: 44px;
+  color: var(--ink);
+}
+.wa-rhythm-methodology > ul {
+  padding-left: 19px;
+  margin: 18px 0 0;
+}
+.wa-rhythm-methodology > ul > li {
+  margin-top: 10px;
+}
+.wa-rhythm-truth {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin: 12px 0;
+}
+.wa-rhythm-truth dt {
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 7px;
+}
+.wa-rhythm-truth dd {
+  margin: 0;
+}
+.wa-rhythm-unavailable {
+  margin: 20px 0;
+}
+.wa-rhythm-unavailable p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
 .wa-wrapped {
   display: grid;
   grid-template-columns: minmax(300px, 430px) 1fr;
@@ -1598,6 +1825,30 @@
   .wa-small-facts dl {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+  .wa-rhythm-summaries,
+  .wa-rhythm-truth {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .wa-rhythm-summaries dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .wa-rhythm-summaries dl > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .wa-rhythm-delay-counts.has-bars {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .wa-rhythm-delay-counts.has-bars span {
+    grid-column: auto;
+    min-height: 0;
+    align-self: center;
+  }
+  .wa-rhythm-delay-counts.has-bars strong {
+    font-size: 19px;
   }
   .wa-calendar-day {
     aspect-ratio: 1.35;
