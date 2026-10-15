@@ -89,6 +89,7 @@ test("release build keeps WhatsApp routes and switcher invisible", async ({
     "/whatsapp/",
     "/whatsapp/chat-analyzer/",
     "/whatsapp/wrapped/",
+    "/whatsapp/chat-vault/",
   ])
     expect((await request.get(route)).status(), route).toBe(404);
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
@@ -134,7 +135,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       page
         .getByRole("navigation", { name: "Main navigation" })
         .getByRole("link"),
-    ).toHaveText(["Overview", "Chat Analyzer", "Wrapped"]);
+    ).toHaveText(["Overview", "Chat Analyzer", "Wrapped", "Chat Vault"]);
     await expect(page.locator(".site-header")).not.toContainText(
       /Snapshot Vault|Followers Analyzer|Connection Privacy/,
     );

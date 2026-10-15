@@ -748,6 +748,9 @@
   border: 1px solid var(--line);
   border-radius: 12px;
 }
+.wa-chat-vault-save {
+  margin: 24px 0;
+}
 .wa-panel-heading {
   display: flex;
   align-items: center;

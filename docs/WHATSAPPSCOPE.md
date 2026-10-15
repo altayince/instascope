@@ -44,11 +44,14 @@ enabled preview WhatsApp builds; no CI deployment is added.
   pure analysis and story model. It imports no Instagram domain types.
 - `src/components/whatsapp` owns an independent tab-memory provider, import UI,
   factual charts and local Wrapped drawing/sharing. Platform navigation preserves
-  active data across routes; reload/clear removes the chat. No chat persistence,
-  account, credentials, cloud sync or new analytics event is introduced.
+  active data across routes; reload/clear removes the chat. Raw chat content and
+  identities are never persisted. Explicit aggregate-only Chat Vault saves are
+  separate from that working copy; there are no accounts, credentials, cloud
+  sync or new analytics events.
   Clearing/unmounting terminates a pending reader. An accepted replacement resets
   chart, participant and card navigation; a failed import keeps the prior chat.
-- `/whatsapp/`, `/whatsapp/chat-analyzer/`, `/whatsapp/wrapped/` are gated server
+- `/whatsapp/`, `/whatsapp/chat-analyzer/`, `/whatsapp/wrapped/` and
+  `/whatsapp/chat-vault/` are gated server
   pages. The product is independent and not affiliated with WhatsApp or Meta.
 
 ## Explicitly supported input
@@ -196,7 +199,9 @@ Calendar arithmetic
 does not infer a timezone, UTC event time, daylight-saving adjustment or online
 presence. Conversation-rhythm definitions below extend this filtered view;
 Message Patterns & Content below extends the same selected view. Wrapped V2
-uses the full source instead, as documented below. Vault and awards remain deferred.
+uses the full source instead, as documented below. Chat Vault also saves the full
+source's approved aggregates. Snapshot Compare, Conversation Pulse and awards
+remain deferred.
 
 ## Analyzer V2 Part 2: recorded rhythm and dynamics
 
@@ -238,8 +243,10 @@ the UI provides no awards or inferred winners.
 These are explainable calculations from accepted local records, not new source
 evidence. Real replies, read/seen timing, intent, interest, affection and
 relationship/personality interpretation remain **unavailable**. The rhythm model
-retains no message bodies or link lists, stays in memory, and is never uploaded,
-persisted or added to analytics. Native tables/text values and bounded participant
+retains no message bodies or link lists, stays in memory, and is never uploaded
+or added to analytics. Only explicitly selected scalar summaries enter Chat
+Vault after a deliberate save; sessions, transitions and participant mappings
+are not persisted. Native tables/text values and bounded participant
 pagination keep every aggregate reachable without rendering a message transcript.
 
 ## Analyzer V2 Part 3: Message Patterns & Content
@@ -296,14 +303,17 @@ literal question marks and lexical counts under these declared rules. Runs,
 rolling bursts, length summaries, top-word selection and normalized comparison
 are derived, with the same calculation disclosure available in the UI. Sentiment,
 intent, personality, relationship quality, real replies and read/seen data remain
-unavailable. Content, words, labels and derived private statistics stay in local
-memory: no logs, storage, URL parameters, analytics or network payloads are added.
+unavailable. Content, words and labels stay in local memory: no logs, URL
+parameters, analytics or network payloads are added. Only approved numeric
+summaries enter Chat Vault after an explicit save; words, emoji glyphs and source
+contexts never do.
 
 ## Privacy and Wrapped
 
 Files, text, sender labels, media, URLs and derived private statistics stay local.
 No WhatsApp-domain code calls the product analytics collector. No archive, chat
-identifier or persistent chat state is written to browser storage. Loading same-
+identifier, participant mapping or raw chat state is written to browser storage.
+Explicit Chat Vault snapshots contain only the approved aggregates below. Loading same-
 origin application assets/worker code is not an archive upload.
 
 ### Wrapped V2 (INS-132)
@@ -369,6 +379,62 @@ All tests use minimal synthetic fixtures. Automated desktop/mobile/WebKit
 coverage is not physical iPhone/Android testing or evidence for untested real
 exports/locales. New formats need representative, locally inspected evidence
 and anonymized regression fixtures; never commit personal chats or media.
+
+## Chat Vault V1 (INS-136)
+
+Chat Analyzer's **Save to Chat Vault** action deliberately projects the full
+accepted export through the existing analysis functions. Current date and
+participant filters are not saved. Opening/importing a chat or viewing Analyzer
+never saves a snapshot. Fictional demo saves are disabled, including in the
+projection layer. `/whatsapp/chat-vault/` lists saved snapshots without needing
+the original export; it cannot reopen that chat. Clearing/reloading the active
+chat does not delete the Vault.
+
+The pure `chat-vault.ts` domain module separates projection, strict validation,
+canonical serialization and preview from persistence. V1 stores schema and
+metric-definition versions, an opaque random local UUID, actual UTC save time,
+recorded participant-message date coverage and precision/source-support enums.
+Only selected numeric totals, fixed hour/weekday/heatmap/media distributions,
+streak/gap, session/transition and message-pattern/text-length summaries follow.
+No daily record series, sessions, transitions, burst contexts, lexical words,
+emoji glyphs, source files, raw messages, participant names/IDs/aliases, phone
+numbers, URLs, labels or fingerprints are stored. `supported` describes source
+structure, not complete history; missing summaries/emoji remain unavailable.
+Source coverage excludes system-only dates and has no inferred timezone.
+Exact supplied counts and derived threshold summaries retain the Analyzer's
+methodology; `definitionsVersion: 1` allows future comparisons to reject
+incompatible metric definitions.
+
+`ChatVaultStorage` uses a separate IndexedDB database,
+`instascope:whatsapp-chat-vault`, version 1, with an ID-keyed `snapshots` store.
+It reuses the existing Snapshot Vault transaction/open/timeout mechanics through
+`local-indexeddb.ts`; Instagram schema, migration and conflict rules are unchanged.
+Existing `BackupFilePicker`, `VaultConfirmation`, action controls and local Blob
+download infrastructure are reused. There are no backend calls or new analytics
+events. Other platform stores are isolated.
+
+V1 deliberately has no conversation identity, automatic grouping or user label.
+Equal coverage/counts do not identify a chat. Separate explicit saves get
+different random IDs; importing an existing ID always keeps the local entry.
+There is no automatic replacement or eviction. Future comparison must require
+explicit selection and cannot infer identity from these aggregates.
+
+The store holds at most 100 entries, including unreadable ones. JSON backups use
+`format: "whatsapp-chat-vault"`, version 1, and only validated snapshots, ordered
+by saved time and ID. Input is bounded to 2 MiB and 100 unique snapshots. Unknown
+versions, malformed structures, extra fields at every level, invalid dates,
+nonfinite/out-of-range numbers and inconsistent distributions are rejected
+before writing. Selection validates and shows a readonly current-ID preview;
+only explicit confirmation merges, rechecking IDs in one atomic transaction.
+Errors roll back all additions. Existing entries, even unreadable ones, are not
+overwritten. Corrupt rows are disclosed without crashing the app; backup refuses
+partial output. Explicit confirmed unreadable-entry removal preserves valid
+records and enables recovery. Storage errors leave analysis usable.
+
+Everything stays on this browser/device. Clearing site data may remove snapshots;
+backup is manual, local and not a cloud copy. Even anonymous aggregate counts and
+dates may be personal, so keep downloaded files private. Snapshot Compare,
+Conversation Pulse, history charts and product release remain separate work.
 
 ## Validation commands
 
