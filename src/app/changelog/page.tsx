@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 132,
+          title: "Upgrade WhatsApp Wrapped with Analyzer V2 stories",
+          summary:
+            "Preview-only Wrapped turns full-export facts into varied anonymous story cards, with evidence rules and local single-card or full-deck PNG downloads. Optional message-derived words stay off until explicitly enabled. Preview and export share one renderer; no chat data is uploaded or persisted.",
+        },
+        {
           issue: 130,
           title: "Add WhatsApp message patterns and local content analysis",
           summary:
