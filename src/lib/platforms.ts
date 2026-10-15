@@ -43,6 +43,7 @@ export const PLATFORM_REGISTRY: readonly PlatformDefinition[] = [
         { href: "/whatsapp/", label: "Overview" },
         { href: "/whatsapp/chat-analyzer/", label: "Chat Analyzer" },
         { href: "/whatsapp/wrapped/", label: "Wrapped" },
+        { href: "/whatsapp/chat-vault/", label: "Chat Vault" },
       ],
       footer: {
         tagline: "A little clarity for your conversations.",

@@ -1,4 +1,8 @@
 import {
+  LocalIndexedDatabase,
+  type LocalTransactionScope,
+} from "./local-indexeddb";
+import {
   SNAPSHOT_KEY,
   readSavedSnapshot,
   type SavedSnapshot,
@@ -34,126 +38,35 @@ export function vaultStorageMessage(error: unknown) {
     return "Browser storage is full. No older snapshots were removed. Delete snapshots in the Vault or free site storage, then try again.";
   return "Browser storage is unavailable. You can still analyze this export, but Snapshot Vault cannot save it. Check browser/site storage settings and try again.";
 }
-type TransactionScope<T> = {
-  transaction: IDBTransaction;
-  result: (value: T) => void;
-  fail: (error: unknown) => void;
-  read: <V>(request: IDBRequest<V>, success: (value: V) => void) => void;
-};
-
 export class SnapshotVaultStorage {
+  private database: LocalIndexedDatabase;
   constructor(
-    private factory: () => IDBFactory | undefined = () => globalThis.indexedDB,
+    factory: () => IDBFactory | undefined = () => globalThis.indexedDB,
     private legacy: () => LegacyStorage = () => globalThis.localStorage,
-  ) {}
-  private open(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      let abandoned = false;
-      const fail = (error: unknown) => {
-        abandoned = true;
-        clearTimeout(timer);
-        reject(error);
-      };
-      const timer = setTimeout(
-        () =>
-          fail(
-            new VaultStorageError(
-              "Browser storage did not respond. Close other InstaScope tabs and try again.",
-            ),
-          ),
-        10000,
-      );
-      try {
-        const factory = this.factory();
-        if (!factory) throw new Error("IndexedDB unavailable");
-        const request = factory.open(VAULT_DATABASE, 1);
-        request.onblocked = () =>
-          fail(
-            new VaultStorageError(
-              "Snapshot Vault storage is blocked by another tab. Close other InstaScope tabs and reload.",
-            ),
-          );
-        request.onerror = () => fail(request.error);
-        request.onupgradeneeded = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains(VAULT_STORE)) {
-            const store = db.createObjectStore(VAULT_STORE, { keyPath: "id" });
-            store.createIndex("exportDate", "exportDate", { unique: true });
-          }
-          if (!db.objectStoreNames.contains(META))
-            db.createObjectStore(META, { keyPath: "key" });
-        };
-        request.onsuccess = () => {
-          clearTimeout(timer);
-          const db = request.result;
-          db.onversionchange = () => db.close();
-          if (abandoned) db.close();
-          else resolve(db);
-        };
-      } catch (error) {
-        fail(error);
-      }
+  ) {
+    this.database = new LocalIndexedDatabase({
+      name: VAULT_DATABASE,
+      version: 1,
+      factory,
+      error: (message) => new VaultStorageError(message),
+      blockedMessage:
+        "Snapshot Vault storage is blocked by another tab. Close other InstaScope tabs and reload.",
+      upgrade: (db) => {
+        if (!db.objectStoreNames.contains(VAULT_STORE)) {
+          const store = db.createObjectStore(VAULT_STORE, { keyPath: "id" });
+          store.createIndex("exportDate", "exportDate", { unique: true });
+        }
+        if (!db.objectStoreNames.contains(META))
+          db.createObjectStore(META, { keyPath: "key" });
+      },
     });
   }
-  private async run<T>(
+  private run<T>(
     stores: string[],
     mode: IDBTransactionMode,
-    action: (scope: TransactionScope<T>) => void,
+    action: (scope: LocalTransactionScope<T>) => void,
   ): Promise<T> {
-    const db = await this.open();
-    try {
-      return await new Promise<T>((resolve, reject) => {
-        const transaction = db.transaction(stores, mode);
-        let value: T, failure: unknown;
-        const timer = setTimeout(() => {
-          failure = new VaultStorageError(
-            "Browser storage did not respond. The operation was cancelled; try again.",
-          );
-          transaction.abort();
-        }, 15000);
-        transaction.oncomplete = () => {
-          clearTimeout(timer);
-          resolve(value);
-        };
-        transaction.onabort = () => {
-          clearTimeout(timer);
-          reject(
-            failure ??
-              transaction.error ??
-              new Error("Storage operation aborted"),
-          );
-        };
-        transaction.onerror = (event) => {
-          failure ??= (event.target as IDBRequest).error ?? transaction.error;
-        };
-        const fail = (error: unknown) => {
-          failure = error;
-          transaction.abort();
-        };
-        try {
-          action({
-            transaction,
-            result: (result) => {
-              value = result;
-            },
-            fail,
-            read: (request, success) => {
-              request.onsuccess = () => {
-                try {
-                  success(request.result);
-                } catch (error) {
-                  fail(error);
-                }
-              };
-            },
-          });
-        } catch (error) {
-          fail(error);
-        }
-      });
-    } finally {
-      db.close();
-    }
+    return this.database.run(stores, mode, action);
   }
   async initialize(): Promise<string> {
     let legacy: SavedSnapshot | null;

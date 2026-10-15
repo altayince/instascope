@@ -10,6 +10,7 @@ export default defineConfig({
     "**/whatsapp-rhythm.spec.ts",
     "**/whatsapp-content.spec.ts",
     "**/whatsapp-wrapped-v2.spec.ts",
+    "**/whatsapp-chat-vault.spec.ts",
   ],
   outputDir: "test-results/whatsapp",
   projects: [

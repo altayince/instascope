@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 136,
+          title: "Build privacy-safe WhatsApp Chat Vault",
+          summary:
+            "Explicitly save full-export aggregate snapshots locally, without message text, participant identity or chat fingerprints. Browse and delete snapshots, export a strict JSON backup, and preview before confirming an atomic import. Unreadable entries and unavailable storage are handled safely. Preview only; comparison remains a separate next task.",
+        },
+        {
           issue: 132,
           title: "Upgrade WhatsApp Wrapped with Analyzer V2 stories",
           summary:

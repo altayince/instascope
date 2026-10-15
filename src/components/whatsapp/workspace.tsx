@@ -8,10 +8,13 @@ import { WhatsAppImport } from "./import";
 import { WhatsAppAnalyzer } from "./analyzer";
 import { WhatsAppWrapped } from "./wrapped";
 import { WhatsAppDoctor } from "./doctor";
+import { ChatVaultSaver } from "./chat-vault-save";
+import { WhatsAppChatVault } from "./chat-vault";
 import "./whatsapp.css";
 import { useBrowserReady } from "@/components/use-browser-ready";
 
-export type WhatsAppWorkspaceMode = "overview" | "analyzer" | "wrapped";
+export type WhatsAppWorkspaceMode =
+  "overview" | "analyzer" | "wrapped" | "vault";
 
 function LandingHero({
   onDemo,
@@ -111,6 +114,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
     startDemo();
     imported();
   }
+  if (mode === "vault") return <WhatsAppChatVault />;
   return (
     <main id="main" className="wa-workspace" data-whatsapp-mode={mode}>
       {mode === "overview" ? (
@@ -187,6 +191,9 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
             </details>
           )}
           <WhatsAppDoctor dataset={dataset} />
+          {mode === "analyzer" && (
+            <ChatVaultSaver key={`vault-${revision}`} dataset={dataset} />
+          )}
           {mode === "analyzer" && (
             <WhatsAppAnalyzer
               key={revision}
