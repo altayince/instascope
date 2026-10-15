@@ -50,7 +50,10 @@ test("Vault demo compares any pair in memory, disables storage actions and resto
   // Simulate previously saved history before loading the provider's summaries.
   await page.reload();
   await upload(page);
-  await page.getByRole("link", { name: "Open Vault", exact: true }).click();
+  await page
+    .getByRole("region", { name: "Snapshot Vault", exact: true })
+    .getByRole("link", { name: "Open Vault", exact: true })
+    .click();
   await expect(page.locator(".vault-row")).toHaveCount(1);
   const before = await savedRecords(page);
   const metadata = await vaultMetadata(page);

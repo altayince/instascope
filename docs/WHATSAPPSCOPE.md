@@ -195,8 +195,8 @@ counts may be visually truncated; the labels and disclosure retain exact values.
 Calendar arithmetic
 does not infer a timezone, UTC event time, daylight-saving adjustment or online
 presence. Conversation-rhythm definitions below extend this filtered view;
-Message Patterns & Content below extends the same selected view. Wrapped V2,
-Vault and awards remain deferred.
+Message Patterns & Content below extends the same selected view. Wrapped V2
+uses the full source instead, as documented below. Vault and awards remain deferred.
 
 ## Analyzer V2 Part 2: recorded rhythm and dynamics
 
@@ -306,11 +306,64 @@ No WhatsApp-domain code calls the product analytics collector. No archive, chat
 identifier or persistent chat state is written to browser storage. Loading same-
 origin application assets/worker code is not an archive upload.
 
-Wrapped cards contain factual aggregate activity and anonymous participant
-aliases, without personal labels, message bodies or link URLs. Review cards
-before deliberately downloading or using the device share sheet: exported
-statistics become a file that the user may choose to share. Card generation
-does not contact a server or third-party inference service.
+### Wrapped V2 (INS-132)
+
+Wrapped always describes the full accepted export, independent of temporary
+Analyzer filters. It consumes existing activity, rhythm and content analysis;
+parser, Doctor and metric definitions are unchanged. Pair mode means exactly
+two exported participant labels; three or more uses bounded group rankings.
+Aliases follow accepted participant order, not inferred identities.
+
+The evidence-rich default deck has up to 12 cards: opening, message split,
+busiest recorded date, recorded hour distribution, active-date streak, sessions,
+session starters, long-gap next senders, next-message rhythm, message patterns,
+media/emoji and closing. Group rankings show at most four anonymous labels plus
+a remaining-label count. Equal maxima are explicitly tied, including leaders
+outside the displayed rows. One-label and sparse exports get fewer cards rather
+than invented comparisons. Empty input gets no deck.
+
+Pure evidence rules in `stories.ts` skip weak cards: activity needs four
+messages; participant comparisons need two labels with at least two messages
+each; date/hour peaks need two messages; a streak needs two dates;
+sessions and long-gap observations need three;
+transition timing needs four observations, including four per displayed label;
+a burst needs three messages, or run evidence needs four runs with a longest
+run of at least two. Media needs two markers or three supported emoji
+occurrences. Source-wide unsupported emoji stays unavailable. These are display
+thresholds, not statistical significance. Each selected card has a native
+**How this is calculated** disclosure outside the artwork, with Exact/Derived,
+definition, evidence rule and limits. Recorded-clock metrics never imply a
+timezone, replies, presence, intent or relationship quality.
+
+**Include word-based insights in Wrapped** is off by default. Without opt-in,
+the story model and canvas receive no message-derived lexical tokens. Opt-in
+allows one card from the existing local text analysis: at least six eligible
+text messages, 20 eligible words, and two distinct qualifying words occurring
+at least three times each. It shows at most six words and excludes participant-
+label tokens as an extra precaution; derived words can still be sensitive.
+The view warns that the exported image may expose them. The toggle is not
+stored and resets on a newly accepted export. At the 12-card cap, the optional
+word card replaces the standalone streak card; the busiest-date summary still
+includes the longest streak.
+
+Default story data and artwork include only factual aggregates, date-only
+summaries and anonymous aliases: no participant names, raw messages, URLs,
+filenames, phone numbers or coordinates. No private context records from the
+underlying analysis are passed to the canvas. Optional words are the explicit
+exception. Preview and PNG use the same 1080×1920 renderer with an accessible
+text equivalent and a readable fallback if canvas is unavailable. Swipe,
+arrows, Home/End, slide announcements and the existing InstaScope story palettes
+are preserved. Share uses the prepared local PNG with the device share sheet
+where supported, otherwise downloads it; cancellation leaves the card ready.
+
+**Export full deck** sequentially renders the current deck into a browser-local
+ZIP using the existing `fflate` dependency. Filenames contain only ordered static
+card IDs, with generic ZIP metadata. Safety limits are 12 cards, 8 MiB per PNG
+and 32 MiB of PNG payload; actions are locked while progress is shown. Clearing
+or replacing the source cancels pending export and prevents stale downloads.
+No server renderer, new telemetry, network request or storage is added. Review
+cards before deliberately sharing: downloaded statistics become a file outside
+the app's control.
 
 All tests use minimal synthetic fixtures. Automated desktop/mobile/WebKit
 coverage is not physical iPhone/Android testing or evidence for untested real

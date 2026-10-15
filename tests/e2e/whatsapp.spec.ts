@@ -611,10 +611,12 @@ test.describe("WhatsAppScope enabled preview", () => {
       .getByRole("link", { name: "Wrapped", exact: true })
       .click();
     const deck = page.getByRole("region", { name: "WhatsApp Wrapped" });
+    await expect(deck).toBeVisible();
     const choices = deck
       .getByRole("group", { name: "Choose a Wrapped card" })
       .getByRole("button");
-    await expect(choices).toHaveCount(7);
+    expect(await choices.count()).toBeGreaterThanOrEqual(2);
+    expect(await choices.count()).toBeLessThanOrEqual(12);
     for (let index = 0; index < (await choices.count()); index++) {
       await choices.nth(index).click();
       const action = deck.getByRole("button", { name: "Download PNG" });
@@ -626,7 +628,9 @@ test.describe("WhatsAppScope enabled preview", () => {
       expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
       expect(bytes.readUInt32BE(16)).toBe(1080);
       expect(bytes.readUInt32BE(20)).toBe(1920);
-      expect(file.suggestedFilename()).toMatch(/^whatsappscope-[a-z-]+\.png$/);
+      expect(file.suggestedFilename()).toMatch(
+        /^whatsappscope-[a-z0-9-]+\.png$/,
+      );
     }
     const drawn = await page.evaluate(() =>
       (window as unknown as { waDrawnText: string[] }).waDrawnText.join("\n"),

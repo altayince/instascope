@@ -487,7 +487,7 @@ test.describe("actual current main vs enabled dev", () => {
     await expect(
       page.getByRole("button", { name: "Share card", exact: true }),
     ).toBeEnabled();
-    const whatsappShare = ".wa-export-actions > .secondary";
+    const whatsappShare = '.wa-export-actions > .secondary:text-is("Share card")';
     const instagramShare = ".wrapped-actions > .secondary";
     expect(
       await styles(page, whatsappShare, [

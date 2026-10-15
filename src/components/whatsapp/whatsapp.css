@@ -1953,6 +1953,91 @@
   border-radius: 6px;
   color: var(--ink);
 }
+.wa-story.wa-story-v2 {
+  display: block;
+  padding: 0;
+}
+.wa-story-v2 > canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.wa-story-v2 > canvas[hidden] {
+  display: none;
+}
+.wa-story-text.is-readable-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.wa-story-text.is-fallback {
+  position: absolute;
+  inset: 0;
+  padding: 24px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.wa-story-text.is-fallback .wa-story-heading {
+  margin-top: 20px;
+}
+.wa-story-text.is-fallback .wa-story-value strong {
+  font-size: 42px;
+  letter-spacing: -1px;
+}
+.wa-story-text.is-fallback .wa-story-note {
+  font-size: 11px;
+}
+.wa-deck-position {
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.wa-word-choice {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px;
+  margin: 20px 0;
+}
+.wa-word-choice label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.wa-workspace .wa-word-choice input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  accent-color: var(--ink);
+}
+.wa-word-choice .wa-hint {
+  margin: 8px 0 0;
+}
+.wa-story-calculation {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.wa-story-calculation summary {
+  min-height: 32px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.wa-story-calculation summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
 @media (max-width: 1000px) {
   .wa-hero {
     gap: 35px;
