@@ -1,9 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  trafficSources,
+  webdriverHints,
+} from "../../src/lib/analytics-context";
 import { events } from "../../src/lib/analytics-events";
 import { handleAnalytics, type AnalyticsEnv } from "../../workers/analytics";
 
 const endpoint = "https://instascope.test/api/events";
 const payload = JSON.stringify({ event: "parser_started" });
+const enrichedPayload = JSON.stringify({
+  event: "parser_started",
+  source: "google",
+  webdriver: "no",
+});
+const largestEnvelope = {
+  event: "connection_privacy_opened",
+  source: "search_other",
+  webdriver: "unknown",
+};
 function configured() {
   return {
     EVENTS: {
@@ -45,6 +59,7 @@ async function status(
   expect(response.status).toBe(expected);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
   expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
+  expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
   expect(response.headers.has("Access-Control-Allow-Origin")).toBe(false);
   expect(await response.text()).toBe("");
   return response;
@@ -52,24 +67,118 @@ async function status(
 afterEach(() => vi.restoreAllMocks());
 
 describe("first-party aggregate analytics Worker", () => {
-  it.each(events)("stores only the event and count for %s", async (event) => {
+  it.each(events)("accepts the legacy envelope for %s", async (event) => {
     const env = configured();
     await status(request(JSON.stringify({ event })), 204, env);
     expect(env.EVENTS.writeDataPoint.mock.calls).toEqual([
-      [{ blobs: [event], doubles: [1] }],
+      [{ blobs: [event, "legacy", "legacy", "unknown"], doubles: [1] }],
     ]);
   });
 
-  it("allows JSON whitespace without accepting duplicate raw keys", async () => {
+  it.each(
+    events.flatMap((event) =>
+      trafficSources.flatMap((source) =>
+        webdriverHints.map((webdriver) => ({ event, source, webdriver })),
+      ),
+    ),
+  )(
+    "stores the bounded enriched envelope $event/$source/$webdriver",
+    async (envelope) => {
+      const env = configured();
+      const body = JSON.stringify(envelope);
+      expect(new TextEncoder().encode(body).byteLength).toBeLessThanOrEqual(83);
+      await status(request(body), 204, env);
+      expect(env.EVENTS.writeDataPoint.mock.calls).toEqual([
+        [
+          {
+            blobs: [
+              envelope.event,
+              envelope.source,
+              envelope.webdriver,
+              "unknown",
+            ],
+            doubles: [1],
+          },
+        ],
+      ]);
+    },
+  );
+
+  it.each([
+    ["event", "source", "webdriver"],
+    ["event", "webdriver", "source"],
+    ["source", "event", "webdriver"],
+    ["source", "webdriver", "event"],
+    ["webdriver", "event", "source"],
+    ["webdriver", "source", "event"],
+  ])("accepts enriched keys in order %s/%s/%s", async (...keys) => {
+    const fields: Record<string, string> = {
+      event: "profile_search",
+      source: "bing",
+      webdriver: "yes",
+    };
+    const env = configured();
+    await status(
+      request(
+        JSON.stringify(
+          Object.fromEntries(keys.map((key) => [key, fields[key]])),
+        ),
+      ),
+      204,
+      env,
+    );
+    expect(env.EVENTS.writeDataPoint).toHaveBeenCalledWith({
+      blobs: ["profile_search", "bing", "yes", "unknown"],
+      doubles: [1],
+    });
+  });
+
+  it("allows JSON whitespace and decoded bounded string keys/values", async () => {
     const env = configured();
     await status(request(' \n { "event" : "parser_started" } \t '), 204, env);
     await status(
-      request('{"event":"parser_started","event":"parser_succeeded"}'),
-      400,
+      request(
+        '{"ev\\u0065nt":"profile_search","source":"go\\u006fgle","webdr\\u0069ver":"no"}',
+      ),
+      204,
       env,
     );
-    expect(env.EVENTS.writeDataPoint).toHaveBeenCalledTimes(1);
+    expect(env.EVENTS.writeDataPoint.mock.calls).toEqual([
+      [
+        {
+          blobs: ["parser_started", "legacy", "legacy", "unknown"],
+          doubles: [1],
+        },
+      ],
+      [{ blobs: ["profile_search", "google", "no", "unknown"], doubles: [1] }],
+    ]);
   });
+
+  it.each([
+    '{"event":"profile_search","event":"profile_failed"}',
+    '{"event":"profile_search","ev\\u0065nt":"profile_search"}',
+    '{"ev\\u0065nt":"profile_search","event":"profile_search"}',
+    '{"event":"profile_search","event":"profile_search","source":"none","webdriver":"no"}',
+    '{"event":"profile_search","source":"none","source":"none","webdriver":"no"}',
+    '{"event":"profile_search","source":"none","so\\u0075rce":"none","webdriver":"no"}',
+    '{"event":"profile_search","source":"none","webdriver":"no","webdriver":"no"}',
+    '{"event":"profile_search","source":"none","webdriver":"no","webdr\\u0069ver":"no"}',
+    '{"event":{},"event":"profile_search"}',
+    '{"event":[],"ev\\u0065nt":"profile_search"}',
+    '{"event":null,"event":"profile_search"}',
+    '{"event":1,"event":"profile_search"}',
+    '{"event":{"nested":"private"},"event":"profile_search"}',
+  ])(
+    "rejects duplicate keys, including decoded escaped aliases: %s",
+    async (body) => {
+      const env = configured();
+      expect(new TextEncoder().encode(body).byteLength).toBeLessThanOrEqual(
+        100,
+      );
+      await status(request(body), 400, env);
+      expect(env.EVENTS.writeDataPoint).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     "null",
@@ -86,6 +195,24 @@ describe("first-party aggregate analytics Worker", () => {
     '{"event":"parser_started",}',
     '{"event":"parser_started"',
     '\u00a0{"event":"parser_started"}',
+    '[{"event":"parser_started","source":"none","webdriver":"no"}]',
+    '{"event":"parser_started","source":"google"}',
+    '{"event":"parser_started","webdriver":"no"}',
+    '{"event":"parser_started","source":"legacy","webdriver":"no"}',
+    '{"event":"parser_started","source":"google","webdriver":"legacy"}',
+    '{"event":"parser_started","source":"Google","webdriver":"no"}',
+    '{"event":"parser_started","source":"none","webdriver":"false"}',
+    '{"event":"parser_started","source":{},"webdriver":"no"}',
+    '{"event":"parser_started","source":["none"],"webdriver":"no"}',
+    '{"event":"parser_started","source":"none","webdriver":false}',
+    '{"event":"not_allowed","source":"none","webdriver":"no"}',
+    '{"event":"parser_started","source":"none","webdriver":"no","x":"private"}',
+    '{"event":"profile_search","source":"https://private.test/path?q=secret","webdriver":"no"}',
+    '{"event":"profile_search","source":"none","webdriver":"HeadlessChrome/private"}',
+    '{"event":"profile_search","referrer":"https://private.test/path?q=secret"}',
+    '{"event":"profile_search","url":"https://private.test/path?q=secret"}',
+    '{"event":"profile_search","ua":"Mozilla/5.0 synthetic"}',
+    '{"event":"profile_search","source":"none","webdriver":"no",}',
   ])("rejects malformed or non-allowlisted envelopes: %s", async (body) => {
     const env = configured();
     await status(request(body), 400, env);
@@ -192,6 +319,9 @@ describe("first-party aggregate analytics Worker", () => {
     expect(env.RATE_LIMITER.limit).not.toHaveBeenCalled();
     expect(env.EVENTS.writeDataPoint).not.toHaveBeenCalled();
     await status(request(payload, { headers: { DNT: "1" } }), 204, {});
+    await status(request(enrichedPayload, { headers: { DNT: "1" } }), 204, env);
+    expect(env.RATE_LIMITER.limit).not.toHaveBeenCalled();
+    expect(env.EVENTS.writeDataPoint).not.toHaveBeenCalled();
   });
 
   it("caps declared body size without reading it or consuming a rate token", async () => {
@@ -217,14 +347,21 @@ describe("first-party aggregate analytics Worker", () => {
 
   it("allows 100 bytes and rejects 101 regardless of a false small length", async () => {
     const env = configured();
-    const hundred = payload.padEnd(100, " ");
+    const minified = JSON.stringify(largestEnvelope);
+    const formatted = JSON.stringify(largestEnvelope, null, 2);
+    expect(new TextEncoder().encode(minified).byteLength).toBe(83);
+    expect(new TextEncoder().encode(formatted).byteLength).toBe(96);
+    await status(request(minified), 204, env);
+    await status(request(formatted), 204, env);
+    const hundred = minified.padEnd(100, " ");
     await status(request(hundred), 204, env);
     await status(
       request(`${hundred} `, { headers: { "Content-Length": "1" } }),
       413,
       env,
     );
-    expect(env.EVENTS.writeDataPoint).toHaveBeenCalledTimes(1);
+    await status(request(payload.padEnd(100, " ")), 204, env);
+    expect(env.EVENTS.writeDataPoint).toHaveBeenCalledTimes(4);
   });
 
   it("limits chunked bodies by UTF-8 bytes and cancels oversized input", async () => {
@@ -249,7 +386,7 @@ describe("first-party aggregate analytics Worker", () => {
 
   it("preserves valid input split across stream chunks", async () => {
     const encoder = new TextEncoder();
-    const bytes = encoder.encode(payload);
+    const bytes = encoder.encode(enrichedPayload);
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
         controller.enqueue(bytes.slice(0, 11));
@@ -302,16 +439,21 @@ describe("first-party aggregate analytics Worker", () => {
     const env = configured();
     const headers = {
       "CF-Connecting-IP": "192.0.2.10",
-      "User-Agent": "synthetic browser",
+      "User-Agent": "Mozilla/5.0 (Synthetic) AppleWebKit/537.36 Synthetic/1.0",
       Cookie: "synthetic=private",
-      Referer: "https://instascope.test/private-context/",
+      Referer: "https://private.test/private-context/?q=synthetic#private",
+      "X-Forwarded-For": "192.0.2.20",
+      Forwarded: "for=192.0.2.30",
     };
-    await status(request(payload, { headers }), 204, env);
+    await status(request(enrichedPayload, { headers }), 204, env);
     expect(env.RATE_LIMITER.limit).toHaveBeenCalledWith({ key: "192.0.2.10" });
     expect(env.EVENTS.writeDataPoint).toHaveBeenCalledWith({
-      blobs: ["parser_started"],
+      blobs: ["parser_started", "google", "no", "browserish"],
       doubles: [1],
     });
+    const stored = JSON.stringify(env.EVENTS.writeDataPoint.mock.calls);
+    for (const privateValue of Object.values(headers))
+      expect(stored).not.toContain(privateValue);
     env.RATE_LIMITER.limit.mockResolvedValueOnce({ success: false });
     await status(request(payload, { headers }), 429, env);
     expect(env.EVENTS.writeDataPoint).toHaveBeenCalledTimes(1);
@@ -319,8 +461,41 @@ describe("first-party aggregate analytics Worker", () => {
 
   it("uses a shared fallback rate key when no edge IP is supplied", async () => {
     const env = configured();
-    await status(request(), 204, env);
+    await status(
+      request(payload, { headers: { "X-Forwarded-For": "192.0.2.20" } }),
+      204,
+      env,
+    );
     expect(env.RATE_LIMITER.limit).toHaveBeenCalledWith({ key: "unknown" });
+  });
+
+  it.each([
+    ["Googlebot/2.1 synthetic", "automation"],
+    ["Bingbot/2.0 synthetic", "automation"],
+    [
+      "Mozilla/5.0 (Synthetic) AppleWebKit/537.36 HeadlessChrome/123.0",
+      "automation",
+    ],
+    ["curl/8.0 synthetic", "automation"],
+    ["Mozilla/5.0 (Synthetic) AppleWebKit/537.36 Synthetic/1.0", "browserish"],
+    ["synthetic unrecognized client", "unknown"],
+    ["", "unknown"],
+  ])("stores only the coarse UA hint for %s", async (userAgent, hint) => {
+    const env = configured();
+    for (const body of [payload, enrichedPayload])
+      await status(
+        request(body, { headers: { "User-Agent": userAgent } }),
+        204,
+        env,
+      );
+    expect(env.EVENTS.writeDataPoint.mock.calls).toEqual([
+      [{ blobs: ["parser_started", "legacy", "legacy", hint], doubles: [1] }],
+      [{ blobs: ["parser_started", "google", "no", hint], doubles: [1] }],
+    ]);
+    if (userAgent)
+      expect(
+        JSON.stringify(env.EVENTS.writeDataPoint.mock.calls),
+      ).not.toContain(userAgent);
   });
 
   it("isolates binding failures as 503 and never logs request data", async () => {

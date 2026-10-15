@@ -127,7 +127,7 @@ export default function Privacy() {
         )}
       >
         {analyticsEndpoint(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT)
-          ? "This deployment sends allowlisted product event names such as parser_succeeded to a same-origin analytics endpoint. The collector stores each event name with a count of one. It receives no archive contents, filenames, usernames, follower/following counts, page URLs, notes, review flags, watch targets or snapshot dates. There are no analytics cookies, persistent identifiers or session tracking. Do Not Track disables remote delivery. Analytics failure never blocks the tools."
+          ? "This deployment sends an allowlisted product event, a coarse referring-source category and a webdriver automation hint to a same-origin analytics endpoint. The collector stores these with a coarse server-side automation hint and a count of one. The source is classified once per browser document and held only in memory as you navigate within the site. It stores no raw referrers, referring hostnames or URLs, search queries, page URLs or paths, User-Agent strings, IP addresses in analytics, archive data, filenames, usernames, follower/following counts, notes, review flags, watch targets or snapshot dates. There are no analytics cookies, session IDs, persistent anonymous IDs or fingerprints, and no analytics state is saved in browser storage. Do Not Track disables remote delivery. Analytics failure never blocks the tools."
           : "Remote product analytics is not enabled on this deployment. Event names are emitted locally within the page for development diagnostics."}{" "}
         The event collector uses a connecting IP only temporarily for rate
         limiting and does not write it or user agents to analytics storage or
@@ -135,6 +135,31 @@ export default function Privacy() {
         receive normal request information such as your IP address when you
         visit the site.
       </p>
+      {analyticsEndpoint(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT) && (
+        <>
+          <p>
+            A Google-family referrer does not prove a Google Web Search or Google
+            Search Console click. The category &ldquo;none&rdquo; means no referrer
+            was visible; apps, browsers and privacy settings can hide it, so this
+            does not prove direct traffic. The webdriver hint comes only from
+            your browser&apos;s automation flag. A &ldquo;yes&rdquo; value is strong
+            automation evidence; &ldquo;no&rdquo; does not prove a human. The
+            server briefly checks the normal User-Agent header for obvious
+            automation signs and keeps only &ldquo;automation&rdquo;,
+            &ldquo;browserish&rdquo; or &ldquo;unknown&rdquo;. A
+            &ldquo;browserish&rdquo; value does not prove a human. These hints can
+            be spoofed and are not fingerprints.
+          </p>
+          <p>
+            The document_entry_observed event means client JavaScript ran for one
+            browser document. It is sent at most once for that document, including
+            navigation within the site; a full reload can count again. It does
+            not count unique visitors, users, sessions or Search Console clicks.
+            Historical events without a source category are pre-audit data; they
+            cannot be attributed to a source later.
+          </p>
+        </>
+      )}
       <h2>Public photo lookup is separate.</h2>
       <p>
         {process.env.NEXT_PUBLIC_PROFILE_ENDPOINT

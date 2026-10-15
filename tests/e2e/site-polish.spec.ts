@@ -220,12 +220,23 @@ test("crawlable viewer and Privacy copy explain local enhancement and actual bui
     );
   else {
     await expect(privacy).toContainText(
-      "This deployment sends allowlisted product event names",
+      "This deployment sends an allowlisted product event",
     );
     await expect(privacy).toContainText(
       "Do Not Track disables remote delivery",
     );
     await expect(privacy).toContainText("There are no analytics cookies");
+    for (const text of [
+      "coarse referring-source category",
+      "webdriver automation hint",
+      "coarse server-side automation hint",
+      "no raw referrers",
+      "does not prove direct traffic",
+      "does not prove a human",
+      "document_entry_observed",
+      "does not count unique visitors",
+    ])
+      await expect(privacy).toContainText(text);
   }
   if (preview)
     await expect(privacy).toContainText(

@@ -70,7 +70,7 @@ it("returns a public photo when independently available", async () => {
     "https://a.fbcdn.net/photo.jpg",
   );
 });
-it("analytics accepts event names only and rejects private metadata", async () => {
+it("analytics accepts legacy event names with bounded placeholders and rejects private metadata", async () => {
   const writeDataPoint = vi.fn();
   const env = { EVENTS: { writeDataPoint }, RATE_LIMITER: limiter };
   const request = (payload: unknown) =>
@@ -83,7 +83,7 @@ it("analytics accepts event names only and rejects private metadata", async () =
     (await handleAnalytics(request({ event: "parser_succeeded" }), env)).status,
   ).toBe(204);
   expect(writeDataPoint).toHaveBeenCalledWith({
-    blobs: ["parser_succeeded"],
+    blobs: ["parser_succeeded", "legacy", "legacy", "unknown"],
     doubles: [1],
   });
   expect(
