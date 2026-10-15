@@ -1,5 +1,6 @@
-// Shared, event-name-only contract. No metadata or identity fields are supported.
+// Shared semantic event allowlist. track() accepts no metadata or identity fields.
 export const events = [
+  "document_entry_observed",
   "dashboard_opened",
   "landing_viewed",
   "parser_started",

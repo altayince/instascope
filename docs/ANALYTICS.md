@@ -16,32 +16,91 @@ configured for `/api/events`, GET returning 405 (`Allow: POST`) and an unknown
 routing/bindings without writing a metric; it does not establish durable delivery
 or event totals. [Current product status](roadmap-progress.md).
 
+INS-134 proposes the bounded traffic attribution contract below. It is not yet
+deployed: current production still uses the earlier event-only schema. The owner
+must deploy the backward-compatible Worker first, verify legacy delivery, and
+only then merge/build/publish the enriched client. This task does not deploy the
+Worker, merge the PR or publish the static site.
+
 ## Data contract and privacy
 
-The client sends exactly one field:
+The enriched client sends exactly three bounded fields:
 
 ```json
-{ "event": "parser_succeeded" }
+{ "event": "parser_succeeded", "source": "google", "webdriver": "no" }
 ```
 
-`track()` accepts only the typed event name. It has no metadata argument. Its
-runtime allowlist also rejects unknown values. The request uses `POST`, JSON,
-`credentials: "omit"`, `referrerPolicy: "no-referrer"`, and a relative same-origin
-endpoint. It does not send usernames, relationship counts, filenames, page paths,
-referrers, archives, notes, Review Memory flags, Watch targets, snapshot dates,
-relationship states, profile-search usernames, user agents or identifiers in the
-payload. The constant destination `/api/events` is infrastructure, not a recorded
-page-view URL.
+`track()` still accepts only the typed event name, without a metadata argument.
+Its runtime allowlist also rejects unknown values. It obtains source and webdriver
+hints itself. The request uses `POST`, JSON, `credentials: "omit"`,
+`referrerPolicy: "no-referrer"`, `keepalive: true`, `redirect: "error"`, and a
+relative same-origin endpoint. The HTTP `Referer` header does not expose the page
+referrer. The constant destination `/api/events` is infrastructure, not a recorded
+page-view URL. Failures are best effort and never block a product action.
+
+The exact `TrafficSource` enum is `google | bing | search_other | external |
+same_site | none | unknown`:
+
+| Source | Meaning |
+| ------ | ------- |
+| `google` | A Google-family hostname was visible in the document referrer, including regional and subdomain forms; not proof of Google Web Search or a Google Search Console click |
+| `bing` | A Bing-family hostname was visible |
+| `search_other` | A fixed hostname allowlist recognizes DuckDuckGo, Yahoo Search, Yandex, Ecosia, Brave Search, Startpage or Qwant |
+| `external` | A valid external referrer was visible but its host was not a recognized search host |
+| `same_site` | The document was referred by `instascope.me` |
+| `none` | No referrer was visible; browsers, apps and privacy settings may suppress it, so this is not proof of direct traffic |
+| `unknown` | An unexpected or unparseable referrer condition |
+
+Classification happens locally using the referrer's hostname only. No path,
+query, fragment or search query is inspected for attribution. The source is
+computed once per browser `Document`, held only in memory and retained across SPA
+navigation. A full document load gets a new classification. No analytics context
+or guard is stored in localStorage, sessionStorage, IndexedDB or cookies.
+
+The client webdriver hint is exactly `yes | no | unknown`, derived only from
+`navigator.webdriver`. `yes` is strong automation evidence; `no` does not prove a
+human. The Worker transiently reduces the HTTP User-Agent to
+`automation | browserish | unknown`. Obvious crawler, bot, headless-browser and
+command-line HTTP client tokens produce `automation`; a recognizable browser
+shape without those tokens produces `browserish`; missing or unrecognized values
+produce `unknown`. It does not classify browser brand, version, device or OS.
+`browserish` does not prove a human. These coarse hints are spoofable and cannot
+establish authenticity.
+
+The analytics payload and stored rows never contain raw referrers, referring hostnames or URLs,
+page URLs or paths, query strings, fragments, search queries, raw User-Agent
+strings, IP addresses, usernames, relationship counts, filenames, archive data,
+notes, Review Memory flags, Watch targets, snapshot dates, relationship states or
+profile-search usernames. It creates no session ID, cookie, persistent anonymous
+ID or fingerprint. It does not collect browser version, screen size, hardware,
+timezone, language, canvas, WebGL or fonts. Normal HTTP headers and connection
+information still reach the hosting infrastructure, as described below; raw
+request metadata is not copied into Analytics Engine.
 
 The Worker supplies exactly:
 
 ```ts
-EVENTS.writeDataPoint({ blobs: [event], doubles: [1] });
+EVENTS.writeDataPoint({
+  blobs: [event, source, webdriver, uaHint],
+  doubles: [1],
+});
 ```
 
-`blob1` is the allowlisted event name; `double1` is the constant increment `1`,
-not a follower count or another user-data value. No indexes or further blobs or
-doubles are supplied. Cloudflare also creates platform fields including dataset
+| Field | Stored value |
+| ----- | ------------ |
+| `blob1` | Allowlisted semantic event |
+| `blob2` | Traffic source bucket; `legacy` for an accepted old envelope |
+| `blob3` | Webdriver hint; `legacy` for an accepted old envelope |
+| `blob4` | Transiently derived UA automation hint |
+| `double1` | Constant increment `1` |
+
+No indexes, additional blobs or additional doubles are supplied. `double1` is
+not a follower count or another user-data value. Old browser tabs may still send
+exactly `{ "event": "profile_search" }`; the updated Worker accepts this legacy
+envelope and writes `[event, "legacy", "legacy", uaHint]` with `double1 = 1`.
+Existing historical rows remain untouched and have empty new blob fields. SQL
+below labels those missing dimensions `pre_audit`, separately from `legacy` and
+the new `unknown` bucket. Cloudflare also creates platform fields including dataset
 name, ingestion `timestamp` and `_sample_interval`. The timestamp describes
 analytics ingestion, never an Instagram action or export date. Cloudflare's
 currently documented Analytics Engine retention is three months. See the
@@ -70,7 +129,8 @@ rules are independent of analytics.
 
 ## Exact event allowlist and trigger audit
 
-The shared client/Worker allowlist contains these **26 events**. Opening a surface
+The shared client/Worker allowlist contains these **27 events**. The existing 26
+event meanings remain unchanged. Opening a surface
 describes access to a view, not proof that the person completed its task or that
 an optional export category was available.
 
@@ -82,6 +142,7 @@ or searches.
 
 | Event                       | Previous trigger                                             | Audited trigger                                                                                  | Can repeat?                                      | Meaning                                                                      |
 | --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `document_entry_observed`   | Not recorded                                                 | Client JavaScript executes for a browser document                                                 | At most once per full browser document          | Browser document observation; not a unique visitor, user, session, pageview identity or GSC click |
 | `dashboard_opened`          | Dashboard mount effect, without a replay guard               | Dashboard opening                                                                                | Per opening                                      | Dashboard access, including empty/demo views; not a distinct visitor         |
 | `landing_viewed`            | Workspace mount/mode effect on unrelated tool routes         | Homepage Workspace entry without an active dataset                                               | Per opening                                      | Empty homepage client access; not every SEO route or active workspace        |
 | `parser_started`            | Upload handler before `readExport`                           | Each intentional real export parser run                                                          | Per import attempt                               | A real file import was attempted, including an older comparison export       |
@@ -109,7 +170,7 @@ or searches.
 | `timeline_opened`           | Not recorded                                                 | Relationship Timeline Workspace entry with a dataset                                             | Per opening                                      | Timeline access; no direction, username, dates or graph values               |
 | `unfollow_history_opened`   | Not recorded                                                 | Unfollow History Workspace entry with a dataset                                                  | Per opening                                      | History-tool access; no action details or removed-suggestion records         |
 
-The audit removes broad Workspace `landing_viewed` emissions, immediate
+The earlier INS-110 trigger audit removed broad Workspace `landing_viewed` emissions, immediate
 Upload-level `results_viewed` emissions, demo-only real outcome events, and
 rerender/remount duplication of the same completed import/derived result. Manual,
 saved-current and Vault comparisons use the same real comparison event meaning.
@@ -125,6 +186,14 @@ leaves the browser. If that API is unavailable, those visibility events are
 omitted. Doctor can be reopened without another event during the same mount.
 Review Memory counts manual successful writes only; loading, deleting and
 restoring a backup do not inflate `review_memory_used`.
+
+The global document initializer covers the homepage, SEO pages and tools. Its
+`document_entry_observed` guard lives in document memory: React remounts,
+StrictMode replay and SPA navigation do not emit another entry. A full reload or
+new document may emit again. DNT suppresses its remote delivery like every other
+event, and preview/local isolation is unchanged. It counts documents where client
+JavaScript executed and delivery succeeded, never unique visitors or Search
+Console clicks. It adds no arbitrary route/page-view events.
 
 Events deliberately not added: arbitrary route/page-view events, button clicks,
 search terms, account opens, private-list category counts, Review Memory flag
@@ -183,12 +252,17 @@ It requires a same-origin `Origin` and accepts only `POST` with an
 `application/json` media type. Browser Fetch Metadata, when present, must describe
 a same-origin fetch rather than a navigation or cross-site request. These checks
 are inexpensive noise/abuse controls, not browser fingerprinting or authentication.
-Headers absent from older clients are not replaced with user-agent heuristics.
+Headers absent from older clients are not replaced with user-agent heuristics;
+the coarse UA hint is a separate stored dimension, not a bypass for these checks.
 
-The request is capped at **100 bytes**, including streaming UTF-8 bytes; oversized
-bodies are cancelled. The payload must contain exactly one `event` key and a
-literal allowlisted event name. Duplicate keys, extra metadata, arrays, malformed
-JSON, invalid UTF-8 and unknown events are rejected. No raw validation input is
+The request remains capped at **100 bytes**, including streaming UTF-8 bytes;
+oversized bodies are cancelled. The longest compact enriched envelope is 83
+bytes (96 with standard two-space JSON formatting), so no increase is needed.
+The Worker accepts only the exact legacy `event` envelope or the exact enriched
+`event`, `source`, `webdriver` envelope, with allowlisted event names and exact
+bounded enum values. Partial envelopes, duplicate keys, extra metadata, arrays,
+nested objects, malformed JSON, invalid UTF-8 and arbitrary strings are rejected.
+Raw URL/referrer/UA metadata cannot be injected. No raw validation input is
 returned or logged. Missing or failing bindings fail closed for analytics.
 
 | Status | Meaning                                                                         |
@@ -215,8 +289,9 @@ Namespace `1002` must be distinct from unrelated account limiters. See
 
 ## Production deployment and preview isolation
 
-The collector is already deployed. The following configuration and commands are
-a maintenance/redeployment runbook, not outstanding launch setup.
+The existing event-only collector is deployed. The INS-134 Worker/client changes
+are proposed and remain undeployed until the owner follows the Worker-first
+rollout below. These are owner instructions, not actions performed by this task.
 
 `workers/wrangler.analytics.jsonc` declares the production dataset, limiter and
 HTTPS route:
@@ -225,7 +300,7 @@ HTTPS route:
 Browser POST https://instascope.me/api/events
   → instascope-product-events Worker
   → EVENTS: instascope_events
-  → blob1: event, double1: 1
+  → blob1: event, blob2: source, blob3: webdriver, blob4: UA hint, double1: 1
 ```
 
 The route is `https://instascope.me/api/events*` for the `instascope.me` zone.
@@ -247,7 +322,9 @@ assumed to inherit from another environment.
    production `RATE_LIMITER` is native, not a KV database. Native rate limiter
    bindings are not currently visible in the dashboard; use the deployed config
    and Wrangler output rather than relying on the Bindings screen alone.
-4. After repository validation, dry-run, then explicitly deploy:
+4. Review the PR and require passing CI. From the reviewed INS-134 branch, the
+   owner may dry-run and then deploy the backward-compatible Worker **before
+   merging or publishing the enriched client**:
 
    ```text
    npx --yes wrangler@4.147.0 deploy --config workers/wrangler.analytics.jsonc --env production --dry-run
@@ -257,18 +334,25 @@ assumed to inherit from another environment.
 5. Confirm Workers & Pages → `instascope-product-events` → Settings → Domains &
    Routes has the production route. Analytics Engine dataset creation is automatic
    on the first accepted event; no manual dataset creation is required.
-6. Build/publish the site with `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events`. This is
+6. Before merging/publishing the client, verify the existing legacy endpoint
+   remains healthy. Use the non-writing unknown-event probe in
+   [deployment.md](deployment.md): expect `400`, `no-store` and `noindex`; GET
+   remains `405` with `Allow: POST`. This establishes routing/binding checks only.
+   Privately inspect ingestion from a genuine product action made by the still
+   deployed legacy client; the updated Worker should store `legacy` for source
+   and webdriver plus a derived UA hint. Do not inject a fabricated allowlisted
+   test event into production totals. Existing tabs must remain compatible.
+7. Only after that verification may the owner merge the reviewed PR into `main`,
+   build and publish the client with
+   `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events`. This is
    a **static site build variable**, not a Worker runtime setting. Recognized
    production builds default to this value; explicit configuration wins. Next
    freezes public environment settings into the bundle, so dashboard changes
    require a rebuild. Verify the generated and live Privacy explanation.
-7. Verify the compiled endpoint in the generated Privacy page and use the
-   non-writing configuration probe in [deployment.md](deployment.md) for the
-   Worker. Inspect events from genuine product actions privately when checking
-   ingestion. A malformed, non-allowlisted readiness probe
-   writes no event. Readiness proves configuration only, not durable delivery or
-   human authenticity. Do not submit a fabricated allowlisted “test” event into
-   production totals just to make smoke green.
+8. After real traffic arrives, use the last-24-hour queries below. Verify enriched
+   dimensions and keep `pre_audit`, `legacy` and new attributed rows distinct.
+   Readiness and successful ingestion do not prove human authenticity. Keep old
+   envelope support for tabs that were opened before the client rollout.
 
 The client speaks directly to the same-origin route. The app Worker must not call
 a same-zone route through server-side `fetch()`; a future server integration would
@@ -301,6 +385,126 @@ the repository, and use it only from a private terminal/dashboard. Never compile
 it into `NEXT_PUBLIC_*` variables. `SHOW TABLES` discovers the dataset after its
 first write. The product has no reporting endpoint or analytics dashboard.
 
+### Traffic attribution audit: last 24 hours
+
+Each query is ready to run against the existing `instascope_events` dataset via
+the [Cloudflare SQL API](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/).
+They use supported aliases and the documented
+[`if` conditional function](https://developers.cloudflare.com/analytics/analytics-engine/sql-reference/conditional-functions/).
+Totals are sampling-weighted event volumes:
+`SUM(_sample_interval * double1)`, not raw row counts, users or sessions. Sampling
+can make these estimates rather than exact counts.
+
+Empty dimensions on historical rows are displayed as `pre_audit`; `legacy`
+means an old event-only client reached the updated Worker. New `unknown` values
+mean classification was unavailable, not that the row predates the audit. No
+backfill or attribution of historical rows is possible. The filters in C and D
+exclude rows without the relevant evidence; B and E retain pre-audit rows as
+separate groups. A has no historical entry counts because that event is new.
+
+**A) Observed browser document entries by source and automation hints**
+
+```sql
+SELECT
+  if(blob2 = '', 'pre_audit', blob2) AS source,
+  if(blob3 = '', 'pre_audit', blob3) AS webdriver,
+  if(blob4 = '', 'pre_audit', blob4) AS ua_hint,
+  SUM(_sample_interval * double1) AS total
+FROM instascope_events
+WHERE timestamp >= NOW() - INTERVAL '24' HOUR
+  AND blob1 = 'document_entry_observed'
+GROUP BY source, webdriver, ua_hint
+ORDER BY total DESC
+FORMAT JSON
+```
+
+This observes delivered document-entry events where client JavaScript executed.
+It is not a unique-visitor count, session count or Search Console click count.
+
+**B) Attribution for the requested semantic events**
+
+```sql
+SELECT
+  blob1 AS event,
+  if(blob2 = '', 'pre_audit', blob2) AS source,
+  if(blob3 = '', 'pre_audit', blob3) AS webdriver,
+  if(blob4 = '', 'pre_audit', blob4) AS ua_hint,
+  SUM(_sample_interval * double1) AS total
+FROM instascope_events
+WHERE timestamp >= NOW() - INTERVAL '24' HOUR
+  AND blob1 IN (
+    'profile_search', 'profile_succeeded', 'profile_failed',
+    'parser_started', 'parser_succeeded', 'parser_failed', 'results_viewed'
+  )
+GROUP BY event, source, webdriver, ua_hint
+ORDER BY total DESC
+FORMAT JSON
+```
+
+**C) Google-family attributed semantic events**
+
+```sql
+SELECT
+  blob1 AS event,
+  blob2 AS source,
+  if(blob3 = '', 'pre_audit', blob3) AS webdriver,
+  if(blob4 = '', 'pre_audit', blob4) AS ua_hint,
+  SUM(_sample_interval * double1) AS total
+FROM instascope_events
+WHERE timestamp >= NOW() - INTERVAL '24' HOUR
+  AND blob2 = 'google'
+  AND blob1 IN (
+    'profile_search', 'profile_succeeded', 'profile_failed',
+    'parser_started', 'parser_succeeded', 'parser_failed', 'results_viewed'
+  )
+GROUP BY event, source, webdriver, ua_hint
+ORDER BY total DESC
+FORMAT JSON
+```
+
+`google` means a Google-family referrer was visible. It does not establish a
+Google Web Search click or reconcile one-to-one with Google Search Console.
+
+**D) Events with automation evidence**
+
+```sql
+SELECT
+  blob1 AS event,
+  if(blob2 = '', 'pre_audit', blob2) AS source,
+  if(blob3 = '', 'pre_audit', blob3) AS webdriver,
+  if(blob4 = '', 'pre_audit', blob4) AS ua_hint,
+  SUM(_sample_interval * double1) AS total
+FROM instascope_events
+WHERE timestamp >= NOW() - INTERVAL '24' HOUR
+  AND (blob3 = 'yes' OR blob4 = 'automation')
+GROUP BY event, source, webdriver, ua_hint
+ORDER BY total DESC
+FORMAT JSON
+```
+
+Legacy envelopes can appear here when the updated Worker's UA hint is
+`automation`. Other rows, including `webdriver = 'no'` and `ua_hint = 'browserish'`,
+are not thereby proven human. These signals are coarse and spoofable.
+
+**E) Event-by-source matrix for all product events**
+
+```sql
+SELECT
+  blob1 AS event,
+  if(blob2 = '', 'pre_audit', blob2) AS source,
+  SUM(_sample_interval * double1) AS total
+FROM instascope_events
+WHERE timestamp >= NOW() - INTERVAL '24' HOUR
+GROUP BY event, source
+ORDER BY event, total DESC
+FORMAT JSON
+```
+
+`none` always means no visible referrer; it does not establish direct traffic.
+This matrix includes all 27 allowlisted events, with distinct `pre_audit` and
+`legacy` groups when observed. An absent group means no observed delivered rows
+in that window, not proof of no activity.
+
 ### Requested operational totals
 
 ```sql
@@ -328,7 +532,7 @@ ORDER BY total DESC
 FORMAT JSON
 ```
 
-Remove the `AND blob1 IN (...)` filter to inspect the full 26-event allowlist.
+Remove the `AND blob1 IN (...)` filter to inspect the full 27-event allowlist.
 An absent event has no row; interpret it as no observed events in that window,
 not proof of no product activity. Sampling occurs at high volumes/read ranges:
 `SUM(_sample_interval * double1)` accounts for it, unlike `COUNT()` or plain

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 134,
+    title: "Audit production traffic with private coarse attribution",
+    summary:
+      "Product events gain coarse referring-source and automation hints without URLs, search queries, cookies or identifiers. One document-entry observation measures JavaScript execution, not unique visitors. The collector remains compatible with older tabs; rollout requires the analytics Worker first.",
+  },
+  {
     issue: 112,
     title: "Finish park-ready product utilities",
     summary:

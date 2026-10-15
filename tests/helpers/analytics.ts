@@ -1,7 +1,11 @@
 import { expect, type Page, type Request } from "@playwright/test";
 import { events } from "../../src/lib/analytics-events";
+import {
+  trafficSources,
+  webdriverHints,
+} from "../../src/lib/analytics-context";
 
-/** Keep archive privacy assertions strict while allowing the event-only collector. */
+/** Keep archive privacy assertions strict around the bounded collector envelope. */
 export function isSafeAnalyticsRequest(
   request: Request,
   origin = "http://127.0.0.1:3000",
@@ -10,9 +14,15 @@ export function isSafeAnalyticsRequest(
   if (url.origin !== origin || url.pathname !== "/api/events") return false;
   expect(url.search).toBe("");
   expect(request.method()).toBe("POST");
-  const body = request.postDataJSON() as { event?: unknown };
-  expect(Object.keys(body)).toEqual(["event"]);
+  const body = request.postDataJSON() as {
+    event?: unknown;
+    source?: unknown;
+    webdriver?: unknown;
+  };
+  expect(Object.keys(body).sort()).toEqual(["event", "source", "webdriver"]);
   expect(events).toContain(body.event);
+  expect(trafficSources).toContain(body.source);
+  expect(webdriverHints).toContain(body.webdriver);
   // Unintercepted requests can expose an absent header as an empty string in
   // browser instrumentation. Either representation carries no private value.
   expect(request.headers().cookie ?? "").toBe("");
