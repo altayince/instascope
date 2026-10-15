@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 138,
+          title: "Add WhatsApp Snapshot Compare and Conversation Pulse",
+          summary:
+            "Deliberately compare two locally saved full-export aggregates, with coverage and compatibility limits, normalized activity/media shares and a small deterministic Conversation Pulse. No period inference, conversation fingerprint, raw chat storage or new analytics. Preview only; Chat Vault V1 backups remain unchanged.",
+        },
+        {
           issue: 136,
           title: "Build privacy-safe WhatsApp Chat Vault",
           summary:

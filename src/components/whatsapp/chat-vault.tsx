@@ -17,17 +17,12 @@ import {
   type ChatVaultSnapshot,
 } from "@/lib/whatsapp/chat-vault";
 import { chatVaultStorageMessage } from "@/lib/whatsapp/chat-vault-storage";
-import { whatsappDate, whatsappNumber } from "@/lib/whatsapp/stories";
+import { whatsappNumber } from "@/lib/whatsapp/stories";
 import { useWhatsApp } from "./provider";
 import { ChatVaultSaver } from "./chat-vault-save";
 import { useChatVault } from "./use-chat-vault";
-
-function coverageLabel(snapshot: ChatVaultSnapshot) {
-  const { fromDate, toDate } = snapshot.coverage;
-  return fromDate && toDate
-    ? `${whatsappDate(fromDate, true)} – ${whatsappDate(toDate, true)}`
-    : "Recorded participant-message dates unavailable";
-}
+import { ChatVaultCompare } from "./chat-vault-compare";
+import { chatVaultCoverageLabel as coverageLabel } from "./chat-vault-labels";
 
 export function WhatsAppChatVault() {
   const { dataset, revision } = useWhatsApp();
@@ -112,8 +107,8 @@ export function WhatsAppChatVault() {
           Every snapshot describes the full supplied export, not complete chat
           history. Recorded dates and rhythms have no supplied timezone.
           Snapshots are not automatically matched to a conversation. A snapshot
-          cannot reopen the raw chat, and comparison is not part of this
-          version.
+          cannot reopen the raw chat. Deliberately select two saved snapshots
+          below to compare their full-export aggregates locally.
         </p>
       </section>
 
@@ -173,6 +168,14 @@ export function WhatsAppChatVault() {
           </ActionButton>
         </div>
       )}
+
+      <ChatVaultCompare
+        snapshots={snapshots}
+        ready={ready}
+        storageError={storageError}
+        storage={storage}
+        refresh={refresh}
+      />
 
       <section className="vault-list" aria-labelledby="chat-vault-list">
         <h2 id="chat-vault-list">Saved chat snapshots</h2>

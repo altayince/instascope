@@ -751,6 +751,83 @@
 .wa-chat-vault-save {
   margin: 24px 0;
 }
+.wa-chat-compare,
+.wa-compare-result {
+  margin: 28px 0;
+  min-width: 0;
+}
+.wa-chat-compare .wa-filter-controls {
+  margin-top: 20px;
+}
+.wa-compare-context {
+  margin: 20px 0;
+}
+.wa-compare-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.wa-compare-table caption {
+  text-align: left;
+  color: var(--ink);
+  font-size: 16px;
+  padding: 18px 0;
+}
+.wa-compare-table th,
+.wa-compare-table td {
+  text-align: left;
+  padding: 12px 6px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+}
+.wa-compare-table th:first-child {
+  width: 36%;
+}
+.wa-compare-table th small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+.wa-compare-details > summary {
+  font-size: 14px;
+  color: var(--ink);
+  padding-block: 14px;
+}
+.wa-compare-details h4 {
+  font-size: 15px;
+  color: var(--ink);
+}
+.wa-compare-share-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) 2fr minmax(70px, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.wa-compare-share-row > div {
+  min-width: 0;
+}
+.wa-compare-share-row small {
+  text-align: right;
+}
+.wa-compare-bar {
+  margin: 5px 0;
+}
+.wa-compare-bar i {
+  background: var(--ink);
+}
+.wa-compare-bar.is-earlier i {
+  background: var(--muted);
+}
+.wa-compare-heatmap-values li {
+  display: block;
+  overflow-wrap: anywhere;
+}
 .wa-panel-heading {
   display: flex;
   align-items: center;
