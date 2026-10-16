@@ -194,7 +194,7 @@ function ShareHeatmap({ heatmap }: { heatmap: ChatComparisonBucket[][] }) {
       <p>
         Later minus earlier share of all exported participant messages, in
         percentage points (pp). Recorded clocks only; this is not online
-        presence. Darker cells have a larger absolute difference.
+        presence. Brighter cells have a larger absolute difference.
       </p>
       <div
         className="wa-heatmap-scroll"

@@ -278,6 +278,9 @@
     padding-bottom: 12px;
     font-size: 13px;
   }
+  .site-header[data-platform="whatsapp"] .product-navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .site-header .product-navigation > a,
   .site-header .product-navigation summary {
     padding: 8px 9px;

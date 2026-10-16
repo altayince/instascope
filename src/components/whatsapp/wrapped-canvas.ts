@@ -919,7 +919,7 @@ export function drawWhatsAppStory(
   );
   paragraph(
     ctx,
-    "A local tool by InstaScope",
+    "Generated on your device",
     { x: 80, y: 1827, width: 920, height: 29 },
     23,
   );

@@ -850,7 +850,7 @@
   min-width: 0;
 }
 .wa-panel .wa-eyebrow {
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 .wa-panel h3 {
@@ -982,7 +982,7 @@
   margin-bottom: 6px;
 }
 .wa-calendar-week > span {
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
   color: var(--muted);
   padding-bottom: 6px;
@@ -1009,7 +1009,7 @@
   );
 }
 .wa-calendar-day small {
-  font-size: 8px;
+  font-size: 10px;
 }
 .wa-calendar-panel > .wa-hint {
   margin-top: 17px;
@@ -1160,7 +1160,7 @@
 }
 .wa-heatmap-table th {
   font-weight: 400;
-  font-size: 9px;
+  font-size: 10px;
   text-align: center;
   color: var(--muted);
 }
@@ -1174,7 +1174,7 @@
   height: 29px;
   padding: 3px 1px;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   color: var(--ink);
 }
 .wa-heatmap-table td.is-active {
@@ -2428,13 +2428,13 @@
     font-size: 34px;
   }
   .wa-stat small {
-    font-size: 9px;
+    font-size: 11px;
   }
   .wa-panel {
     padding: 21px 17px;
   }
   .wa-panel .wa-eyebrow {
-    font-size: 8px;
+    font-size: 10px;
   }
   .wa-calendar-week {
     gap: 4px;

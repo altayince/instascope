@@ -440,19 +440,37 @@ test.describe("unified dark production and preview design", () => {
       .getByRole("button", { name: "Try the fictional demo", exact: true })
       .click();
     await expect(page.locator(".wa-stat").first()).toBeVisible();
-    for (const [whatsapp, instagram] of [
-      [".wa-chart-track i", ".vault-followers-point"],
-      [".wa-participant-track i", ".vault-followers-point"],
+    // The platforms use distinct, readable primary chart accents; their
+    // secondary series and shared controls use the same semantic tokens.
+    for (const [whatsapp, instagram, waColor, instagramColor] of [
+      [
+        ".wa-chart-track i",
+        ".vault-followers-point",
+        "rgb(139, 216, 178)",
+        "rgb(198, 243, 106)",
+      ],
+      [
+        ".wa-participant-track i",
+        ".vault-followers-point",
+        "rgb(139, 216, 178)",
+        "rgb(198, 243, 106)",
+      ],
       [
         ".wa-participant-row:nth-child(2) .wa-participant-track i",
         ".vault-following-point",
+        "rgb(232, 197, 140)",
+        "rgb(232, 197, 140)",
       ],
-    ])
+    ]) {
       expect(
         (await styles(page, whatsapp, ["background-color"]))[
           "background-color"
         ],
-      ).toBe((await styles(charts, instagram, ["fill"])).fill);
+      ).toBe(waColor);
+      expect((await styles(charts, instagram, ["fill"])).fill).toBe(
+        instagramColor,
+      );
+    }
     const surface = await styles(page, ".wa-panel", [
       "background-color",
       "border-color",
