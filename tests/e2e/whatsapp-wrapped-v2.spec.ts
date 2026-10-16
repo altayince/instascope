@@ -715,7 +715,8 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(after.storageWrites).toEqual(before.storageWrites);
     expect(after.databaseOpens).toBe(before.databaseOpens);
     expect(after.databaseWrites).toBe(before.databaseWrites);
-    expect(after.events).toEqual([]);
+    expect(before.events).toEqual([{ event: "document_entry_observed" }]);
+    expect(after.events).toEqual(before.events);
     expect(after.drawn.join("\n")).not.toMatch(forbidden);
     expect(after.drawn.join("\n")).not.toMatch(/orchard|meadow/i);
     expect(page.url()).toBe("http://127.0.0.1:3000/whatsapp/wrapped/");
@@ -932,7 +933,8 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(after.storageWrites).toEqual(before.storageWrites);
     expect(after.databaseOpens).toBe(before.databaseOpens);
     expect(after.databaseWrites).toBe(before.databaseWrites);
-    expect(after.events).toEqual([]);
+    expect(before.events).toEqual([{ event: "document_entry_observed" }]);
+    expect(after.events).toEqual(before.events);
     expect(requests).toEqual([]);
     await fits(page);
   });
@@ -1027,7 +1029,8 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(after.storageWrites).toEqual(before.storageWrites);
     expect(after.databaseOpens).toBe(before.databaseOpens);
     expect(after.databaseWrites).toBe(before.databaseWrites);
-    expect(after.events).toEqual([]);
+    expect(before.events).toEqual([{ event: "document_entry_observed" }]);
+    expect(after.events).toEqual(before.events);
     expect(requests).toEqual([]);
     await checkbox.check();
     await wordChoice.click();

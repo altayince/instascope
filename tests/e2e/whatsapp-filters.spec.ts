@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 
 const enabled = process.env.EXPECT_WHATSAPP === "true";
 
@@ -343,6 +344,7 @@ test.describe("WhatsAppScope local analysis filters", () => {
     page,
   }) => {
     const outgoing: string[] = [];
+    const documentEntries: string[] = [];
     await page.addInitScript(() => {
       const metrics = { parseRequests: 0 };
       Object.assign(window, {
@@ -374,8 +376,10 @@ test.describe("WhatsAppScope local analysis filters", () => {
     });
     page.on("request", (request) => {
       const url = new URL(request.url());
+      const documentEntry = isSafeDocumentEntryRequest(request);
+      if (documentEntry) documentEntries.push(request.postData()!);
       if (
-        request.method() === "POST" ||
+        (!["GET", "HEAD"].includes(request.method()) && !documentEntry) ||
         (url.origin !== "http://127.0.0.1:3000" && url.protocol !== "blob:")
       )
         outgoing.push(request.url());
@@ -403,6 +407,7 @@ test.describe("WhatsAppScope local analysis filters", () => {
     await expect(doctor).toHaveText(doctorBefore);
     expect(page.url()).not.toContain("Synthetic");
     expect(outgoing).toEqual([]);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
     expect(
       await page.evaluate(() =>
         Object.keys(localStorage).filter((key) =>
@@ -415,7 +420,7 @@ test.describe("WhatsAppScope local analysis filters", () => {
         () =>
           (window as unknown as { waFilterEvents: unknown[] }).waFilterEvents,
       ),
-    ).toEqual([]);
+    ).toEqual([{ event: "document_entry_observed" }]);
 
     await page
       .getByRole("navigation", { name: "Main navigation" })
@@ -431,6 +436,14 @@ test.describe("WhatsAppScope local analysis filters", () => {
       page.getByRole("region", { name: "Chat Export Doctor" }),
     ).toHaveText(doctorBefore);
     expect(await parseRequests()).toBe(1);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
+    expect(outgoing).toEqual([]);
+    expect(
+      await page.evaluate(
+        () =>
+          (window as unknown as { waFilterEvents: unknown[] }).waFilterEvents,
+      ),
+    ).toEqual([{ event: "document_entry_observed" }]);
     await fits(page);
   });
 

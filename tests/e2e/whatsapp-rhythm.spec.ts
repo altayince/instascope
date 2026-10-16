@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 
 const enabled = process.env.EXPECT_WHATSAPP === "true";
 const bodyMarker = "SYNTHETIC_RHYTHM_BODY_MUST_STAY_LOCAL";
@@ -493,6 +494,7 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     page,
   }) => {
     const outgoing: string[] = [];
+    const documentEntries: string[] = [];
     await page.addInitScript(() => {
       const metrics = {
         parseRequests: 0,
@@ -529,8 +531,10 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     });
     page.on("request", (request) => {
       const url = new URL(request.url());
+      const documentEntry = isSafeDocumentEntryRequest(request);
+      if (documentEntry) documentEntries.push(request.postData()!);
       if (
-        request.method() === "POST" ||
+        (!["GET", "HEAD"].includes(request.method()) && !documentEntry) ||
         request.url().includes(bodyMarker) ||
         (url.origin !== "http://127.0.0.1:3000" && url.protocol !== "blob:")
       ) {
@@ -555,6 +559,7 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     await acceptChat(page);
     const before = await metrics();
     expect(before.parseRequests).toBe(1);
+    expect(before.events).toEqual([{ event: "document_entry_observed" }]);
     expect(before.storageWrites).toEqual(onArrival.storageWrites);
     const doctor = page.getByRole("region", {
       name: "Chat Export Doctor",
@@ -575,10 +580,11 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     await summary(page, "Participant transitions", "1");
     const afterFilters = await metrics();
     expect(afterFilters.parseRequests).toBe(1);
-    expect(afterFilters.events).toEqual([]);
+    expect(afterFilters.events).toEqual(before.events);
     expect(afterFilters.storageWrites).toEqual(before.storageWrites);
     expect(page.url()).not.toContain("Synthetic");
     expect(outgoing).toEqual([]);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
 
     await page
       .getByRole("navigation", { name: "Main navigation", exact: true })
@@ -595,9 +601,10 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     await expect(rhythm(page)).toHaveCount(0);
     const afterWrapped = await metrics();
     expect(afterWrapped.parseRequests).toBe(1);
-    expect(afterWrapped.events).toEqual([]);
+    expect(afterWrapped.events).toEqual(before.events);
     expect(afterWrapped.storageWrites).toEqual(before.storageWrites);
     expect(outgoing).toEqual([]);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
     expect(
       afterWrapped.storageWrites.some(
         ({ key, value }) =>

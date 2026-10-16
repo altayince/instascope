@@ -39,7 +39,7 @@ const config: NextConfig = {
           localBranch,
           process.env.CF_PAGES_BRANCH,
           process.env.WORKERS_CI_BRANCH,
-          process.env.GITHUB_BASE_REF,
+          process.env.GITHUB_HEAD_REF,
           process.env.GITHUB_REF_NAME,
         ],
         production,

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 
 const enabled = process.env.EXPECT_WHATSAPP === "true";
 const bodyMarker = "SYNTHETICBODYMUSTSTAYLOCALABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -631,7 +632,12 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
   test("content stays local without reparsing, network, analytics, URL state, storage or transcripts, while source Doctor and Wrapped remain unchanged", async ({
     page,
   }) => {
-    const requests: { url: string; method: string; body: string | null }[] = [];
+    const requests: {
+      url: string;
+      method: string;
+      body: string | null;
+      documentEntry: boolean;
+    }[] = [];
     await page.addInitScript(() => {
       const metrics = {
         parseRequests: 0,
@@ -699,6 +705,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
         url: request.url(),
         method: request.method(),
         body: request.postData(),
+        documentEntry: isSafeDocumentEntryRequest(request),
       }),
     );
     const metrics = () =>
@@ -744,6 +751,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     await page.waitForLoadState("networkidle");
     const before = await metrics();
     expect(before.parseRequests).toBe(1);
+    expect(before.events).toEqual([{ event: "document_entry_observed" }]);
     expect(before.storageWrites).toEqual(onArrival.storageWrites);
     assertDatabasePrivacy(onArrival);
     assertDatabasePrivacy(before);
@@ -774,19 +782,22 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     expect(requests).toEqual(beforeRequests);
     const afterFilters = await metrics();
     expect(afterFilters.parseRequests).toBe(1);
-    expect(afterFilters.events).toEqual([]);
+    expect(afterFilters.events).toEqual(before.events);
     expect(afterFilters.storageWrites).toEqual(before.storageWrites);
     assertDatabasePrivacy(afterFilters);
     expect(page.url()).toBe("http://127.0.0.1:3000/whatsapp/chat-analyzer/");
     expect(
       requests.filter(
-        ({ url, method, body }) =>
-          method === "POST" ||
+        ({ url, method, body, documentEntry }) =>
+          (!["GET", "HEAD"].includes(method) && !documentEntry) ||
           (new URL(url).origin !== "http://127.0.0.1:3000" &&
             !url.startsWith("blob:")) ||
           `${url}${body ?? ""}`.includes(bodyMarker),
       ),
     ).toEqual([]);
+    expect(
+      requests.filter(({ documentEntry }) => documentEntry).length,
+    ).toBeLessThanOrEqual(1);
 
     await page
       .getByRole("navigation", { name: "Main navigation", exact: true })
@@ -803,7 +814,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     await expect(content(page)).toHaveCount(0);
     const afterWrapped = await metrics();
     expect(afterWrapped.parseRequests).toBe(1);
-    expect(afterWrapped.events).toEqual([]);
+    expect(afterWrapped.events).toEqual(before.events);
     expect(afterWrapped.storageWrites).toEqual(before.storageWrites);
     assertDatabasePrivacy(afterWrapped);
     const recordedPayloads = JSON.stringify({
@@ -828,13 +839,16 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     }
     expect(
       requests.filter(
-        ({ url, method, body }) =>
-          method === "POST" ||
+        ({ url, method, body, documentEntry }) =>
+          (!["GET", "HEAD"].includes(method) && !documentEntry) ||
           (new URL(url).origin !== "http://127.0.0.1:3000" &&
             !url.startsWith("blob:")) ||
           `${url}${body ?? ""}`.includes(bodyMarker),
       ),
     ).toEqual([]);
+    expect(
+      requests.filter(({ documentEntry }) => documentEntry).length,
+    ).toBeLessThanOrEqual(1);
     await fits(page);
   });
 });

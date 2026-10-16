@@ -37,6 +37,14 @@ Availability/pruning share the reviewed repository release state; preview
 dispatch still uses its separate strict non-main predicate. `build:dev` and
 `build:production` remain explicit, separate commands.
 
+INS-146 uses GitHub's actual `GITHUB_HEAD_REF` as source evidence alongside local
+Git and Cloudflare source branches. `GITHUB_BASE_REF` is only a PR target: a
+release PR targeting main must still receive a functional non-main preview.
+Actual main sources and unknown/invalid host contexts retain their safeguards.
+Main-targeted INS production-release PRs run the existing WhatsApp and visual
+jobs in addition to production/analytics checks; no CI-only product override is
+used. See the [integrated release provenance/rollback baseline](WHATSAPPSCOPE_RELEASE.md).
+
 Keep the host build command `npm run build`, Preview command
 `npx wrangler preview`, and production branch `main`. No dashboard, production
 route or separate Worker change is needed for this repository wiring. Cloudflare
@@ -108,7 +116,7 @@ Run `npm run check`, `npm run build:production` and the full `npm run test:e2e` 
 
 INS-110 / merged PR #111 implements aggregate analytics, and the owner confirms the production collector is deployed. On 13 October 2026, live Privacy compiled `/api/events`; GET returned 405 and the non-writing unknown-event probe returned 400 with the collector's expected headers. This confirms configuration, not durable event ingestion or totals.
 
-INS-134's traffic attribution changes are proposed, not deployed. Current production still uses the event-only schema until the owner completes the Worker-first rollout below. This task must not deploy the Worker, merge the PR or publish the static site.
+INS-134 is merged into main at `cb0a780`; its owner-managed Worker-first deployment and legacy-ingestion verification were completed before this static release integration. Read-only deployment metadata on 16 October identifies collector deployment `e603eb9c-4e54-44e7-9fe2-f135b671ced9`, version `972166e3-b994-4508-9593-3c8bd39e2bbb`. INS-146 preserves the existing Worker/configuration and does not redeploy it. The rollout sequence below is the historical order/reference for a future separately authorized collector change, not a prerequisite to repeat for WhatsAppScope.
 
 Production builds compile `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` by default using the existing production/preview environment detection. Preview and local builds remain disabled unless a valid same-origin endpoint is explicitly configured. `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off` disables delivery even in production; a preserved explicit empty value also disables it. Rebuild after changing public variables. Check `out/privacy/index.html` and the deployed Privacy paragraph's `data-analytics-endpoint`; runtime Worker variables cannot change the static client.
 
@@ -153,6 +161,6 @@ A configuration probe can POST `{"event":"readiness_probe"}` to `/api/events` wi
 - One JSON capture and one HTML capture have been audited locally; a repeated historical export series and alternate formats remain evidence gaps. See [archive support](archive-support.md).
 - Test physical iPhone/Android devices and Safari; mobile Chromium/WebKit emulation does not establish physical-device behavior.
 - Production domain, HTTPS redirect, canonicals, robots and sitemap now pass the dated live checks. Search Console verification/submission and actual indexing require separate evidence.
-- Keep analytics payloads limited to the allowlisted event and bounded source/webdriver hints. Complete the owner-only Worker-first rollout before publishing that client; use the non-writing readiness probe for configuration and inspect genuine product actions privately when checking ingestion.
+- Keep analytics payloads limited to the allowlisted event and bounded source/webdriver hints. Preserve the already-deployed backward-compatible collector; use the non-writing readiness probe for configuration and inspect genuine product actions privately when checking ingestion. No collector redeployment is part of the static WhatsAppScope release.
 - Public-photo health is ready, but upstream availability and provider limits can change. Recheck when changing that service; no account/plan change is part of this parking task.
 - Further feature/growth work is deferred as described in [current progress](roadmap-progress.md).

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 import type { ChatVaultSnapshot } from "../../src/lib/whatsapp/chat-vault";
 import {
   groupPrivateMarker,
@@ -121,13 +122,18 @@ test.describe("WhatsAppScope deliberate group flow", () => {
     test(`${participants}-label tied group stays complete and private from import through restored Vault comparison`, async ({
       page,
     }) => {
-      const requests: { url: string; method: string; body: string | null }[] =
-        [];
+      const requests: {
+        url: string;
+        method: string;
+        body: string | null;
+        documentEntry: boolean;
+      }[] = [];
       page.on("request", (request) =>
         requests.push({
           url: request.url(),
           method: request.method(),
           body: request.postData(),
+          documentEntry: isSafeDocumentEntryRequest(request),
         }),
       );
       await page.goto("/whatsapp/chat-analyzer/");
@@ -329,8 +335,14 @@ test.describe("WhatsAppScope deliberate group flow", () => {
         ),
       ).not.toContain(groupPrivateMarker);
       expect(
-        requests.filter((request) => !["GET", "HEAD"].includes(request.method)),
+        requests.filter(
+          (request) =>
+            !["GET", "HEAD"].includes(request.method) && !request.documentEntry,
+        ),
       ).toEqual([]);
+      expect(
+        requests.filter(({ documentEntry }) => documentEntry).length,
+      ).toBeLessThanOrEqual(1);
       expect(
         requests.every(
           (request) => new URL(request.url).origin === "http://127.0.0.1:3000",

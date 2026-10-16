@@ -26,7 +26,7 @@ export function isWorkersPreviewBuild(environment, localBranch) {
       localBranch,
       environment.CF_PAGES_BRANCH,
       branch,
-      environment.GITHUB_BASE_REF,
+      environment.GITHUB_HEAD_REF,
       environment.GITHUB_REF_NAME,
     ])
   );

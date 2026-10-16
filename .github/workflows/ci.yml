@@ -43,7 +43,12 @@ jobs:
           name: browser-test-results
           path: test-results/
   whatsapp-tests:
-    if: github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev'
+    if: >-
+      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
+      (github.event.pull_request.base.ref == 'main' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
+       endsWith(github.event.pull_request.head.ref, '-production-release'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,14 +71,19 @@ jobs:
           name: whatsapp-browser-results
           path: test-results/
   main-visual-parity:
-    if: github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev'
+    if: >-
+      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
+      (github.event.pull_request.base.ref == 'main' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
+       endsWith(github.event.pull_request.head.ref, '-production-release'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          # Current main audited for INS-122; compare actual independent builds.
-          ref: 4163a28836af20a5774f76a990c921066eb903f5
+          # Current main integrated for INS-146; compare independent builds.
+          ref: cb0a78099565aa601c7bc18c93f11330091d2e6f
           path: .tools/main-design-reference
       - uses: actions/setup-node@v4
         with:

@@ -16,11 +16,13 @@ configured for `/api/events`, GET returning 405 (`Allow: POST`) and an unknown
 routing/bindings without writing a metric; it does not establish durable delivery
 or event totals. [Current product status](roadmap-progress.md).
 
-INS-134 proposes the bounded traffic attribution contract below. It is not yet
-deployed: current production still uses the earlier event-only schema. The owner
-must deploy the backward-compatible Worker first, verify legacy delivery, and
-only then merge/build/publish the enriched client. This task does not deploy the
-Worker, merge the PR or publish the static site.
+INS-134 is merged into main at `cb0a780`. Its earlier owner-managed Worker-first
+deployment and legacy-ingestion verification are complete; the INS-146 static
+release preserves that existing collector and client contract. A read-only
+16 October audit found collector deployment `e603eb9c-4e54-44e7-9fe2-f135b671ced9`
+at 100% version `972166e3-b994-4508-9593-3c8bd39e2bbb` (15 October). Deployment
+metadata is not a fresh ingestion test. No allowlisted probe event or collector
+redeployment is needed or performed for this static application integration.
 
 ## Data contract and privacy
 
@@ -289,9 +291,12 @@ Namespace `1002` must be distinct from unrelated account limiters. See
 
 ## Production deployment and preview isolation
 
-The existing event-only collector is deployed. The INS-134 Worker/client changes
-are proposed and remain undeployed until the owner follows the Worker-first
-rollout below. These are owner instructions, not actions performed by this task.
+The existing backward-compatible INS-134 collector is already deployed; see the
+dated deployment reference above. This static release keeps its implementation,
+bindings, rate limits and Engine dimensions unchanged. The original Worker-first
+runbook below is retained as historical deployment order and for a future
+separately authorized collector update; it must not be repeated merely to
+release WhatsAppScope. This task performs no collector deployment.
 
 `workers/wrangler.analytics.jsonc` declares the production dataset, limiter and
 HTTPS route:

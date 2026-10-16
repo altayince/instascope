@@ -34,7 +34,11 @@ WhatsAppScope's reviewed repository release state permits intentional production
 builds; its pages remain noindex and outside the sitemap until separate SEO work.
 Preview/unknown-context protections still apply. Only the owner releases dev to main.
 For dev-targeted WhatsAppScope PRs, also require the existing `whatsapp-tests`
-and `main-visual-parity` jobs. No production deployment is part of these checks.
+and `main-visual-parity` jobs. The same jobs are required for an owner-authorized,
+same-repository `feature/INS-<issue>-production-release` PR targeting main, cut
+from reviewed dev with current main integrated without rewriting either branch.
+Agents prepare that PR for owner review; they do not merge or deploy it.
+No production deployment is part of these checks.
 
 The ownership workflow reads private Project metadata using `INS_PROJECT_TOKEN`. This repository secret needs repo and Project read access. Never print or commit the credential. The job must never check out PR code or run scripts from it.
 

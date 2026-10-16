@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { zipSync, strToU8 } from "fflate";
 import { readFile } from "node:fs/promises";
 import { upload } from "../helpers/vault";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 
 const enabled = process.env.EXPECT_WHATSAPP === "true";
 const privateName = `Private participant ${"longname".repeat(18)}`;
@@ -267,6 +268,7 @@ test.describe("WhatsAppScope enabled preview", () => {
     page,
   }) => {
     const outgoing: string[] = [];
+    const documentEntries: string[] = [];
     await page.addInitScript(() => {
       Object.assign(window, { privateChatExecuted: false });
       const local: unknown[] = [];
@@ -277,8 +279,10 @@ test.describe("WhatsAppScope enabled preview", () => {
     });
     page.on("request", (request) => {
       const url = new URL(request.url());
+      const documentEntry = isSafeDocumentEntryRequest(request);
+      if (documentEntry) documentEntries.push(request.postData()!);
       if (
-        request.method() === "POST" ||
+        (!["GET", "HEAD"].includes(request.method()) && !documentEntry) ||
         (url.origin !== "http://127.0.0.1:3000" && url.protocol !== "blob:")
       )
         outgoing.push(request.url());
@@ -347,12 +351,13 @@ test.describe("WhatsAppScope enabled preview", () => {
         .locator("strong"),
     ).toHaveText("6");
     expect(outgoing).toEqual([]);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
     expect(
       await page.evaluate(
         () =>
           (window as unknown as { waProductEvents: unknown[] }).waProductEvents,
       ),
-    ).toEqual([]);
+    ).toEqual([{ event: "document_entry_observed" }]);
     expect(
       await page.evaluate(() =>
         Object.keys(localStorage).filter((key) => /whatsapp|chat/i.test(key)),

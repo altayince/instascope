@@ -117,6 +117,44 @@ it("retains WhatsApp HTML and RSC artifacts in an enabled non-main preview", asy
   await expectInstagramPreserved(output);
 });
 
+it("retains a main-targeted release PR preview using its actual source branch", async () => {
+  const output = await syntheticExport();
+  expect(
+    await pruneUnreleasedPlatforms(output, {
+      environment: {
+        NODE_ENV: "production",
+        NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+        NEXT_PUBLIC_PREVIEW: "true",
+        GITHUB_BASE_REF: "main",
+        GITHUB_HEAD_REF: "feature/INS-146-production-release",
+        GITHUB_REF_NAME: "147/merge",
+      },
+      localBranch: "",
+    }),
+  ).toBe(false);
+  await expectWhatsAppPreserved(output);
+  await expectInstagramPreserved(output);
+});
+
+it("does not treat a PR target as evidence of a known source branch", async () => {
+  const output = await syntheticExport();
+  expect(
+    await pruneUnreleasedPlatforms(output, {
+      environment: {
+        NODE_ENV: "production",
+        NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+        NEXT_PUBLIC_PREVIEW: "true",
+        GITHUB_BASE_REF: "dev",
+      },
+      localBranch: "",
+    }),
+  ).toBe(true);
+  await expect(access(join(output, "whatsapp"))).rejects.toMatchObject({
+    code: "ENOENT",
+  });
+  await expectInstagramPreserved(output);
+});
+
 it.each([
   [
     "default production",
@@ -217,7 +255,7 @@ it.each([
   ["local main branch", "main", {}],
   ["Pages main branch", "feature/task", { CF_PAGES_BRANCH: "main" }],
   ["Workers main branch", "feature/task", { WORKERS_CI_BRANCH: "main" }],
-  ["PR targeting main", "feature/task", { GITHUB_BASE_REF: "main" }],
+  ["PR sourced from main", "feature/task", { GITHUB_HEAD_REF: "main" }],
   ["GitHub main ref", "feature/task", { GITHUB_REF_NAME: "refs/heads/main" }],
 ])(
   "removes WhatsApp exports for %s despite preview opt-in",

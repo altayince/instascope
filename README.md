@@ -31,7 +31,7 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
 - Optional export insights: pending-request ages, private connection lists, your own recently-unfollowed records, recent sent-request records and removed suggestions. Export Doctor explains source/date coverage and available analyses.
 - Dedicated tool routes, export guide, privacy page, issue-numbered changelog, canonical/OpenGraph metadata, sitemap and robots.
 - Independent public-photo viewer and rate-limited Worker. Production lookup infrastructure is configured; public upstream access remains best-effort. Preview/local builds default to lookup off.
-- Deployed aggregate analytics with an isolated Worker collector. INS-134 proposes bounded source/automation hints and document-entry counts; it remains undeployed pending the owner-only Worker-first rollout. Production builds use same-origin `/api/events`; preview builds default to remote analytics off. See [analytics](docs/ANALYTICS.md).
+- Aggregate analytics with an isolated, already-deployed Worker collector. Main's INS-134 bounded source/automation hints and once-per-Document entry observation are preserved in the WhatsAppScope release integration. Production builds use same-origin `/api/events`; preview builds default to remote analytics off. No collector redeployment is part of the static release. See [analytics](docs/ANALYTICS.md) and the [owner release checklist](docs/WHATSAPPSCOPE_RELEASE.md).
 
 See [current progress](docs/roadmap-progress.md) for completed/deferred scope and
 remaining evidence gaps, and [CSV/calendar utilities](docs/PRODUCT_UTILITIES.md)

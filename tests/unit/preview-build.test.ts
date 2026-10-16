@@ -38,6 +38,24 @@ it("chooses the preview path despite inherited production public settings", () =
   ).toBe(true);
 });
 
+it.each(["main", "refs/heads/main"])(
+  "uses the source branch for a Workers preview whose PR targets %s",
+  (targetBranch) => {
+    expect(
+      isWorkersPreviewBuild(
+        {
+          WORKERS_CI: "1",
+          WORKERS_CI_BRANCH: featureBranch,
+          GITHUB_BASE_REF: targetBranch,
+          GITHUB_HEAD_REF: featureBranch,
+          GITHUB_REF_NAME: "147/merge",
+        },
+        undefined,
+      ),
+    ).toBe(true);
+  },
+);
+
 it.each([
   { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main" },
   { CF_PAGES: "1", CF_PAGES_BRANCH: "main" },
@@ -109,11 +127,11 @@ it.each([
   ["Workers main ref", featureBranch, { WORKERS_CI_BRANCH: "refs/heads/main" }],
   ["Pages main", featureBranch, { CF_PAGES_BRANCH: "main" }],
   ["Pages main ref", featureBranch, { CF_PAGES_BRANCH: "refs/heads/main" }],
-  ["PR targeting main", featureBranch, { GITHUB_BASE_REF: "main" }],
+  ["PR sourced from main", featureBranch, { GITHUB_HEAD_REF: "main" }],
   [
-    "PR targeting main ref",
+    "PR sourced from main ref",
     featureBranch,
-    { GITHUB_BASE_REF: "refs/heads/main" },
+    { GITHUB_HEAD_REF: "refs/heads/main" },
   ],
   ["GitHub main", featureBranch, { GITHUB_REF_NAME: "main" }],
   ["GitHub main ref", featureBranch, { GITHUB_REF_NAME: "refs/heads/main" }],

@@ -38,7 +38,7 @@ export async function pruneUnreleasedPlatforms(
       localBranch,
       environment.CF_PAGES_BRANCH,
       environment.WORKERS_CI_BRANCH,
-      environment.GITHUB_BASE_REF,
+      environment.GITHUB_HEAD_REF,
       environment.GITHUB_REF_NAME,
     ],
     indexableDeployment(

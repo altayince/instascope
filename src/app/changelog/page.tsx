@@ -7,6 +7,12 @@ export const metadata: Metadata = pageMetadata(
   "/changelog/",
 );
 const changes = [
+  {
+    issue: 146,
+    title: "Integrate WhatsAppScope production release",
+    summary:
+      "The release combines the current Instagram production app and its bounded document-entry analytics with WhatsAppScope's local tools and platform switcher. Production builds include WhatsApp while keeping it noindex and outside the sitemap. Release previews and privacy tests preserve the approved analytics envelope; deployment remains owner-managed.",
+  },
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
@@ -434,7 +440,9 @@ const changes = [
     summary:
       "Local ZIP, JSON and HTML analysis; searchable relationships; manual Cleaner review lists; snapshot comparison; Wrapped image export; dedicated tool pages and isolated public-photo integration.",
   },
-].slice(0, 10);
+]
+  .sort((left, right) => right.issue - left.issue)
+  .slice(0, 10);
 export default function Changelog() {
   return (
     <main id="main" className="prose">

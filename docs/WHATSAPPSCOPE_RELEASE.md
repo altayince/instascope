@@ -1,9 +1,37 @@
 # WhatsAppScope owner-managed release checklist
 
-INS-144 prepares the production gate; it does **not** merge or deploy it.
-PR #143 / INS-142 is merged into dev at `76bfb07`, including the verified
-Workers preview dispatcher. The current live site changes only after the
-owner's separate dev -> main release.
+INS-146 prepares the final owner-reviewed production integration; it does not
+merge the release PR or deploy it. PR #145 / INS-144 is merged into current dev;
+the release branch integrates current main without rewriting either branch.
+The current live site changes only after the owner's release merge/deployment.
+
+## Integration provenance and rollback baseline
+
+| Reference | Exact value |
+| --- | --- |
+| Reviewed main / INS-134 | `cb0a78099565aa601c7bc18c93f11330091d2e6f` |
+| Reviewed dev / PR #145 | `1e68bf8af8eb8a58a6d20e8fb0f5dffef41f921d` |
+| History-preserving integration commit | `c8b90b93e86f6309f1c3b8b374f130f9bd0d1286` |
+| Existing static deployment | `43118230-a096-4467-a491-e506b42ae50b` |
+| Existing static version, 100% | `f1568702-a3f7-40ce-b962-e8762906a889` |
+
+The merge parents are reviewed dev then main. The only textual conflict was
+root `wrangler.jsonc`: retain main's schema plus dev's compatibility date
+`2026-10-13` and `preview_urls: true`, with the shared static assets/previews
+configuration. No routes/bindings were added. Auto-merged layout, README,
+deployment docs and changelog were reviewed deliberately: layout retains one
+`AnalyticsInitializer` alongside `PlatformShell`; changelog keeps both product
+lines in newest-issue order. INS-134 implementation/Worker/configuration remains
+identical to reviewed main.
+
+Read-only Cloudflare metadata identifies that static deployment at 15 October
+2026 13:39:53 UTC. A 16 October public GET baseline found Instagram root/analyzer
+200/index/follow, all four WhatsApp routes 404, production robots/sitemap intact,
+photo health ready and collector GET 405. No product event was submitted.
+Deployment metadata supplies no Git SHA, so the deployment-to-commit mapping is
+not invented. The release PR body/current-head CI records the final release head
+and actual integrated validation results. Recheck the baseline before owner merge
+if another production deployment has occurred.
 
 ## Release and indexing boundaries
 
@@ -43,28 +71,19 @@ Restore the production artifact after local review.
 **Physical-device pre-certification is skipped by explicit owner decision.**
 It has not been completed. Pixel/iPhone WebKit emulation remains automated
 evidence; physical-phone/Safari manual testing becomes post-deploy evidence.
-This is not an additional approval gate for this dev task.
+This is not an additional approval gate for this release task.
 
 ## Owner-managed sequence
 
-1. Review and merge this production-release-gate PR into **dev**.
-2. Verify dev CI and the actual hosted Cloudflare preview.
-3. Create/review a separate **dev -> main** release PR. Record the last healthy
-   production static deployment and commit before proceeding. Current PR policy
-   still requires an open assigned/projected INS issue and task branch: cut
-   `feature/INS-<release-issue>-production-release` from the reviewed current dev,
-   target main, and include `Fixes #<release-issue>`. A literal head branch named
-   `dev` would fail the existing task-branch/ownership checks; no policy bypass
-   or direct main push is needed to release the same reviewed dev changes.
-   Main currently also contains INS-134 (`cb0a780`), absent from this dev lineage.
-   Preserve its analytics/attribution contract and Worker; keep
-   `AnalyticsInitializer` alongside `PlatformShell` when resolving the shared
-   layout, and review overlapping Wrangler/docs/changelog/README changes.
-   Run production, WhatsApp privacy and traffic-attribution tests on the actual
-   integrated release PR before merging. Its approved document-entry event must
-   be checked as a bounded safe envelope, not mistaken for a chat-data upload;
-   do not discard private-payload assertions or claim this task tested that
-   not-yet-integrated artifact. No main history is copied or changed here.
+1. PR #145 / INS-144 is merged into reviewed **dev**; its release gate is retained.
+2. Verify current-head integrated release CI and the actual hosted preview.
+3. Review INS-146's main-targeted release PR from
+   `feature/INS-146-production-release`, including the two input SHAs, merge
+   parentage, static rollback reference and `Fixes #146`. Current main is already
+   integrated on that task branch; do not replace it with standalone dev.
+   Require production, WhatsApp, analytics/privacy and current-main visual jobs
+   to execute and pass. They explicitly run for this same-repository main-target
+   release branch; do not mistake a skipped WhatsApp job for release validation.
 4. Merge that release PR as the owner.
 5. Wait for the existing Cloudflare main-branch static production deployment.
    Keep build command `npm run build`; no hidden WhatsApp dashboard action,
@@ -102,8 +121,13 @@ clear someone's real Vault or put private exports in logs/screenshots.
 - Instagram: homepage/import, Dashboard, Analyzer, Cleaner, Wrapped, Snapshot
   Vault, guides and public-photo viewer retain existing behavior.
 - Privacy/analytics: no chat text, labels/counts, filenames, URLs, words, emoji,
-  Vault/comparison data or fingerprints leave the browser. Existing bounded
-  Instagram analytics is unchanged; WhatsApp adds no semantic events/dimensions.
+  Vault/comparison data or fingerprints leave the browser. The shared initializer
+  observes one `document_entry_observed` per full Document on either platform;
+  SPA switching does not add an entry. Only `{event, source, webdriver}` with
+  approved bounded values may be delivered, subject to DNT/endpoint settings.
+  WhatsApp adds no semantic product events or dimensions. Existing INS-134
+  attribution, Worker validation/Engine dimensions and legacy compatibility stay
+  unchanged; no collector redeployment is part of this static release.
 - Smoke checks HTTP, metadata, robots/sitemap and page-linked same-origin JS/CSS,
   rejecting HTML fallbacks. A real synthetic import also checks the parser Worker;
   static bundles alone do not prove functional import.
@@ -111,8 +135,11 @@ clear someone's real Vault or put private exports in logs/screenshots.
 ## Rollback
 
 Record the last healthy **static application** deployment/commit before release.
-For immediate recovery, restore that recorded artifact from Cloudflare's existing
-application deployment history/rollback UI. This restores Instagram and the old
+For immediate recovery, restore recorded static version
+`f1568702-a3f7-40ce-b962-e8762906a889` (deployment
+`43118230-a096-4467-a491-e506b42ae50b`) from Cloudflare's existing application
+deployment history/rollback UI, after confirming it remains the intended healthy
+baseline. This restores Instagram and the old
 artifact's WhatsApp 404s. Do not redeploy profile/analytics Workers.
 
 Then use an owner-reviewed PR to set `PLATFORM_RELEASES.whatsapp` to

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 import { MAX_CHAT_VAULT_BACKUP_BYTES } from "../../src/lib/whatsapp/chat-vault";
 import {
   savedRecords as instagramRecords,
@@ -202,14 +203,17 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
     page,
   }) => {
     const outgoing: string[] = [];
+    const documentEntries: string[] = [];
     const allRequests: string[] = [];
     const externalRequests: string[] = [];
     page.on("request", (request) => {
       allRequests.push(`${request.url()} ${request.postData() ?? ""}`);
       const url = new URL(request.url());
+      const documentEntry = isSafeDocumentEntryRequest(request);
+      if (documentEntry) documentEntries.push(request.postData()!);
       if (url.origin !== "http://127.0.0.1:3000" && url.protocol !== "blob:")
         externalRequests.push(request.url());
-      if (!["GET", "HEAD"].includes(request.method()))
+      if (!["GET", "HEAD"].includes(request.method()) && !documentEntry)
         outgoing.push(`${request.url()} ${request.postData() ?? ""}`);
     });
     await page.goto("/whatsapp/chat-vault/");
@@ -287,6 +291,8 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
     await page.getByRole("button", { name: "Clear chat", exact: true }).click();
     await openVault(page);
     expect(await records(page)).toEqual(stored);
+    expect(documentEntries.length).toBeLessThanOrEqual(1);
+    const entriesBeforeReload = documentEntries.length;
     await page.reload();
     await expect(rows(page)).toHaveCount(1);
     await expect(saveButton(page)).toHaveCount(0);
@@ -295,6 +301,7 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
     expect(allRequests.join("\n")).not.toMatch(forbidden);
     expect(externalRequests).toEqual([]);
     expect(outgoing).toEqual([]);
+    expect(documentEntries.length - entriesBeforeReload).toBeLessThanOrEqual(1);
     await fits(page);
   });
 

@@ -317,7 +317,10 @@ contexts never do.
 ## Privacy and Wrapped
 
 Files, text, sender labels, media, URLs and derived private statistics stay local.
-No WhatsApp-domain code calls the product analytics collector. No archive, chat
+WhatsApp adds no semantic product analytics. The shared root initializer retains
+INS-134's once-per-full-Document entry on either platform, with only the approved
+bounded `{event, source, webdriver}` envelope and existing DNT suppression.
+SPA platform changes do not create another document entry. No archive, chat
 identifier, participant mapping or raw chat state is written to browser storage.
 Explicit Chat Vault snapshots contain only the approved aggregates below. Loading same-
 origin application assets/worker code is not an archive upload.
@@ -565,7 +568,8 @@ Restore the production artifact with `npm run build:production` after review.
 
 ### Actual main visual reference (INS-122)
 
-The visual source is main commit `4163a28836af20a5774f76a990c921066eb903f5`.
+The INS-146 visual source is the actual reviewed current main commit
+`cb0a78099565aa601c7bc18c93f11330091d2e6f`.
 Build that checkout independently with `NEXT_PUBLIC_SITE_URL=https://instascope.me`
 and `NEXT_PUBLIC_PREVIEW=true`, so optional remote services are disabled on both
 local builds. Build the proposed dev branch with `build:dev`, then
