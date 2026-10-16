@@ -175,6 +175,30 @@ async function removeSaved(page: Page, id: string) {
   );
 }
 
+async function corruptSaved(page: Page, snapshot: unknown) {
+  await page.evaluate(
+    ({ database, snapshot }) =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open(database, 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result,
+            transaction = db.transaction("snapshots", "readwrite");
+          transaction.objectStore("snapshots").put(snapshot);
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          transaction.onabort = () => {
+            db.close();
+            reject(transaction.error);
+          };
+        };
+      }),
+    { database, snapshot },
+  );
+}
+
 async function open(page: Page, snapshots = [base, later]) {
   await page.goto("/whatsapp/chat-vault/");
   await seed(page, snapshots);
@@ -507,5 +531,42 @@ test.describe("WhatsAppScope saved aggregate comparison", () => {
     await expect(confirmation(page)).not.toBeChecked();
     await comparePair(page);
     await fits(page);
+  });
+
+  test("corrupt or incompatible selected records invalidate consent at comparison time and recover safely", async ({
+    page,
+  }) => {
+    const variants = [
+      { ...later, version: 2 },
+      { ...later, definitionsVersion: 2 },
+      {
+        ...later,
+        totals: { ...later.totals, messages: later.totals.messages + 1 },
+      },
+    ];
+    for (const invalid of variants) {
+      await open(page);
+      await selectPair(page);
+      // No focus refresh: the action must re-read and validate the records.
+      await corruptSaved(page, invalid);
+      await compare(page).click();
+      await expect(result(page)).toHaveCount(0);
+      await expect(confirmation(page)).not.toBeChecked();
+      await expect(page.getByRole("main").getByRole("alert")).toContainText(
+        /changed|unavailable|no longer/i,
+      );
+      await expect(
+        page.getByRole("status").filter({ hasText: "1 unreadable" }),
+      ).toBeVisible();
+      await seed(page, [base, later]);
+      await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+      await expect(
+        second(page).locator(`option[value="${later.id}"]`),
+      ).toHaveCount(1);
+      await expect(confirmation(page)).not.toBeChecked();
+      await comparePair(page);
+      expect(await stored(page)).toEqual([base, later]);
+      await fits(page);
+    }
   });
 });

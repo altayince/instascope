@@ -13,6 +13,7 @@ export default defineConfig({
     "**/whatsapp-chat-vault.spec.ts",
     "**/whatsapp-chat-compare.spec.ts",
     "**/whatsapp-group-mode.spec.ts",
+    "**/whatsapp-release-hardening.spec.ts",
   ],
   outputDir: "test-results/whatsapp",
   projects: [

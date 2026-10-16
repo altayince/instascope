@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WHATSAPP_FORMATS, type WhatsAppFormatId } from "@/lib/whatsapp";
 import { ActionButton } from "@/components/actions";
 import { useWhatsApp } from "./provider";
@@ -23,6 +23,13 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
     dataset,
   } = useWhatsApp();
   const picker = useRef<HTMLInputElement>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const ready = useBrowserReady();
   const [dragging, setDragging] = useState(false);
   const selected = WHATSAPP_FORMATS.find((item) => item.id === format);
@@ -33,7 +40,9 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
     if (picker.current) picker.current.value = "";
   }
   async function confirm() {
-    if (await confirmImport()) onImported?.();
+    // The shared reader can finish after this route's import view unmounts.
+    // Keep its accepted chat, without letting an old view redirect navigation.
+    if ((await confirmImport()) && mounted.current) onImported?.();
   }
   return (
     <section

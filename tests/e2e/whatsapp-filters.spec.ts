@@ -307,6 +307,16 @@ test.describe("WhatsAppScope local analysis filters", () => {
     await stat(page, "Exported messages", "0");
     await stat(page, "Active dates", "0");
     await stat(page, "Messages per active date", "Unavailable");
+    await expect(
+      page
+        .locator(".wa-recorded-times > div")
+        .filter({
+          has: page.getByText("Observed span in written clock values", {
+            exact: true,
+          }),
+        })
+        .locator("dd"),
+    ).toHaveText("Unavailable");
     const unavailable = overview(page).locator(".wa-stat-unavailable");
     expect(
       await unavailable.evaluate(

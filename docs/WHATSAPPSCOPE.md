@@ -486,8 +486,8 @@ snapshots, a new month, replies, causes or relationship changes. Recorded clocks
 have no inferred timezone. Participant counts are exported-label counts only;
 no identity, who-joined/left or responsiveness inference is possible. There are
 no LLM/API calls, comparison analytics events, fingerprints or stored pairings.
-WhatsApp remains preview-only and absent from production output. Release
-hardening is the next task; release and SEO remain separate work.
+WhatsApp remains preview-only and absent from production output. Release and
+SEO remain separate owner-managed work; see the release checklist below.
 
 ## Group presentation (INS-140)
 
@@ -513,6 +513,24 @@ names, IDs, aliases or conversation identity. Explicit comparison uses the
 same compatibility rules and describes participant-count differences only;
 it cannot identify anyone joining or leaving. Pair presentation, parser,
 Doctor, Rhythm, Content, Vault and Compare/Pulse definitions are unchanged.
+
+## Release hardening (INS-142)
+
+Import completion preserves accepted local data when switching routes, without
+letting an unmounted import view redirect the user afterward. Empty filtered
+analysis has no observed span rather than a fabricated zero-duration coverage.
+Individual PNG download failures show a recoverable status; eager
+draw/toDataURL/Uint8Array/File preparation and the async full-deck ZIP path are
+unchanged. Vault backup checking/export announces its local working state.
+Synthetic recovery tests cover browser download failures, import navigation,
+storage/restore retry and corrupt/incompatible comparison selections.
+
+Parser formats, Doctor, metric definitions, privacy boundaries and Vault V1
+schema are unchanged. The production gate still excludes WhatsApp, including
+any main context even with preview opt-in; preview metadata remains
+noindex/nofollow. The [owner-run release checklist](WHATSAPPSCOPE_RELEASE.md)
+describes the separate future release decision, artifact checks, device smoke
+and rollback. No merge, deployment or production enablement is part of this task.
 
 ## Validation commands
 

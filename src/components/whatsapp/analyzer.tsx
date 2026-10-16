@@ -481,7 +481,11 @@ function WhatsAppAnalyzerResults({
             </div>
             <div>
               <dt>Observed span in written clock values</dt>
-              <dd>{displayedSpan}</dd>
+              <dd>
+                {analysis.first && analysis.latest
+                  ? displayedSpan
+                  : "Unavailable"}
+              </dd>
             </div>
           </dl>
           <p className="wa-hint">

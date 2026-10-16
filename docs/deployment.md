@@ -2,6 +2,12 @@
 
 Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired.
 
+WhatsAppScope remains dev/preview-only and absent from the current production
+artifact. Its separate [owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md)
+covers the future release gate decision, local validation, device smoke and
+rollback. Setting an environment flag alone cannot bypass the current main-branch
+gate. Ordinary WhatsApp PRs do not deploy or change this production process.
+
 ## Static application
 
 On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRANCH=main` or `WORKERS_CI_BRANCH=main` and generates an indexable `out/` automatically. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing branch value fails closed. `NEXT_PUBLIC_PREVIEW=true` always disables indexing. For a manual production release outside Cloudflare, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
