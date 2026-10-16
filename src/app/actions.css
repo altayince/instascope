@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   min-height: 44px;
   padding: 10px 17px;
   font-size: 14px;
@@ -12,21 +12,30 @@
   line-height: 1.4;
   border: 1px solid transparent;
   text-align: center;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 .primary {
-  background: var(--ink);
-  color: var(--white);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  box-shadow: 0 3px 16px #c6f36a12;
 }
 .primary:hover {
-  background: #3c5242;
+  background: #d5fa8f;
+  border-color: #d5fa8f;
+  box-shadow: 0 4px 22px #c6f36a20;
 }
 .secondary {
-  border-color: #b9c5b8;
-  background: var(--white);
+  border-color: var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
 }
 .secondary:hover {
-  border-color: var(--ink);
-  background: #f1f4ec;
+  border-color: var(--muted);
+  background: var(--surface-raised);
 }
 .tertiary {
   background: transparent;
@@ -34,17 +43,17 @@
   font-weight: 400;
 }
 .tertiary:hover {
-  background: #edf0e7;
+  background: var(--surface-raised);
   color: var(--ink);
 }
 .danger {
-  border-color: #ddb5ac;
-  background: #fff7f4;
-  color: #8d3220;
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 .danger:hover {
-  background: #f7e5de;
-  border-color: #8d3220;
+  background: #3b2520;
+  border-color: var(--danger);
 }
 .insight-link {
   display: inline-flex;
@@ -59,5 +68,5 @@
   text-decoration: underline;
 }
 .insight-link > span {
-  color: #536d39;
+  color: var(--accent);
 }

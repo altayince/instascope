@@ -8,28 +8,34 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
-    issue: 146,
-    title: "Integrate WhatsAppScope production release",
+    issue: 148,
+    title: "Unify Instagram and WhatsApp in a premium dark InstaScope platform",
     summary:
-      "The release combines the current Instagram production app and its bounded document-entry analytics with WhatsAppScope's local tools and platform switcher. Production builds include WhatsApp while keeping it noindex and outside the sitemap. Release previews and privacy tests preserve the approved analytics envelope; deployment remains owner-managed.",
+      "One InstaScope identity now connects Instagram and WhatsApp, with a shared dark workspace, clearer platform and tool navigation, refined cards and accessible controls. Chat Export Doctor keeps source status and warnings visible, with full format evidence available on demand. Local analysis, saved data, share exports, privacy and existing routes are preserved.",
+  },
+  {
+    issue: 146,
+    title: "Integrate WhatsApp production release",
+    summary:
+      "The release combines the current Instagram production app and its bounded document-entry analytics with WhatsApp's local tools and platform switcher. Production builds include WhatsApp while keeping it noindex and outside the sitemap. Release previews and privacy tests preserve the approved analytics envelope; deployment remains owner-managed.",
   },
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
           issue: 144,
-          title: "Prepare WhatsAppScope production release gate",
+          title: "Prepare WhatsApp production release gate",
           summary:
             "A reviewed repository release state retains WhatsApp tools and the platform switcher in intentional production builds, while WhatsApp stays noindex and outside the sitemap. Preview and unknown-context protections remain. An optional production smoke and owner release/rollback checklist prepare the later launch; this change does not deploy it.",
         },
         {
           issue: 142,
-          title: "Harden WhatsAppScope release paths",
+          title: "Harden WhatsApp release paths",
           summary:
             "Pending imports no longer redirect after leaving their page. PNG download failures offer a safe retry, Vault backup operations announce progress, and empty filtered coverage stays unavailable. Cloudflare non-main branch previews reuse the enabled development build, with the existing main gate and pruning preserved. An owner-run release checklist keeps launch separate. Preview only; production remains Instagram-only.",
         },
         {
           issue: 140,
-          title: "Polish WhatsAppScope group mode",
+          title: "Polish WhatsApp group mode",
           summary:
             "Group message counts now keep source-order ties explicit across paginated rankings. Anonymous Wrapped timing cards disclose qualifying labels outside the displayed rows. Synthetic small and large groups verify full-population totals, local Vault backups and factual comparison without identity or joined/left inference. Preview only; pair mode and PNG/ZIP exports are preserved.",
         },
@@ -73,19 +79,19 @@ const changes = [
           issue: 122,
           title: "Match dev product visuals to current main",
           summary:
-            "Development previews reuse the current main stylesheet and header geometry. Only the top-left platform identity opens the switcher; WhatsAppScope uses the same controls, surfaces and story palettes. Independent main/dev screenshot and computed-style comparisons guard desktop and mobile parity.",
+            "Development previews reuse the current main stylesheet and header geometry. Only the top-left platform identity opens the switcher; WhatsApp uses the same controls, surfaces and story palettes. Independent main/dev screenshot and computed-style comparisons guard desktop and mobile parity.",
         },
         {
           issue: 120,
           title: "Support verified WhatsApp exports and add Chat Export Doctor",
           summary:
-            "Preview-only WhatsAppScope checks export structure locally before explicit format confirmation, supports verified two-digit years and German record markers, and shows factual source coverage without message samples. Ambiguous dates require a choice; archive safety limits and production isolation stay intact.",
+            "Preview-only WhatsApp checks export structure locally before explicit format confirmation, supports verified two-digit years and German record markers, and shows factual source coverage without message samples. Ambiguous dates require a choice; archive safety limits and production isolation stay intact.",
         },
         {
           issue: 118,
           title: "Restore the shared original InstaScope visual theme",
           summary:
-            "Instagram and WhatsAppScope share the original InstaScope colors and controls again. Platform identity and navigation remain distinct; local analysis, share cards and development-only release protection are preserved.",
+            "Instagram and WhatsApp share the original InstaScope colors and controls again. Platform identity and navigation remain distinct; local analysis, share cards and development-only release protection are preserved.",
         },
         {
           issue: 116,
@@ -95,9 +101,9 @@ const changes = [
         },
         {
           issue: 114,
-          title: "Build dev-only WhatsAppScope product foundation",
+          title: "Build dev-only WhatsApp product foundation",
           summary:
-            "Preview-only WhatsAppScope adds local chat TXT/ZIP analysis and factual shareable cards, with a distinct green identity in the shared product family. An explicit release gate keeps its routes and platform switcher out of production; Instagram tools remain unchanged.",
+            "Preview-only WhatsApp adds local chat TXT/ZIP analysis and factual shareable cards, with a distinct green identity in the shared product family. An explicit release gate keeps its routes and platform switcher out of production; Instagram tools remain unchanged.",
         },
       ]
     : []),

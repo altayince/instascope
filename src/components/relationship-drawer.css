@@ -11,8 +11,8 @@
   border: 0;
   border-left: 1px solid var(--line);
   color: var(--ink);
-  background: var(--paper);
-  box-shadow: -12px 0 70px #14251d26;
+  background: var(--surface);
+  box-shadow: -12px 0 70px #00000066;
   overflow: hidden;
   overscroll-behavior: contain;
 }
@@ -32,7 +32,8 @@
   flex-shrink: 0;
 }
 .relationship-drawer::backdrop {
-  background: #14251d80;
+  background: #000000a6;
+  backdrop-filter: blur(6px);
 }
 .relationship-drawer-header {
   display: flex;
@@ -72,7 +73,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--paper);
+  background: var(--surface);
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
@@ -107,13 +108,13 @@
 .history-state {
   display: inline-block;
   padding: 4px 8px;
-  border: 1px solid #d6dfcb;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  background: #eef3e5;
+  background: var(--accent-soft);
   font-weight: 500;
 }
 .history-state[data-state="absent"] {
-  background: #f3f2ed;
+  background: var(--surface-raised);
   border-color: var(--line);
 }
 .relationship-drawer-actions {

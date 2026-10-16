@@ -102,7 +102,7 @@ describe("browser-local WhatsApp full-deck archive", () => {
       "render:closing",
       "progress:3/3",
     ]);
-    expect(result.filename).toBe("whatsappscope-wrapped-deck.zip");
+    expect(result.filename).toBe("instascope-whatsapp-wrapped-deck.zip");
     expect(result.blob.type).toBe("application/zip");
     const bytes = new Uint8Array(await result.blob.arrayBuffer());
     const files = unzipSync(bytes);
@@ -136,7 +136,7 @@ describe("browser-local WhatsApp full-deck archive", () => {
     const second = await createWhatsAppDeckArchive(fixtureDeck(), render, {
       demo: true,
     });
-    expect(first.filename).toBe("whatsappscope-demo-deck.zip");
+    expect(first.filename).toBe("instascope-whatsapp-demo-deck.zip");
     expect(await first.blob.arrayBuffer()).toEqual(
       await second.blob.arrayBuffer(),
     );

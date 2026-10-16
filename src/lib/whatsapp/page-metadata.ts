@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 export function whatsappMetadata(title: string, description: string): Metadata {
   return {
-    title: { absolute: `${title} | WhatsAppScope` },
+    title: { absolute: `${title} | InstaScope` },
     description,
     robots: { index: false, follow: false },
     openGraph: {
       title,
       description,
-      siteName: "WhatsAppScope",
+      siteName: "InstaScope",
       type: "website",
       images: [],
     },

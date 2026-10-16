@@ -1,13 +1,17 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 import base from "./playwright.config";
 
-// This suite compares two real builds, never a reconstructed CSS ancestry.
+// Compare independent production and preview builds, including the entire shell.
 process.env.MAIN_VISUAL_REFERENCE_URL = "http://127.0.0.1:3101";
 
 export default defineConfig({
   ...base,
   testMatch: "**/main-visual.spec.ts",
   testIgnore: [],
+  projects: [
+    ...base.projects!,
+    { name: "webkit-mobile", use: { ...devices["iPhone 13"] } },
+  ],
   outputDir: "test-results/main-visual",
   use: { ...base.use, timezoneId: "UTC", locale: "en-US" },
   webServer: [

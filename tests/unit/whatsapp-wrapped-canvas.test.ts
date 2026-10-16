@@ -442,7 +442,7 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
         height: 1920,
       });
       expect(
-        rendered.texts.some((draw) => draw.text === "Made with WhatsAppScope"),
+        rendered.texts.some((draw) => draw.text === "Made with InstaScope"),
       ).toBe(true);
       expect(rendered.texts.map((draw) => draw.text).join(" ")).not.toContain(
         "PRIVATE_METHODOLOGY_SENTINEL",

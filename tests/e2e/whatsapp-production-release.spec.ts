@@ -33,6 +33,192 @@ const navigation = (page: Page) =>
 const rows = (page: Page) =>
   page.getByRole("article", { name: "Saved chat snapshot", exact: true });
 
+for (const source of ["demo", "import"] as const) {
+  test(`Doctor stays compact after ${source} with keyboard-accessible facts on Analyzer and Wrapped`, async ({
+    page,
+  }) => {
+    await collectEvents(page);
+    await page.goto("/whatsapp/chat-analyzer/");
+    if (source === "demo") {
+      await page
+        .getByRole("button", { name: "Try the fictional demo", exact: true })
+        .click();
+    } else {
+      await page
+        .getByLabel("Upload WhatsApp chat export", { exact: true })
+        .setInputFiles({
+          name: "synthetic-coverage.txt",
+          mimeType: "text/plain",
+          buffer: Buffer.from(chat()),
+        });
+      await page
+        .getByLabel("Export date/time format", { exact: true })
+        .selectOption("dmy-24h");
+      await page
+        .getByRole("button", {
+          name: "Confirm format and open chat",
+          exact: true,
+        })
+        .click();
+    }
+    for (const mode of ["Chat Analyzer", "Wrapped"] as const) {
+      if (mode === "Wrapped") {
+        await navigation(page)
+          .getByRole("link", { name: mode, exact: true })
+          .click();
+        await expect(
+          page.getByRole("region", { name: "WhatsApp Wrapped", exact: true }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Download PNG", exact: true }),
+        ).toBeEnabled();
+      } else {
+        await expect(
+          page
+            .locator(".wa-stat")
+            .filter({
+              has: page.getByText("Exported messages", { exact: true }),
+            })
+            .locator("strong"),
+        ).toHaveText(source === "demo" ? "24" : "8");
+      }
+      const doctor = page.getByRole("region", {
+        name: "Chat Export Doctor",
+        exact: true,
+      });
+      const disclosure = doctor.locator(".wa-doctor-disclosure");
+      const summary = disclosure.locator("summary");
+      await expect(
+        doctor.getByText("Supported", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        doctor.getByText(
+          /timestamp-shaped records inspected.*participant labels/,
+        ),
+      ).toBeVisible();
+      await expect(disclosure).not.toHaveAttribute("open");
+      await expect(
+        doctor.getByText("Timestamp wrapper", { exact: true }),
+      ).toBeHidden();
+      await expect(
+        doctor.getByRole("heading", {
+          name: "Source limitations",
+          exact: true,
+        }),
+      ).toBeHidden();
+      const compactHeight = (await doctor.boundingBox())!.height;
+      expect(compactHeight).toBeLessThan(360);
+      await expect(summary).toHaveAccessibleName(
+        "Format details and source limitations",
+      );
+      await summary.focus();
+      await page.keyboard.press("Enter");
+      await expect(disclosure).toHaveAttribute("open", "");
+      await expect(summary).toBeFocused();
+      for (const label of [
+        "Timestamp wrapper",
+        "Confirmed date order",
+        "Year width",
+        "Clock style",
+        "Source time precision",
+        "Timestamp-shaped records inspected",
+        "Participant labels found",
+        "Unsupported-looking records",
+        "Unclassified marker-like records",
+        "Ignored preamble lines",
+        "Ignored non-TXT ZIP files",
+      ]) {
+        await expect(doctor.getByText(label, { exact: true })).toBeVisible();
+      }
+      for (const title of [
+        "Recognized event types",
+        "Recognized localized markers",
+        "Source limitations",
+      ]) {
+        await expect(
+          doctor.getByRole("heading", { name: title, exact: true }),
+        ).toBeVisible();
+      }
+      await expect(
+        doctor.locator(".wa-doctor-limitations li").first(),
+      ).toBeVisible();
+      expect((await doctor.boundingBox())!.height).toBeGreaterThan(
+        compactHeight + 300,
+      );
+      await summary.focus();
+      await page.keyboard.press("Space");
+      await expect(disclosure).not.toHaveAttribute("open");
+      await expect(summary).toBeFocused();
+      await expect(
+        doctor.getByText("Supported", { exact: true }),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+      ).toBe(true);
+    }
+    // A rejected replacement must keep the accepted chat and its disclosure;
+    // a successful replacement (including demo) starts compact again.
+    const doctor = page.getByRole("region", {
+      name: "Chat Export Doctor",
+      exact: true,
+    });
+    const disclosure = doctor.locator(".wa-doctor-disclosure");
+    await disclosure.locator("summary").click();
+    await page
+      .getByLabel("Upload WhatsApp chat export", { exact: true })
+      .setInputFiles({
+        name: "unsupported.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from(
+          "13/10/6, 9:00 - Synthetic: unsupported year width",
+        ),
+      });
+    const detection = page.getByRole("region", {
+      name: "Detected export format",
+      exact: true,
+    });
+    await expect(
+      detection.getByText("Unsupported", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      detection.getByText("Timestamp wrapper", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: "Confirm format and open chat",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await expect(disclosure).toHaveAttribute("open", "");
+    if (source === "demo") {
+      await page
+        .getByRole("button", { name: "Try the fictional demo", exact: true })
+        .click();
+    } else {
+      await page
+        .getByLabel("Upload WhatsApp chat export", { exact: true })
+        .setInputFiles({
+          name: "synthetic-replacement.txt",
+          mimeType: "text/plain",
+          buffer: Buffer.from(chat(true)),
+        });
+      await page
+        .getByLabel("Export date/time format", { exact: true })
+        .selectOption("dmy-24h");
+      await page
+        .getByRole("button", {
+          name: "Confirm format and open chat",
+          exact: true,
+        })
+        .click();
+    }
+    await expect(disclosure).not.toHaveAttribute("open");
+    await expect(doctor.getByText("Supported", { exact: true })).toBeVisible();
+  });
+}
+
 async function importAndSave(page: Page, later = false) {
   await page
     .getByLabel("Upload WhatsApp chat export", { exact: true })
@@ -120,7 +306,7 @@ test("intentional release supports real local imports, Wrapped downloads, saved 
   const receivedPng = page.waitForEvent("download");
   await pngAction.click();
   const png = await receivedPng;
-  expect(png.suggestedFilename()).toMatch(/^whatsappscope-[a-z-]+\.png$/);
+  expect(png.suggestedFilename()).toMatch(/^instascope-whatsapp-[a-z-]+\.png$/);
   expectPortraitPng(await readFile((await png.path())!));
 
   const receivedZip = page.waitForEvent("download");
@@ -128,7 +314,9 @@ test("intentional release supports real local imports, Wrapped downloads, saved 
     .getByRole("button", { name: "Export full deck", exact: true })
     .click();
   const archive = await receivedZip;
-  expect(archive.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+  expect(archive.suggestedFilename()).toBe(
+    "instascope-whatsapp-wrapped-deck.zip",
+  );
   const cards = unzipSync(await readFile((await archive.path())!));
   expect(Object.keys(cards).length).toBeGreaterThanOrEqual(2);
   expect(Object.keys(cards).length).toBeLessThanOrEqual(12);

@@ -824,7 +824,7 @@ export function drawWhatsAppStory(
   ctx.fillStyle = theme.ink;
   paragraph(
     ctx,
-    "WHATSAPPSCOPE / WRAPPED",
+    "INSTASCOPE / WRAPPED",
     { x: 80, y: 87, width: 920, height: 42 },
     27,
     27,
@@ -911,7 +911,7 @@ export function drawWhatsAppStory(
   );
   paragraph(
     ctx,
-    "Made with WhatsAppScope",
+    "Made with InstaScope",
     { x: 80, y: 1790, width: 920, height: 38 },
     29,
     29,
@@ -919,7 +919,7 @@ export function drawWhatsAppStory(
   );
   paragraph(
     ctx,
-    "A local tool by InstaScope",
+    "Generated on your device",
     { x: 80, y: 1827, width: 920, height: 29 },
     23,
   );

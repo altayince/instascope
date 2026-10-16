@@ -4,7 +4,7 @@
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   font-size: 14px;
 }
 .export-doctor-heading {
@@ -102,7 +102,7 @@
   color: var(--muted);
 }
 .export-doctor-list-status[data-status="unsupported"] {
-  color: #795931;
+  color: var(--warning);
 }
 .export-doctor-help {
   margin: 10px 0 0;
