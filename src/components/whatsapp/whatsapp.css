@@ -471,15 +471,37 @@
   gap: 12px;
 }
 .wa-doctor h2 {
-  margin: 8px 0 0;
-  font-size: 27px;
-  letter-spacing: -1px;
+  margin: 4px 0 0;
+  font-size: 21px;
+  letter-spacing: -0.5px;
 }
 .wa-doctor > p,
 .wa-doctor-details p,
 .wa-doctor li,
 .wa-doctor-limitations {
   font-size: 12px;
+}
+.wa-doctor > p {
+  margin: 12px 0 0;
+}
+.wa-doctor .wa-doctor-warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-left: 3px solid var(--warning);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+.wa-doctor-disclosure {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+}
+.wa-doctor-disclosure > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 13px 0 5px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
 }
 .wa-format-facts {
   display: grid;
@@ -513,7 +535,8 @@
 .wa-doctor-details > div {
   min-width: 0;
 }
-.wa-doctor-details h3 {
+.wa-doctor-details h3,
+.wa-doctor-limitations h3 {
   font-size: 18px;
   letter-spacing: -0.3px;
 }
@@ -528,10 +551,6 @@
   border-top: 1px solid var(--line);
   margin-top: 20px;
   padding-top: 14px;
-}
-.wa-doctor-limitations summary {
-  cursor: pointer;
-  padding: 6px 0;
 }
 .wa-format-detection {
   text-align: left;

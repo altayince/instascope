@@ -11,7 +11,7 @@ const changes = [
     issue: 148,
     title: "Unify Instagram and WhatsApp in a premium dark InstaScope platform",
     summary:
-      "One InstaScope identity now connects Instagram and WhatsApp, with a shared dark workspace, clearer platform and tool navigation, refined cards and accessible controls. Local analysis, saved data, share exports, privacy and existing routes are preserved.",
+      "One InstaScope identity now connects Instagram and WhatsApp, with a shared dark workspace, clearer platform and tool navigation, refined cards and accessible controls. Chat Export Doctor keeps source status and warnings visible, with full format evidence available on demand. Local analysis, saved data, share exports, privacy and existing routes are preserved.",
   },
   {
     issue: 146,

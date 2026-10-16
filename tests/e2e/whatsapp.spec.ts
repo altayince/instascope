@@ -531,6 +531,20 @@ test.describe("WhatsAppScope enabled preview", () => {
     ).toHaveText("3");
     const doctor = page.getByRole("region", { name: "Chat Export Doctor" });
     await expect(doctor).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-disclosure")).not.toHaveAttribute(
+      "open",
+    );
+    await expect(
+      doctor.getByText("Partially supported", { exact: true }),
+    ).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-warning")).toContainText(
+      "1 untimestamped preamble lines were skipped",
+    );
+    await expect(doctor.locator(".wa-doctor-warning")).toBeVisible();
+    await doctor.locator("summary").click();
+    await expect(
+      doctor.getByText("Timestamp wrapper", { exact: true }),
+    ).toBeVisible();
     await expect(doctor).toContainText(/iOS|bracket/i);
     await expect(doctor).toContainText(/2-digit|two-digit|2 digit/i);
     await expect(doctor).toContainText(/mixed|second/i);
@@ -576,6 +590,20 @@ test.describe("WhatsAppScope enabled preview", () => {
     ).toHaveText("9");
     const doctor = page.getByRole("region", { name: "Chat Export Doctor" });
     await expect(doctor).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-disclosure")).not.toHaveAttribute(
+      "open",
+    );
+    await expect(
+      doctor.getByText("Partially supported", { exact: true }),
+    ).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-warning")).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-warning")).toContainText(
+      "1 unclassified marker-like records",
+    );
+    await doctor.locator("summary").click();
+    await expect(doctor.locator(".wa-doctor-coverage")).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-details")).toBeVisible();
+    await expect(doctor.locator(".wa-doctor-limitations")).toBeVisible();
     await expect(
       doctor
         .locator(".wa-doctor-coverage > div")
@@ -688,12 +716,26 @@ test.describe("WhatsAppScope enabled preview", () => {
     );
     await expect(deck).not.toContainText(privateName);
     const slide = deck.getByRole("group", { name: /of \d+:/ });
+    const shareButton = deck.getByRole("button", {
+      name: "Share card",
+      exact: true,
+    });
+    async function shareCard() {
+      // Keyboard slide navigation can leave WebKit smooth-scrolling. Position
+      // the action before a real pointer click instead of racing that scroll.
+      await shareButton.evaluate((button) =>
+        button.scrollIntoView({ block: "center", behavior: "instant" }),
+      );
+      await expect(shareButton).toBeInViewport();
+      await expect(shareButton).toBeEnabled();
+      await shareButton.click();
+    }
     await slide.focus();
     await page.keyboard.press("Home");
     await expect(slide).toHaveAttribute("aria-label", /^1 of/);
     await page.keyboard.press("ArrowRight");
     await expect(slide).toHaveAttribute("aria-label", /^2 of/);
-    await deck.getByRole("button", { name: "Share card", exact: true }).click();
+    await shareCard();
     await expect
       .poll(() =>
         page.evaluate(
@@ -701,6 +743,13 @@ test.describe("WhatsAppScope enabled preview", () => {
         ),
       )
       .toBe(1);
+    // Wait for completion before changing the mock for the next interaction.
+    await expect(deck.getByRole("status")).toHaveText(
+      "Your card was handed to your device's share menu.",
+    );
+    await expect(
+      deck.getByRole("button", { name: "Share card", exact: true }),
+    ).toBeEnabled();
     await page.evaluate(() =>
       Object.defineProperty(navigator, "share", {
         configurable: true,
@@ -709,7 +758,7 @@ test.describe("WhatsAppScope enabled preview", () => {
         },
       }),
     );
-    await deck.getByRole("button", { name: "Share card", exact: true }).click();
+    await shareCard();
     await expect(deck.getByRole("status")).toContainText("Sharing cancelled");
     await page.evaluate(() =>
       Object.defineProperty(navigator, "canShare", {
@@ -718,7 +767,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       }),
     );
     const fallbackDownload = page.waitForEvent("download");
-    await deck.getByRole("button", { name: "Share card", exact: true }).click();
+    await shareCard();
     expect((await fallbackDownload).suggestedFilename()).toMatch(
       /^instascope-whatsapp-/,
     );

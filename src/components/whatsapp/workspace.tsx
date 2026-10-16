@@ -191,7 +191,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
               </ul>
             </details>
           )}
-          <WhatsAppDoctor dataset={dataset} />
+          <WhatsAppDoctor key={`doctor-${revision}`} dataset={dataset} />
           {mode === "analyzer" && (
             <ChatVaultSaver key={`vault-${revision}`} dataset={dataset} />
           )}

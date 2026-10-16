@@ -115,88 +115,114 @@ export function WhatsAppDoctor({ dataset }: { dataset: WhatsAppDataset }) {
           {report.status === "supported" ? "Supported" : "Partially supported"}
         </span>
       </div>
+      <p className="wa-doctor-summary">
+        {whatsappNumber(report.detection.headerCount)} timestamp-shaped records
+        inspected · {whatsappNumber(report.participantLabels)} participant
+        labels
+      </p>
       <p>
         {demo
-          ? "Structural coverage for the fictional demo, not evidence from your own export."
-          : "What this local export lets us read. Only format facts and counts appear here; no message samples or participant names."}
+          ? "Fictional demo coverage; not evidence from your own export."
+          : "Local export coverage. Format facts and counts only; no message samples or participant names."}
       </p>
-      <WhatsAppFormatEvidence
-        detection={report.detection}
-        selectedFormat={report.selectedFormat}
-      />
-      {report.detection.yearWidths.includes(2) && (
-        <p className="wa-hint">
-          Two-digit years use one explicit rule: 00–99 means 2000–2099. The
-          original year width is retained; no timezone is inferred.
+      {report.detection.unsupportedLookingRecords > 0 && (
+        <p className="wa-doctor-warning">
+          {whatsappNumber(report.detection.unsupportedLookingRecords)}{" "}
+          unsupported-looking records found. Coverage may be incomplete.
         </p>
       )}
-      <dl className="wa-format-facts wa-doctor-coverage">
-        <div>
-          <dt>Participant labels found</dt>
-          <dd>{whatsappNumber(report.participantLabels)}</dd>
-        </div>
-        <div>
-          <dt>Unsupported-looking records</dt>
-          <dd>{whatsappNumber(report.detection.unsupportedLookingRecords)}</dd>
-        </div>
-        <div>
-          <dt>Unclassified marker-like records</dt>
-          <dd>{whatsappNumber(report.unclassifiedMarkerRecords)}</dd>
-        </div>
-        <div>
-          <dt>Ignored preamble lines</dt>
-          <dd>{whatsappNumber(report.detection.preambleLines)}</dd>
-        </div>
-        <div>
-          <dt>Ignored non-TXT ZIP files</dt>
-          <dd>{whatsappNumber(report.ignoredCompanionFiles)}</dd>
-        </div>
-      </dl>
       {report.unclassifiedMarkerRecords > 0 && (
-        <p className="wa-hint">
-          Some records resemble event markers but do not match a supported
-          complete record. They remain unclassified; their contents are not
-          shown here.
+        <p className="wa-doctor-warning">
+          {whatsappNumber(report.unclassifiedMarkerRecords)} unclassified
+          marker-like records. Some records resemble event markers but do not
+          match a supported complete record. Recognized media counts may
+          underreport them; their contents are not shown here.
         </p>
       )}
-      <div className="wa-doctor-details">
-        <div>
-          <h3>Recognized event types</h3>
-          {report.eventTypes.length ? (
-            <ul>
-              {report.eventTypes.map(({ kind, count }) => (
-                <li key={kind}>
-                  {eventLabels[kind]}: <strong>{whatsappNumber(count)}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No supported whole-record event markers were recognized.</p>
-          )}
+      {report.detection.preambleLines > 0 && (
+        <p className="wa-doctor-warning">
+          {whatsappNumber(report.detection.preambleLines)} untimestamped
+          preamble lines were skipped. They are not counted as messages or
+          system events.
+        </p>
+      )}
+      <details className="wa-doctor-disclosure">
+        <summary>Format details and source limitations</summary>
+        <WhatsAppFormatEvidence
+          detection={report.detection}
+          selectedFormat={report.selectedFormat}
+        />
+        {report.detection.yearWidths.includes(2) && (
+          <p className="wa-hint">
+            Two-digit years use one explicit rule: 00–99 means 2000–2099. The
+            original year width is retained; no timezone is inferred.
+          </p>
+        )}
+        <dl className="wa-format-facts wa-doctor-coverage">
+          <div>
+            <dt>Participant labels found</dt>
+            <dd>{whatsappNumber(report.participantLabels)}</dd>
+          </div>
+          <div>
+            <dt>Unsupported-looking records</dt>
+            <dd>
+              {whatsappNumber(report.detection.unsupportedLookingRecords)}
+            </dd>
+          </div>
+          <div>
+            <dt>Unclassified marker-like records</dt>
+            <dd>{whatsappNumber(report.unclassifiedMarkerRecords)}</dd>
+          </div>
+          <div>
+            <dt>Ignored preamble lines</dt>
+            <dd>{whatsappNumber(report.detection.preambleLines)}</dd>
+          </div>
+          <div>
+            <dt>Ignored non-TXT ZIP files</dt>
+            <dd>{whatsappNumber(report.ignoredCompanionFiles)}</dd>
+          </div>
+        </dl>
+        <div className="wa-doctor-details">
+          <div>
+            <h3>Recognized event types</h3>
+            {report.eventTypes.length ? (
+              <ul>
+                {report.eventTypes.map(({ kind, count }) => (
+                  <li key={kind}>
+                    {eventLabels[kind]}:{" "}
+                    <strong>{whatsappNumber(count)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No supported whole-record event markers were recognized.</p>
+            )}
+          </div>
+          <div>
+            <h3>Recognized localized markers</h3>
+            {report.localizedMarkers.length ? (
+              <ul>
+                {report.localizedMarkers.map(({ locale, kind, count }) => (
+                  <li key={`${locale}-${kind}`}>
+                    {locale === "de" ? "German" : "English"} ·{" "}
+                    {eventLabels[kind]}:{" "}
+                    <strong>{whatsappNumber(count)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No supported localized event markers were recognized.</p>
+            )}
+          </div>
         </div>
-        <div>
-          <h3>Recognized localized markers</h3>
-          {report.localizedMarkers.length ? (
-            <ul>
-              {report.localizedMarkers.map(({ locale, kind, count }) => (
-                <li key={`${locale}-${kind}`}>
-                  {locale === "de" ? "German" : "English"} · {eventLabels[kind]}
-                  : <strong>{whatsappNumber(count)}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No supported localized event markers were recognized.</p>
-          )}
+        <div className="wa-doctor-limitations">
+          <h3>Source limitations</h3>
+          <ul>
+            {report.sourceLimitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
         </div>
-      </div>
-      <details className="wa-doctor-limitations">
-        <summary>Source limitations</summary>
-        <ul>
-          {report.sourceLimitations.map((limitation) => (
-            <li key={limitation}>{limitation}</li>
-          ))}
-        </ul>
       </details>
     </section>
   );
