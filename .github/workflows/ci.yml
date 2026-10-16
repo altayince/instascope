@@ -1,9 +1,9 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 permissions:
   contents: read
 jobs:
@@ -42,3 +42,74 @@ jobs:
         with:
           name: browser-test-results
           path: test-results/
+  whatsapp-tests:
+    if: >-
+      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
+      (github.event.pull_request.base.ref == 'main' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
+       endsWith(github.event.pull_request.head.ref, '-production-release'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run build:dev
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npm run test:e2e -- --config playwright.whatsapp.config.ts
+        env:
+          EXPECT_WHATSAPP: 'true'
+          EXPECT_INDEXABLE: 'false'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: whatsapp-browser-results
+          path: test-results/
+  main-visual-parity:
+    if: >-
+      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
+      (github.event.pull_request.base.ref == 'main' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
+       endsWith(github.event.pull_request.head.ref, '-production-release'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          # Current main integrated for INS-146; compare independent builds.
+          ref: cb0a78099565aa601c7bc18c93f11330091d2e6f
+          path: .tools/main-design-reference
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm ci
+        working-directory: .tools/main-design-reference
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        working-directory: .tools/main-design-reference
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
+          NEXT_PUBLIC_PREVIEW: 'true'
+          NEXT_PUBLIC_PROFILE_ENDPOINT: ''
+          NEXT_PUBLIC_ANALYTICS_ENDPOINT: ''
+      - run: npm run build:dev
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
+      - run: npx playwright test --config playwright.main-visual.config.ts
+        env:
+          MAIN_VISUAL_REFERENCE_DIR: ${{ github.workspace }}/.tools/main-design-reference
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-dev-visual-comparison
+          path: test-results/main-visual/

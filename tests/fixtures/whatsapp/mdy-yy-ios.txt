@@ -1,0 +1,5 @@
+Synthetic fixture preamble.
+[3/14/26, 12:00:01 AM] Synthetic A: A fictional first line.
+A fictional continuation line.
+[3/14/26, 12:05 PM] Synthetic B: <Media omitted>
+[3/15/26, 1:02:03 PM] Synthetic A: A fictional final line.

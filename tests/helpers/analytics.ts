@@ -30,6 +30,18 @@ export function isSafeAnalyticsRequest(
   return true;
 }
 
+/** WhatsApp has no product telemetry; only the shared document entry is allowed. */
+export function isSafeDocumentEntryRequest(
+  request: Request,
+  origin = "http://127.0.0.1:3000",
+) {
+  if (!isSafeAnalyticsRequest(request, origin)) return false;
+  expect((request.postDataJSON() as { event: unknown }).event).toBe(
+    "document_entry_observed",
+  );
+  return true;
+}
+
 export async function collectEvents(page: Page, status = 204, dnt = "0") {
   const requests: string[] = [];
   await page.addInitScript((setting) => {

@@ -10,4 +10,6 @@ coverage/
 .env*
 !.env.example
 private-exports/
+# Private archives stay local; ZIP regression fixtures are generated in memory.
+*.zip
 public/profile-ai/runtime/

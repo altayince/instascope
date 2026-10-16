@@ -1,12 +1,61 @@
 # Deployment and launch
 
-Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired.
+Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired. After the owner deploys the WhatsApp release, add `--require-whatsapp` to verify the four tools, Instagram indexing, WhatsApp noindex, sitemap/robots and required page-linked JS/CSS. Ordinary smoke does not require WhatsApp on today's live site.
+
+INS-144 prepares WhatsAppScope's explicit repository production release state;
+the live site changes only after the owner's later dev -> main release. Its
+[owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md) covers that sequence,
+post-deploy manual testing and rollback. Production builds retain Instagram and
+all four WhatsApp routes/switcher without a dashboard flag. WhatsApp stays
+noindex/nofollow and outside the sitemap; public Instagram indexing is unchanged.
+Ordinary WhatsApp PRs never merge or deploy that production release. The owner
+has skipped physical-device pre-certification; it is not claimed as completed.
 
 ## Static application
 
-On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRANCH=main` or `WORKERS_CI_BRANCH=main` and generates an indexable `out/` automatically. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing branch value fails closed. `NEXT_PUBLIC_PREVIEW=true` always disables indexing. For a manual production release outside Cloudflare, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
+On Cloudflare Pages or Workers Builds, `npm run build` recognizes an identified main production branch and uses the production wrapper to generate an indexable `out/`, resetting inherited preview flags. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing/conflicting host branch fails closed. Explicit preview artifacts remain noindex. For a manual production release outside Cloudflare, use `npm run build:production` (or explicitly set `NEXT_PUBLIC_SITE_URL=https://instascope.me` with preview off before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
 
-The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep preview build commands on `npm run build` and set `NEXT_PUBLIC_PREVIEW=true` for non-Cloudflare preview systems. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
+The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep Workers Builds commands on `npm run build`; the preview wiring below chooses the existing development build only in a recognized non-main Workers context. Set `NEXT_PUBLIC_PREVIEW=true` for other preview systems; enabling WhatsApp there still requires its explicit opt-in and a known non-main branch. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
+
+### Workers branch previews (INS-142)
+
+Workers Builds runs its configured build command before the separate Preview
+command. `previews: {}` and `assets.directory` in the root Wrangler file describe
+the preview deployment; they do not enable Next's compile-time WhatsApp flag.
+Before the INS-144 release decision, an ordinary build without the opt-ins
+compiled it out and pruned its HTML/RSC, explaining the earlier successful
+preview build with WhatsApp 404s.
+
+The repository's `npm run build` entry now recognizes only `WORKERS_CI=1` with
+an explicit nonempty `WORKERS_CI_BRANCH` and no main branch in any existing
+Git/Cloudflare/GitHub context. It delegates that non-main Workers build to the
+unchanged `build-development.mjs`, which supplies both preview opt-ins. Ordinary
+local/GitHub builds, missing/invalid host branch and every main context retain
+the original Next → normalize → prune path, except recognized Cloudflare main
+builds now use `build-production.mjs` to normalize inherited preview flags.
+Availability/pruning share the reviewed repository release state; preview
+dispatch still uses its separate strict non-main predicate. `build:dev` and
+`build:production` remain explicit, separate commands.
+
+INS-146 uses GitHub's actual `GITHUB_HEAD_REF` as source evidence alongside local
+Git and Cloudflare source branches. `GITHUB_BASE_REF` is only a PR target: a
+release PR targeting main must still receive a functional non-main preview.
+Actual main sources and unknown/invalid host contexts retain their safeguards.
+Main-targeted INS production-release PRs run the existing WhatsApp and visual
+jobs in addition to production/analytics checks; no CI-only product override is
+used. See the [integrated release provenance/rollback baseline](WHATSAPPSCOPE_RELEASE.md).
+
+Keep the host build command `npm run build`, Preview command
+`npx wrangler preview`, and production branch `main`. No dashboard, production
+route or separate Worker change is needed for this repository wiring. Cloudflare
+[documents branch-aware build variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
+and [non-production branch preview execution](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/).
+Workers Builds does not honor Wrangler Custom Builds settings; no speculative
+Wrangler build fields are used. The existing OAuth session could read Workers
+but returned 403 for Builds configuration, so dashboard values were not inferred
+from that session. The real generated preview must still be checked after push:
+all four WhatsApp routes and assets 200, noindex/nofollow, robots Disallow all and
+an empty sitemap. Snapshot Compare lives inside Chat Vault, not a separate route.
 
 The 13 October 2026 live audit confirms `http://instascope.me/` returns `301` to `https://instascope.me/`; the earlier HTTP-200 finding is historical. If a future deployment loses that redirect, review Cloudflare's [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) setting. Review any production `*.pages.dev` or `*.workers.dev` alias in Cloudflare and redirect it to the primary domain or block indexing there, because the same static production HTML cannot distinguish hostnames at request time. See [current progress](roadmap-progress.md) for the dated live audit and remaining evidence gaps.
 
@@ -67,7 +116,7 @@ Run `npm run check`, `npm run build:production` and the full `npm run test:e2e` 
 
 INS-110 / merged PR #111 implements aggregate analytics, and the owner confirms the production collector is deployed. On 13 October 2026, live Privacy compiled `/api/events`; GET returned 405 and the non-writing unknown-event probe returned 400 with the collector's expected headers. This confirms configuration, not durable event ingestion or totals.
 
-INS-134's traffic attribution changes are proposed, not deployed. Current production still uses the event-only schema until the owner completes the Worker-first rollout below. This task must not deploy the Worker, merge the PR or publish the static site.
+INS-134 is merged into main at `cb0a780`; its owner-managed Worker-first deployment and legacy-ingestion verification were completed before this static release integration. Read-only deployment metadata on 16 October identifies collector deployment `e603eb9c-4e54-44e7-9fe2-f135b671ced9`, version `972166e3-b994-4508-9593-3c8bd39e2bbb`. INS-146 preserves the existing Worker/configuration and does not redeploy it. The rollout sequence below is the historical order/reference for a future separately authorized collector change, not a prerequisite to repeat for WhatsAppScope.
 
 Production builds compile `NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events` by default using the existing production/preview environment detection. Preview and local builds remain disabled unless a valid same-origin endpoint is explicitly configured. `NEXT_PUBLIC_ANALYTICS_ENDPOINT=off` disables delivery even in production; a preserved explicit empty value also disables it. Rebuild after changing public variables. Check `out/privacy/index.html` and the deployed Privacy paragraph's `data-analytics-endpoint`; runtime Worker variables cannot change the static client.
 
@@ -112,6 +161,6 @@ A configuration probe can POST `{"event":"readiness_probe"}` to `/api/events` wi
 - One JSON capture and one HTML capture have been audited locally; a repeated historical export series and alternate formats remain evidence gaps. See [archive support](archive-support.md).
 - Test physical iPhone/Android devices and Safari; mobile Chromium/WebKit emulation does not establish physical-device behavior.
 - Production domain, HTTPS redirect, canonicals, robots and sitemap now pass the dated live checks. Search Console verification/submission and actual indexing require separate evidence.
-- Keep analytics payloads limited to the allowlisted event and bounded source/webdriver hints. Complete the owner-only Worker-first rollout before publishing that client; use the non-writing readiness probe for configuration and inspect genuine product actions privately when checking ingestion.
+- Keep analytics payloads limited to the allowlisted event and bounded source/webdriver hints. Preserve the already-deployed backward-compatible collector; use the non-writing readiness probe for configuration and inspect genuine product actions privately when checking ingestion. No collector redeployment is part of the static WhatsAppScope release.
 - Public-photo health is ready, but upstream availability and provider limits can change. Recheck when changing that service; no account/plan change is part of this parking task.
 - Further feature/growth work is deferred as described in [current progress](roadmap-progress.md).

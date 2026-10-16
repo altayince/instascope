@@ -8,6 +8,100 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 146,
+    title: "Integrate WhatsAppScope production release",
+    summary:
+      "The release combines the current Instagram production app and its bounded document-entry analytics with WhatsAppScope's local tools and platform switcher. Production builds include WhatsApp while keeping it noindex and outside the sitemap. Release previews and privacy tests preserve the approved analytics envelope; deployment remains owner-managed.",
+  },
+  ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
+    ? [
+        {
+          issue: 144,
+          title: "Prepare WhatsAppScope production release gate",
+          summary:
+            "A reviewed repository release state retains WhatsApp tools and the platform switcher in intentional production builds, while WhatsApp stays noindex and outside the sitemap. Preview and unknown-context protections remain. An optional production smoke and owner release/rollback checklist prepare the later launch; this change does not deploy it.",
+        },
+        {
+          issue: 142,
+          title: "Harden WhatsAppScope release paths",
+          summary:
+            "Pending imports no longer redirect after leaving their page. PNG download failures offer a safe retry, Vault backup operations announce progress, and empty filtered coverage stays unavailable. Cloudflare non-main branch previews reuse the enabled development build, with the existing main gate and pruning preserved. An owner-run release checklist keeps launch separate. Preview only; production remains Instagram-only.",
+        },
+        {
+          issue: 140,
+          title: "Polish WhatsAppScope group mode",
+          summary:
+            "Group message counts now keep source-order ties explicit across paginated rankings. Anonymous Wrapped timing cards disclose qualifying labels outside the displayed rows. Synthetic small and large groups verify full-population totals, local Vault backups and factual comparison without identity or joined/left inference. Preview only; pair mode and PNG/ZIP exports are preserved.",
+        },
+        {
+          issue: 138,
+          title: "Add WhatsApp Snapshot Compare and Conversation Pulse",
+          summary:
+            "Deliberately compare two locally saved full-export aggregates, with coverage and compatibility limits, normalized activity/media shares and a small deterministic Conversation Pulse. No period inference, conversation fingerprint, raw chat storage or new analytics. Preview only; Chat Vault V1 backups remain unchanged. Individual Wrapped PNG downloads and sharing no longer wait for background encoding; full-deck ZIP exports are preserved.",
+        },
+        {
+          issue: 136,
+          title: "Build privacy-safe WhatsApp Chat Vault",
+          summary:
+            "Explicitly save full-export aggregate snapshots locally, without message text, participant identity or chat fingerprints. Browse and delete snapshots, export a strict JSON backup, and preview before confirming an atomic import. Unreadable entries and unavailable storage are handled safely. Preview only; comparison remains a separate next task.",
+        },
+        {
+          issue: 132,
+          title: "Upgrade WhatsApp Wrapped with Analyzer V2 stories",
+          summary:
+            "Preview-only Wrapped turns full-export facts into varied anonymous story cards, with evidence rules and local single-card or full-deck PNG downloads. Optional message-derived words stay off until explicitly enabled. Preview and export share one renderer; no chat data is uploaded or persisted.",
+        },
+        {
+          issue: 130,
+          title: "Add WhatsApp message patterns and local content analysis",
+          summary:
+            "Preview-only Chat Analyzer adds selected-message runs, rolling recorded ten-minute bursts, literal question marks, text lengths, media and emoji leaderboards, and local word frequencies. Date and participant filters apply without reparsing; comparison evidence, calculation rules and unavailable states remain explicit. No chat content leaves the browser, and Wrapped stays unchanged.",
+        },
+        {
+          issue: 128,
+          title: "Add WhatsApp recorded conversation rhythm and dynamics",
+          summary:
+            "Preview-only Chat Analyzer describes recorded sessions, session starters, six-hour gaps and next-sender transition timing with medians, distributions and rapid transitions. Date filters recompute locally; conversation-relative dynamics are unavailable with one participant selected. No reply, read-time or relationship inference is added.",
+        },
+        {
+          issue: 126,
+          title: "Add WhatsApp Analyzer filters and recorded activity heatmap",
+          summary:
+            "Preview-only Chat Analyzer filters by recorded year, month, inclusive date range and exported participant label. Existing charts and facts recompute locally; a weekday/hour heatmap exposes exact counts. Source coverage and Wrapped remain unfiltered, and senderless events are never assigned to a participant.",
+        },
+        {
+          issue: 122,
+          title: "Match dev product visuals to current main",
+          summary:
+            "Development previews reuse the current main stylesheet and header geometry. Only the top-left platform identity opens the switcher; WhatsAppScope uses the same controls, surfaces and story palettes. Independent main/dev screenshot and computed-style comparisons guard desktop and mobile parity.",
+        },
+        {
+          issue: 120,
+          title: "Support verified WhatsApp exports and add Chat Export Doctor",
+          summary:
+            "Preview-only WhatsAppScope checks export structure locally before explicit format confirmation, supports verified two-digit years and German record markers, and shows factual source coverage without message samples. Ambiguous dates require a choice; archive safety limits and production isolation stay intact.",
+        },
+        {
+          issue: 118,
+          title: "Restore the shared original InstaScope visual theme",
+          summary:
+            "Instagram and WhatsAppScope share the original InstaScope colors and controls again. Platform identity and navigation remain distinct; local analysis, share cards and development-only release protection are preserved.",
+        },
+        {
+          issue: 116,
+          title: "Add Cloudflare Worker Previews configuration",
+          summary:
+            "Development previews have a dedicated static-site configuration, separate from the production photo and analytics services. No production routes or service bindings are added.",
+        },
+        {
+          issue: 114,
+          title: "Build dev-only WhatsAppScope product foundation",
+          summary:
+            "Preview-only WhatsAppScope adds local chat TXT/ZIP analysis and factual shareable cards, with a distinct green identity in the shared product family. An explicit release gate keeps its routes and platform switcher out of production; Instagram tools remain unchanged.",
+        },
+      ]
+    : []),
+  {
     issue: 134,
     title: "Audit production traffic with private coarse attribution",
     summary:
@@ -346,7 +440,9 @@ const changes = [
     summary:
       "Local ZIP, JSON and HTML analysis; searchable relationships; manual Cleaner review lists; snapshot comparison; Wrapped image export; dedicated tool pages and isolated public-photo integration.",
   },
-].slice(0, 10);
+]
+  .sort((left, right) => right.issue - left.issue)
+  .slice(0, 10);
 export default function Changelog() {
   return (
     <main id="main" className="prose">

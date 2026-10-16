@@ -2,7 +2,7 @@ name: PR Policy
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, assigned, unassigned, ready_for_review]
-    branches: [main]
+    branches: [main, dev]
 permissions:
   contents: read
   issues: read
@@ -17,6 +17,8 @@ jobs:
             const branch = context.payload.pull_request.head.ref;
             const match = branch.match(/^(feature|bugfix)\/INS-(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*$/);
             if (!match) return core.setFailed('Use feature/INS-<issue>-description or bugfix/INS-<issue>-description.');
+            if (branch.includes('whatsappscope') && context.payload.pull_request.base.ref !== 'dev')
+              return core.setFailed('Unreleased WhatsAppScope work must target dev.');
             const { data: issue } = await github.rest.issues.get({ ...context.repo, issue_number: Number(match[2]) });
             if (issue.pull_request || issue.state !== 'open') core.setFailed('The branch must reference an open task issue.');
   validate-ownership:

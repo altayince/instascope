@@ -9,6 +9,20 @@ physical mobile/Safari and a repeated historical series remain unverified.
 
 ## Historical baseline and issue records
 
+INS-114 WhatsAppScope foundation (dev-only, not deployed): the full existing
+Instagram browser suite passed along with production route-isolation checks
+(440 passing tests). Enabled preview coverage exercises 11 WhatsApp flows on
+desktop/mobile Chromium and iPhone WebKit emulation (33 passing tests): native
+switching and hydration, TXT/ZIP import and recovery, factual clock precision,
+bounded charts, replacement/cancellation, data isolation and anonymous portrait
+PNG/native share behavior. Typecheck, lint, unit tests and both build modes were
+validated. Production output preserves all 35 existing route metadata records,
+31 sitemap URLs and existing crawl rules; the WhatsApp route tree is removed.
+Desktop/mobile screenshots and fictional 1080 × 1920 cards were reviewed locally
+under ignored `.tools/whatsapp-review`. No genuine WhatsApp export or physical
+mobile device was supplied; support claims remain limited to documented synthetic
+format contracts. No main merge, production deployment or Cloudflare change.
+
 Initial local validation on Windows, Node 24.21.0:
 
 - TypeScript: passed.
