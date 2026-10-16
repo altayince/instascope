@@ -47,6 +47,8 @@ compares independent production and preview builds of the proposed design,
 including the complete shell, with explicit dark-theme, contrast and viewport
 checks on desktop, Pixel and iPhone WebKit. This does not authorize a merge or
 deployment or change the routing for unreleased product work.
+Both visual builds use the same explicit optional-service settings so factual
+deployment-specific privacy copy remains comparable without masking it.
 
 The ownership workflow reads private Project metadata using `INS_PROJECT_TOKEN`. This repository secret needs repo and Project read access. Never print or commit the credential. The job must never check out PR code or run scripts from it.
 

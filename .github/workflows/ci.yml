@@ -106,6 +106,8 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
+          NEXT_PUBLIC_PROFILE_ENDPOINT: ''
+          NEXT_PUBLIC_ANALYTICS_ENDPOINT: ''
       - run: npx playwright test --config playwright.main-visual.config.ts
         env:
           MAIN_VISUAL_REFERENCE_DIR: ${{ github.workspace }}/.tools/main-design-reference

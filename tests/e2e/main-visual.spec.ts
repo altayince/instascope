@@ -86,6 +86,9 @@ async function artifact(
 }
 
 async function ready(page: Page) {
+  // WebKit can defer style resolution in a background tab until it paints.
+  // Force that paint before inspecting styles, without masking any content.
+  await page.screenshot({ scale: "css", animations: "disabled", caret: "hide" });
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
     "rgb(9, 11, 10)",
