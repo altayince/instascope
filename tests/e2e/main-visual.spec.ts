@@ -284,12 +284,31 @@ test.describe("unified dark production and preview design", () => {
     page,
     context,
     baseURL,
+    isMobile,
   }, info) => {
     const reference = await context.newPage();
+    if (!isMobile) {
+      await Promise.all(
+        [page, reference].map((item) =>
+          item.setViewportSize({ width: 1920, height: 1080 }),
+        ),
+      );
+    }
     await Promise.all([
       open(reference, mainUrl, "/", "landing"),
       open(page, baseURL!, "/", "landing"),
     ]);
+    for (const item of [page, reference]) {
+      const box = (await item.locator(".site-header").boundingBox())!;
+      expect(box.x).toBeCloseTo(
+        Math.max(0, (item.viewportSize()!.width - box.width) / 2),
+        1,
+      );
+      await expect(item.locator(".site-header")).toHaveCSS(
+        "border-bottom-width",
+        "1px",
+      );
+    }
     const targets = [
       ".hero-actions .primary",
       ".hero-actions .secondary",
