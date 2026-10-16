@@ -15,7 +15,7 @@ Continue to follow [WORKFLOW.md](../WORKFLOW.md) for any resumed work.
 | M10: manual review | Broader Cleaner review, persistent local Review Memory and Watch Circle (INS-100), without automatic Instagram actions. |
 | M11: archive health | Export Doctor reports factual source/date coverage and optional-list states (INS-106/108), without asserting export completeness. |
 | M12–M13: local snapshots/history | IndexedDB Vault with private backups (INS-90), observed account history and recorded mutual origins (INS-94/96), plus Circle Pulse (INS-102). Saved points are observations, not continuous history. |
-| M14: aggregate analytics | INS-110 / merged PR #111 (`840df99`) implements first-party event-name-only analytics. The owner confirms it is deployed; the live non-writing probe below verifies configuration. |
+| M14: aggregate analytics | INS-110 / merged PR #111 (`840df99`) implements first-party event-name-only analytics. The owner confirms it is deployed; the live non-writing probe below verifies configuration. INS-134 proposes bounded traffic attribution and document-entry counts; it remains undeployed pending the [owner-only Worker-first rollout](ANALYTICS.md#production-deployment-and-preview-isolation). |
 | M15: indexing preparation | Production canonicals, robots, sitemap and public metadata are implemented. The live checks below confirm the previously blocked public crawling configuration. Search Console ownership/submission and actual indexing are separate external actions. |
 | M16 (partial): existing trust surfaces | Privacy page, independent-tool disclosure and a public GitHub reporting form are present. Additional About/Contact/Terms pages are deferred. |
 

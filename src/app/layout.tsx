@@ -3,6 +3,7 @@ import { siteUrl, isIndexable } from "@/lib/site";
 import { PlatformShell } from "@/components/platform-shell";
 import { DataProvider } from "@/components/data-provider";
 import { ReviewMemoryProvider } from "@/components/review-memory-provider";
+import { AnalyticsInitializer } from "@/components/analytics-initializer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <AnalyticsInitializer />
         <DataProvider>
           <ReviewMemoryProvider>
             <PlatformShell>{children}</PlatformShell>

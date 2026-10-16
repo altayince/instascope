@@ -1,4 +1,11 @@
-import { isProductEvent } from "../src/lib/analytics-events";
+import {
+  isTrafficSource,
+  isWebdriverHint,
+  type TrafficSource,
+  type WebdriverHint,
+} from "../src/lib/analytics-context";
+import { isProductEvent, type ProductEvent } from "../src/lib/analytics-events";
+import { classifyUserAgent } from "./analytics-ua";
 
 export type AnalyticsEnv = {
   EVENTS?: {
@@ -9,6 +16,56 @@ export type AnalyticsEnv = {
   };
 };
 const maximumBodyBytes = 100;
+type Envelope = {
+  event: ProductEvent;
+  source: TrafficSource | "legacy";
+  webdriver: WebdriverHint | "legacy";
+};
+
+function parseEnvelope(text: string): Envelope | undefined {
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    return;
+  }
+  if (value === null || typeof value !== "object" || Array.isArray(value))
+    return;
+  const fields = value as Record<string, unknown>;
+  // Replace complete JSON strings before checking the original flat shape:
+  // JSON.parse could otherwise hide a nested value overwritten by a duplicate.
+  const tokens: string[] = [];
+  const structure = text.replace(/"(?:\\.|[^"\\])*"/g, (token) => {
+    tokens.push(token);
+    return "s";
+  });
+  if (!/^\s*\{\s*s\s*:\s*s(?:\s*,\s*s\s*:\s*s)*\s*\}\s*$/.test(structure))
+    return;
+  // The validated shape has alternating key/value string tokens. Decode keys
+  // before rejecting duplicates, including escaped aliases like "ev\u0065nt".
+  const rawKeys = tokens
+    .filter((_, index) => index % 2 === 0)
+    .map((key) => JSON.parse(key) as string);
+  if (new Set(rawKeys).size !== rawKeys.length) return;
+  const keys = Object.keys(fields);
+  if (!isProductEvent(fields.event)) return;
+  if (keys.length === 1 && keys[0] === "event")
+    return { event: fields.event, source: "legacy", webdriver: "legacy" };
+  if (
+    keys.length === 3 &&
+    keys.every(
+      (key) => key === "event" || key === "source" || key === "webdriver",
+    ) &&
+    isTrafficSource(fields.source) &&
+    isWebdriverHint(fields.webdriver)
+  )
+    return {
+      event: fields.event,
+      source: fields.source,
+      webdriver: fields.webdriver,
+    };
+}
+
 const reply = (status: number) =>
   new Response(null, {
     status,
@@ -100,18 +157,19 @@ export async function handleAnalytics(
   } finally {
     reader.releaseLock();
   }
-  try {
-    JSON.parse(text);
-  } catch {
-    return reply(400);
-  }
-  // A narrow JSON envelope also rejects duplicate raw "event" keys, which
-  // JSON.parse alone would silently collapse. The client emits plain ASCII names.
-  const match = /^\s*\{\s*"event"\s*:\s*"([a-z_]+)"\s*\}\s*$/.exec(text);
-  if (!match || !isProductEvent(match[1])) return reply(400);
+  const envelope = parseEnvelope(text);
+  if (!envelope) return reply(400);
   try {
     // No index, request metadata, account data, or identifier is persisted.
-    env.EVENTS.writeDataPoint({ blobs: [match[1]], doubles: [1] });
+    env.EVENTS.writeDataPoint({
+      blobs: [
+        envelope.event,
+        envelope.source,
+        envelope.webdriver,
+        classifyUserAgent(request.headers.get("User-Agent")),
+      ],
+      doubles: [1],
+    });
     return reply(204);
   } catch {
     return reply(503);
