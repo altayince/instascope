@@ -200,8 +200,8 @@ does not infer a timezone, UTC event time, daylight-saving adjustment or online
 presence. Conversation-rhythm definitions below extend this filtered view;
 Message Patterns & Content below extends the same selected view. Wrapped V2
 uses the full source instead, as documented below. Chat Vault also saves the full
-source's approved aggregates. Snapshot Compare, Conversation Pulse and awards
-remain deferred.
+source's approved aggregates. Snapshot Compare and Conversation Pulse consume
+those saved aggregates separately below; awards remain deferred.
 
 ## Analyzer V2 Part 2: recorded rhythm and dynamics
 
@@ -433,8 +433,61 @@ records and enables recovery. Storage errors leave analysis usable.
 
 Everything stays on this browser/device. Clearing site data may remove snapshots;
 backup is manual, local and not a cloud copy. Even anonymous aggregate counts and
-dates may be personal, so keep downloaded files private. Snapshot Compare,
-Conversation Pulse, history charts and product release remain separate work.
+dates may be personal, so keep downloaded files private. History charts and
+product release remain separate work.
+
+## Snapshot Compare / Conversation Pulse (INS-138)
+
+Chat Vault offers two native snapshot selectors and a same-conversation
+confirmation. No association is inferred or persisted. Compare explicitly reads
+both selected records in one existing readonly storage transaction; missing,
+changed or unreadable selections and unavailable storage invalidate consent and
+results. Focus refresh also rechecks the displayed pair. Selection/results stay
+in this view's memory. Saving, deletion and V1 backup/import are unchanged.
+
+`chat-vault-compare.ts` consumes and strictly validates V1 snapshots, with no new
+parser, Analyzer, persistence schema or raw-chat dependency. Unsupported
+schema/definitions/scope, invalid aggregates and the same ID are rejected.
+Unequal recorded coverage ends determine display order; otherwise actual save
+times, then IDs, provide a stable fallback. The UI states the order basis and
+does not present an ID tie as chronology. Different starts, equal ends, disjoint
+or missing coverage, partial source support, mixed/different precision and
+conflicting save/coverage order are structured limitations, not automatic
+rejection. Even aligned coverage cannot prove equal messages or chat identity.
+
+The typed result contains exact count differences and derived recorded durations,
+session/run/text summaries and normalized distributions. Hours, weekdays and
+7×24 cells divide by each snapshot's own message count; media mix divides by
+recognized media messages, transition mix by next-sender transitions. Raw counts
+remain visible alongside shares. Share differences use percentage points; zero
+denominators and missing values stay unavailable, never fabricated zeroes.
+Overview appears first; native disclosures group activity, rhythm, media and
+message-pattern detail. Paired bars share a 0–100% scale, and the delta heatmap
+has exact textual values and a keyboard-accessible scroll region on mobile.
+
+`conversation-pulse.ts` derives at most five observations from comparison facts.
+Display rules require both usable values and meaningful absolute/relative
+differences with minimum message/session/transition/text/media evidence. Rules
+include message totals (at least 10 and 10% of the larger saved total), active
+dates, session size, longest recorded gap, transition median, text median and
+question-mark share. Distribution candidates require at least 10 percentage
+points for activity, 15 for media/transition mix and their own minimum counts.
+Candidates rank by bounded threshold exceedance, then fixed rule priority;
+declared bucket order resolves equal distribution changes. At most one
+activity-timing and one transition-timing theme is shown.
+Every item exposes its metric key, earlier/later values, delta, classification
+and threshold explanation. These are deterministic noise/display thresholds,
+not statistical significance, confidence or relationship scoring. No meaningful
+change produces an explicit empty Pulse rather than manufactured observations.
+
+All copy describes differences between saved **full-export aggregates**. V1 has
+no message membership, so subtraction cannot identify messages sent between
+snapshots, a new month, replies, causes or relationship changes. Recorded clocks
+have no inferred timezone. Participant counts are exported-label counts only;
+no identity, who-joined/left or responsiveness inference is possible. There are
+no LLM/API calls, comparison analytics events, fingerprints or stored pairings.
+WhatsApp remains preview-only and absent from production output. Group Mode
+polish is the next product increment; release and SEO remain separate work.
 
 ## Validation commands
 

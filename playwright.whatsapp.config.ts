@@ -11,6 +11,7 @@ export default defineConfig({
     "**/whatsapp-content.spec.ts",
     "**/whatsapp-wrapped-v2.spec.ts",
     "**/whatsapp-chat-vault.spec.ts",
+    "**/whatsapp-chat-compare.spec.ts",
   ],
   outputDir: "test-results/whatsapp",
   projects: [

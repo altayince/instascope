@@ -173,6 +173,7 @@ function StoryGraphicText({ story }: { story: WhatsAppStory }) {
   }
 }
 
+/** Keep asynchronous Blob encoding for sequential full-deck ZIP generation. */
 function encodePng(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     try {
@@ -236,6 +237,8 @@ export function WhatsAppWrapped({
 
   // Preview and download share one bitmap. Prepare a File before the tap so
   // navigator.share retains the device's transient user activation.
+  // Like Instagram Wrapped, encode individual cards eagerly rather than wait
+  // for the asynchronous canvas Blob callback to make the controls ready.
   useEffect(() => {
     let cancelled = false;
     if (!story) return;
@@ -248,26 +251,19 @@ export function WhatsAppWrapped({
           throw new Error("Words not enabled");
         drawWhatsAppStory(canvas, story, demo);
         setPaintedStory(story);
-        void encodePng(canvas)
-          .then((blob) => {
-            if (cancelled) return;
-            setPrepared({
-              story,
-              file: new File(
-                [blob],
-                `whatsappscope-${demo ? "demo-" : ""}${story.id}.png`,
-                { type: "image/png" },
-              ),
-            });
-          })
-          .catch(() => {
-            if (!cancelled)
-              setPrepared({
-                story,
-                error:
-                  "PNG export is unavailable in this browser. Your cards remain readable here.",
-              });
-          });
+        const encoded = canvas.toDataURL("image/png").split(",")[1];
+        if (!encoded) throw new Error("PNG encoding unavailable");
+        const bytes = Uint8Array.from(atob(encoded), (character) =>
+          character.charCodeAt(0),
+        );
+        setPrepared({
+          story,
+          file: new File(
+            [bytes],
+            `whatsappscope-${demo ? "demo-" : ""}${story.id}.png`,
+            { type: "image/png" },
+          ),
+        });
       } catch {
         setPrepared({
           story,
