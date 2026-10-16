@@ -20,21 +20,38 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-async function navigate(page: Page, name: string) {
+async function navigate(
+  page: Page,
+  name: "Wrapped" | "Chat Analyzer" | "Chat Vault",
+) {
+  const destination = {
+    Wrapped: { path: "/whatsapp/wrapped/", mode: "wrapped" },
+    "Chat Analyzer": { path: "/whatsapp/chat-analyzer/", mode: "analyzer" },
+    "Chat Vault": { path: "/whatsapp/chat-vault/", mode: "vault" },
+  }[name];
   await page
     .getByRole("navigation", { name: "Main navigation", exact: true })
     .getByRole("link", { name, exact: true })
     .click();
+  await expect(page).toHaveURL(new URL(destination.path, page.url()).href);
+  await expect(page.locator("main[data-whatsapp-mode]")).toHaveAttribute(
+    "data-whatsapp-mode",
+    destination.mode,
+  );
 }
 
 async function acceptGroup(page: Page, participants: number, days = 3) {
-  await page
-    .getByLabel("Upload WhatsApp chat export", { exact: true })
-    .setInputFiles({
-      name: "synthetic-group.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from(syntheticGroupChat(participants, days)),
-    });
+  await expect(page.locator("main[data-whatsapp-mode]")).toHaveAttribute(
+    "data-whatsapp-mode",
+    "analyzer",
+  );
+  const input = page.getByLabel("Upload WhatsApp chat export", { exact: true });
+  await expect(input).toBeEnabled();
+  await input.setInputFiles({
+    name: "synthetic-group.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from(syntheticGroupChat(participants, days)),
+  });
   await expect(
     page.getByRole("region", { name: "Detected export format", exact: true }),
   ).toBeVisible();
