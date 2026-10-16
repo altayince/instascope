@@ -13,7 +13,7 @@ const changes = [
           issue: 138,
           title: "Add WhatsApp Snapshot Compare and Conversation Pulse",
           summary:
-            "Deliberately compare two locally saved full-export aggregates, with coverage and compatibility limits, normalized activity/media shares and a small deterministic Conversation Pulse. No period inference, conversation fingerprint, raw chat storage or new analytics. Preview only; Chat Vault V1 backups remain unchanged.",
+            "Deliberately compare two locally saved full-export aggregates, with coverage and compatibility limits, normalized activity/media shares and a small deterministic Conversation Pulse. No period inference, conversation fingerprint, raw chat storage or new analytics. Preview only; Chat Vault V1 backups remain unchanged. Individual Wrapped PNG downloads and sharing no longer wait for background encoding; full-deck ZIP exports are preserved.",
         },
         {
           issue: 136,

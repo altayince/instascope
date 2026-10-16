@@ -469,6 +469,81 @@ test.describe("WhatsApp Wrapped V2", () => {
     await fits(page);
   });
 
+  test("individual PNG readiness does not wait for Blob callbacks and rapid card changes keep the current PNG", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.assign(window, { individualWrappedBlobCalls: 0 });
+      // Deliberately never invoke a callback. Individual preparation must not
+      // enter this boundary at all; the separate ZIP encoder is not used here.
+      HTMLCanvasElement.prototype.toBlob = function () {
+        const probe = window as unknown as {
+          individualWrappedBlobCalls: number;
+        };
+        probe.individualWrappedBlobCalls++;
+      };
+    });
+    await page.goto("/whatsapp/wrapped/");
+    await acceptChat(page);
+    await expect(canvas(page)).toHaveAttribute("width", "1080");
+    await expect(canvas(page)).toHaveAttribute("height", "1920");
+    await expect(canvas(page)).toBeVisible();
+    await ready(page);
+
+    async function downloadCurrent(id: string) {
+      await expect(slide(page)).toHaveAttribute("data-story-id", id);
+      await ready(page);
+      const expected = await previewBytes(page);
+      assertPng(expected);
+      const received = page.waitForEvent("download");
+      await downloadButton(page).click();
+      const downloaded = await received;
+      expect(downloaded.suggestedFilename()).toBe(`whatsappscope-${id}.png`);
+      const actual = await readFile((await downloaded.path())!);
+      assertPng(actual);
+      await assertArtworkMatches(actual, expected);
+      expect(
+        await page.evaluate(
+          () =>
+            (
+              window as unknown as {
+                individualWrappedBlobCalls: number;
+              }
+            ).individualWrappedBlobCalls,
+        ),
+      ).toBe(0);
+      return actual;
+    }
+
+    const opening = await downloadCurrent("conversation");
+    // Native clicks in one browser task leave earlier prepared state present
+    // while multiple selected-card updates are requested. Only the final card
+    // may supply the downloadable File; no sleeps or encoding callbacks help it.
+    await picker(page).evaluate((element) => {
+      const buttons = element.querySelectorAll<HTMLButtonElement>("button");
+      buttons[1].click();
+      buttons[2].click();
+      buttons[3].click();
+    });
+    const hour = await downloadCurrent("busiest-hour");
+    expect(hour.equals(opening)).toBe(false);
+    await picker(page).evaluate((element) => {
+      const buttons = element.querySelectorAll<HTMLButtonElement>("button");
+      buttons[0].click();
+      buttons[2].click();
+      buttons[1].click();
+    });
+    const participants = await downloadCurrent("participant-counts");
+    expect(participants.equals(opening)).toBe(false);
+    expect(participants.equals(hour)).toBe(false);
+    await expect(slide(page)).not.toContainText(forbidden);
+    expect((await metrics(page)).drawn.join("\n")).not.toMatch(forbidden);
+    expect((await metrics(page)).drawn.join("\n")).not.toMatch(
+      /orchard|meadow/i,
+    );
+    await fits(page);
+  });
+
   test("full deck exports one local ZIP with every portrait PNG, progress and locked duplicate actions", async ({
     page,
   }) => {
@@ -794,7 +869,13 @@ test.describe("WhatsApp Wrapped V2", () => {
         if (failure === "context")
           HTMLCanvasElement.prototype.getContext = (() =>
             null) as typeof HTMLCanvasElement.prototype.getContext;
-        else HTMLCanvasElement.prototype.toBlob = (callback) => callback(null);
+        else
+          HTMLCanvasElement.prototype.toDataURL = () => {
+            throw new DOMException(
+              "Synthetic PNG encoding failure",
+              "SecurityError",
+            );
+          };
       }, failure);
       await choices(page).nth(1).click();
       await expect(status(page)).toContainText(/unavailable|could not|cannot/i);
