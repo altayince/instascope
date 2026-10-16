@@ -11,6 +11,10 @@ import {
   CONVERSATION_PULSE_THRESHOLDS,
   deriveConversationPulse,
 } from "../../src/lib/whatsapp/conversation-pulse";
+import {
+  groupPrivateMarker,
+  syntheticGroupChat,
+} from "../helpers/whatsapp-group";
 
 const ids = [
   "11111111-1111-4111-8111-111111111111",
@@ -92,6 +96,38 @@ function distribution(
 }
 
 describe("Conversation Pulse factual summary", () => {
+  it.each([3, 8, 24])(
+    "describes %i-label group differences without a joined/left or pair relationship claim",
+    (participants) => {
+      const result = compareChatVaultSnapshots(
+        createChatVaultSnapshot(
+          parseWhatsApp(syntheticGroupChat(participants), "dmy-24h"),
+          { id: ids[0], createdAt: 1 },
+        ),
+        createChatVaultSnapshot(
+          parseWhatsApp(syntheticGroupChat(participants + 1, 4), "dmy-24h"),
+          { id: ids[1], createdAt: 2 },
+        ),
+      );
+      expect(result.ok).toBe(true);
+      const original = structuredClone(result);
+      const pulse = deriveConversationPulse(result);
+      expect(
+        pulse.items.find((item) => item.metricKey === "totals.messages"),
+      ).toMatchObject({
+        earlier: participants * 6,
+        later: (participants + 1) * 8,
+      });
+      for (const item of pulse.items)
+        expect(item.summary).toContain("full-export snapshot");
+      expect(JSON.stringify(pulse)).not.toContain(groupPrivateMarker);
+      expect(JSON.stringify(pulse)).not.toMatch(
+        /joined|left|group leader|popularity|influence|compatibility score|likes? you|relationship strength|participantId/i,
+      );
+      expect(result).toEqual(original);
+    },
+  );
+
   it("has no cards for identical saved aggregate facts", () => {
     const result = deriveConversationPulse(comparison());
     expect(result.items).toEqual([]);

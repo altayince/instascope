@@ -486,8 +486,33 @@ snapshots, a new month, replies, causes or relationship changes. Recorded clocks
 have no inferred timezone. Participant counts are exported-label counts only;
 no identity, who-joined/left or responsiveness inference is possible. There are
 no LLM/API calls, comparison analytics events, fingerprints or stored pairings.
-WhatsApp remains preview-only and absent from production output. Group Mode
-polish is the next product increment; release and SEO remain separate work.
+WhatsApp remains preview-only and absent from production output. Release
+hardening is the next task; release and SEO remain separate work.
+
+## Group presentation (INS-140)
+
+Three or more exported labels use group presentation, not verified group
+membership or identity. Analyzer message rows sort by descending count; equal
+group counts retain accepted source-label order and display the same count
+rank. Tie counts include labels on every page. Eight rows are shown at a time,
+with the displayed range and additional-label count explicit; all rows remain
+reachable. Shares still divide by all selected participant messages, including
+off-page labels. Rounded displayed shares may not add to exactly 100%.
+
+Wrapped count rankings retain their existing four-label cap, full-population
+totals and maximum ties. Next-message timing cards now also disclose qualifying
+labels outside their four displayed rows, in both accessible text and PNG.
+Aliases remain anonymous; timing is recorded adjacency, never proof of replies.
+Individual PNG preparation retains the eager draw/toDataURL/File path; the
+separate full-deck ZIP encoder still produces Blobs asynchronously.
+
+Synthetic 3-, 8- and 24-label groups cover ties, pagination, whole-population
+denominators, equal-clock transitions and group-local content. Group Vault
+saves and backups keep the unchanged V1 aggregate schema, without participant
+names, IDs, aliases or conversation identity. Explicit comparison uses the
+same compatibility rules and describes participant-count differences only;
+it cannot identify anyone joining or leaving. Pair presentation, parser,
+Doctor, Rhythm, Content, Vault and Compare/Pulse definitions are unchanged.
 
 ## Validation commands
 

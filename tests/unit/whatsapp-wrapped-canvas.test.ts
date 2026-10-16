@@ -4,7 +4,11 @@ import {
   WHATSAPP_STORY_HEIGHT,
   WHATSAPP_STORY_WIDTH,
 } from "../../src/components/whatsapp/wrapped-canvas";
-import { analyzeWhatsApp, createWhatsAppDemo } from "../../src/lib/whatsapp";
+import {
+  analyzeWhatsApp,
+  createWhatsAppDemo,
+  parseWhatsApp,
+} from "../../src/lib/whatsapp";
 import { buildWhatsAppStories } from "../../src/lib/whatsapp/stories";
 import type {
   WhatsAppStory,
@@ -294,6 +298,7 @@ function allKinds(): WhatsAppStory[] {
           entry("Participant 4", 2),
         ],
         transitionCount: 15,
+        hiddenParticipants: 0,
         rapidCount: 3,
         rapidShare: 0.2,
       },
@@ -378,6 +383,46 @@ function assertReadableBounds(rendered: ReturnType<typeof recordingCanvas>) {
 afterEach(() => vi.restoreAllMocks());
 
 describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
+  it.each([3, 8, 24])(
+    "renders %i-label group rankings and timing remainders with complete anonymous text",
+    (participants) => {
+      let clock = Date.UTC(2026, 0, 1, 9);
+      const lines = Array.from({ length: participants * 6 }, (_, index) => {
+        if (index) clock += index % participants === 0 ? 21600000 : 60000;
+        const timestamp = new Date(clock)
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", ", ");
+        return `${timestamp} - PRIVATE_GROUP_LABEL_${index % participants}: PRIVATE_CONTENT`;
+      });
+      const dataset = parseWhatsApp(lines.join("\n"), "ymd-24h");
+      const stories = buildWhatsAppStories(analyzeWhatsApp(dataset), dataset);
+      for (const story of stories) {
+        const rendered = recordingCanvas();
+        drawWhatsAppStory(rendered.canvas, story, false);
+        assertReadableBounds(rendered);
+        expect(rendered.canvas.width).toBe(1080);
+        expect(rendered.canvas.height).toBe(1920);
+        const text = rendered.texts.map((draw) => draw.text).join(" ");
+        expect(text).not.toMatch(/PRIVATE_GROUP_LABEL|PRIVATE_CONTENT|winner/i);
+        if (story.kind === "ranking" && participants > 4) {
+          expect(text).toContain(
+            `Top 4 shown; ${participants - 4} additional labels not displayed.`,
+          );
+          expect(text).toContain(
+            `${story.data.total} ${story.data.unit} in total.`,
+          );
+        }
+        if (story.kind === "rhythm" && participants > 4) {
+          expect(text).toContain(story.note);
+          expect(text).toContain(
+            `4 of ${participants} qualifying labels shown; ${participants - 4} not displayed.`,
+          );
+        }
+      }
+    },
+  );
+
   it.each(allKinds().map((story) => [story.kind, story] as const))(
     "renders %s at 1080 × 1920 within the safe text area",
     (_kind, story) => {

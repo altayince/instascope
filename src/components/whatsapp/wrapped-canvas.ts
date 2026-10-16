@@ -367,9 +367,16 @@ function drawRanking(
     ctx.fillStyle = theme.ink;
     paragraph(
       ctx,
-      `${numberFormat.format(story.data.hiddenParticipants)} more participants`,
-      { x: 80, y: 1415, width: 920, height: 53 },
-      29,
+      `Top ${numberFormat.format(story.data.entries.length)} shown; ${numberFormat.format(story.data.hiddenParticipants)} additional labels not displayed.`,
+      { x: 80, y: 1415, width: 920, height: 40 },
+      27,
+      24,
+    );
+    paragraph(
+      ctx,
+      `${numberFormat.format(story.data.total)} ${story.data.unit} in total.`,
+      { x: 80, y: 1457, width: 920, height: 31 },
+      24,
     );
   }
 }

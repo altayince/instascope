@@ -49,6 +49,14 @@ const tiedGroup = Array.from(
   (_, index) =>
     `14/06/2026, 08:${String(index).padStart(2, "0")} - Synthetic group ${index % 10} ${"LongLabel".repeat(24)}: orchard meadow`,
 ).join("\n");
+function groupChat(participants: number) {
+  return Array.from({ length: participants * 6 }, (_, index) => {
+    const day = 14 + Math.floor(index / participants);
+    const minute = String(index % participants).padStart(2, "0");
+    const label = `Synthetic group ${index % participants} ${"LongLabel".repeat(24)}`;
+    return `${day}/06/2026, 09:${minute}:00 - ${label}: orchard meadow`;
+  }).join("\n");
+}
 
 type BrowserMetrics = {
   drawn: string[];
@@ -419,7 +427,9 @@ test.describe("WhatsApp Wrapped V2", () => {
     await choices(page).filter({ hasText: "The contributors" }).click();
     await ready(page);
     await expect(slide(page)).toHaveAttribute("data-story-kind", "ranking");
-    await expect(slide(page)).toContainText(/more/);
+    await expect(slide(page)).toContainText(
+      "Top 4 shown; 6 additional labels not displayed.",
+    );
     await expect(slide(page)).not.toContainText(/Synthetic group|LongLabel/);
     const aliases =
       (await slide(page).textContent())!.match(/Participant \d+/g) ?? [];
@@ -440,6 +450,78 @@ test.describe("WhatsApp Wrapped V2", () => {
     await expect(slide(page)).toContainText(/tie|tied|share the lead/i);
     await expect(slide(page)).not.toContainText(/winner/i);
     await fits(page);
+  });
+
+  test("3, 8 and 24-label groups preserve anonymous ties, disclose timing truncation and export matching PNGs and a group deck", async ({
+    page,
+  }) => {
+    await page.goto("/whatsapp/wrapped/");
+    const groupPreviews = new Map<string, Buffer>();
+    for (const participants of [3, 8, 24]) {
+      await acceptChat(page, groupChat(participants));
+      const count = participants * 6;
+      await expect(slide(page)).toHaveAttribute("data-story-mode", "group");
+      await choices(page).filter({ hasText: "The contributors" }).click();
+      await ready(page);
+      await expect(slide(page)).toContainText(
+        `${participants} participants tie for the highest exported message count.`,
+      );
+      await expect(
+        slide(page)
+          .locator(".wa-story-facts > div")
+          .filter({ hasText: "participant labels in the export" })
+          .locator("strong"),
+      ).toHaveText(String(participants));
+      await expect(slide(page).locator(".wa-story-text > ul > li")).toHaveCount(
+        Math.min(4, participants),
+      );
+      if (participants > 4) {
+        await expect(slide(page)).toContainText(
+          `Top 4 shown; ${participants - 4} additional labels not displayed. ${count} messages in total.`,
+        );
+      }
+      await assertArtworkMatches(
+        await downloadPng(page),
+        await previewBytes(page),
+      );
+      if (participants === 24)
+        groupPreviews.set("participant-counts", await previewBytes(page));
+      await choices(page).filter({ hasText: "Next-message rhythm" }).click();
+      await ready(page);
+      await expect(slide(page)).toHaveAttribute("data-story-kind", "rhythm");
+      if (participants > 4) {
+        const remainder = `4 of ${participants} qualifying labels shown; ${participants - 4} not displayed.`;
+        await expect(slide(page)).toContainText(remainder);
+        expect((await metrics(page)).drawn.join(" ")).toContain(remainder);
+      }
+      await assertArtworkMatches(
+        await downloadPng(page),
+        await previewBytes(page),
+      );
+      if (participants === 24)
+        groupPreviews.set("next-message", await previewBytes(page));
+      await expect(slide(page)).not.toContainText(
+        /Synthetic group|LongLabel|winner|reply time|response time/i,
+      );
+      await fits(page);
+    }
+    const cards = await choices(page).count();
+    const received = page.waitForEvent("download");
+    await fullExportButton(page).click();
+    const result = await received;
+    expect(result.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+    const entries = unzipSync(await readFile((await result.path())!));
+    expect(Object.keys(entries)).toHaveLength(cards);
+    for (const [name, bytes] of Object.entries(entries)) {
+      assertPng(bytes);
+      const preview = groupPreviews.get(name.slice(3, -4));
+      if (preview)
+        await assertArtworkMatches(Buffer.from(bytes), preview, name);
+    }
+    await expect(fullExportButton(page)).toBeEnabled();
+    expect((await metrics(page)).drawn.join(" ")).not.toMatch(
+      /Synthetic group|LongLabel|orchard|meadow/i,
+    );
   });
 
   test("sparse and one-participant exports skip unsupported comparisons without inventing evidence", async ({

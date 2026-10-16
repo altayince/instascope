@@ -635,6 +635,8 @@ export function buildWhatsAppStories(
             : eligible
           ).slice(0, WHATSAPP_STORY_LIMITS.participants)
         : [];
+    const hiddenParticipants =
+      eligible.length >= 2 ? eligible.length - compared.length : 0;
     const rapidShare = rhythm.rapidTransitions / timing.count;
     stories.push({
       ...base(mode, {
@@ -655,14 +657,16 @@ export function buildWhatsAppStories(
             label: `rapid transitions (${whatsappNumber(rhythm.rapidTransitions)} of ${whatsappNumber(timing.count)})`,
           },
         ],
-        note: "This describes consecutive recorded messages. It does not identify which message was being answered.",
+        note: hiddenParticipants
+          ? `${whatsappNumber(compared.length)} of ${whatsappNumber(eligible.length)} qualifying labels shown; ${whatsappNumber(hiddenParticipants)} not displayed. Adjacent messages do not prove replies.`
+          : "This describes consecutive recorded messages. It does not identify which message was being answered.",
         theme: "forest",
         motif: "rings",
         calculation: {
           classification: "Derived",
           definition: `Measure nonnegative recorded-clock gaps between consecutive messages when the participant changes, including changes across sessions. Median, p25 and p75 use the Analyzer's linear interpolation. Rapid transition: participant change within the same defined session with delay at most ${RAPID_TRANSITION_MINUTES} minutes. Rapid share divides these transitions by every observed participant change.`,
           threshold: `At least ${WHATSAPP_STORY_EVIDENCE.transitions} observed transitions. Participant comparisons require at least two labels with ${WHATSAPP_STORY_EVIDENCE.participantTransitions} incoming transitions each. Rapid delay ≤${RAPID_TRANSITION_MINUTES} minutes within a session defined by gaps ≤${SESSION_GAP_MINUTES} minutes.`,
-          limitations: `${clockLimitations} Equal recorded timestamps can produce zero delay. No answered-message metadata or emotional interpretation is inferred. ${whatsappNumber(eligible.length)} labels qualify for timing comparison; group artwork shows at most ${WHATSAPP_STORY_LIMITS.participants}.`,
+          limitations: `${clockLimitations} Equal recorded timestamps can produce zero delay. No answered-message metadata or emotional interpretation is inferred. ${whatsappNumber(eligible.length)} labels qualify for timing comparison; group artwork shows at most ${WHATSAPP_STORY_LIMITS.participants}.${mode === "group" ? " Timing rows are ordered by incoming-transition count, then accepted participant order for ties; they are not a speed ranking." : ""}`,
         },
       }),
       kind: "rhythm",
@@ -680,6 +684,7 @@ export function buildWhatsAppStories(
           value: participant.timing.medianSeconds!,
           display: duration(participant.timing.medianSeconds),
         })),
+        hiddenParticipants,
         transitionCount: timing.count,
         rapidCount: rhythm.rapidTransitions,
         rapidShare,

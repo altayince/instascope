@@ -54,9 +54,10 @@ function StoryGraphicText({ story }: { story: WhatsAppStory }) {
           <EntryText entries={story.data.entries} />
           {story.data.hiddenParticipants > 0 && (
             <p>
-              + {whatsappNumber(story.data.hiddenParticipants)} more
-              participants. {whatsappNumber(story.data.total)} {story.data.unit}{" "}
-              in total.
+              Top {whatsappNumber(story.data.entries.length)} shown;{" "}
+              {whatsappNumber(story.data.hiddenParticipants)} additional labels
+              not displayed. {whatsappNumber(story.data.total)}{" "}
+              {story.data.unit} in total.
             </p>
           )}
           {story.data.leaderTieCount > 1 && (
