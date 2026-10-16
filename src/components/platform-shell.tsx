@@ -38,7 +38,12 @@ function PlatformFooter() {
   return (
     <footer className="platform-footer">
       <div>
-        <Link className="brand" href="/" aria-label="InstaScope home">
+        <Link
+          className="brand"
+          href="/"
+          aria-label="InstaScope home"
+          prefetch={false}
+        >
           <span className="brand-mark" aria-hidden="true">
             ◎
           </span>
@@ -47,14 +52,29 @@ function PlatformFooter() {
         <p>Your social world. A little clearer.</p>
       </div>
       <nav aria-label="Footer navigation">
-        <Link href="/">Instagram</Link>
-        {whatsappEnabled && <Link href="/whatsapp/">WhatsApp</Link>}
-        <Link href="/guides/">Guides</Link>
-        <Link href="/privacy/">Privacy</Link>
-        <Link href="/how-to-download-instagram-followers-data/">
+        <Link href="/" prefetch={false}>
+          Instagram
+        </Link>
+        {whatsappEnabled && (
+          <Link href="/whatsapp/" prefetch={false}>
+            WhatsApp
+          </Link>
+        )}
+        <Link href="/guides/" prefetch={false}>
+          Guides
+        </Link>
+        <Link href="/privacy/" prefetch={false}>
+          Privacy
+        </Link>
+        <Link
+          href="/how-to-download-instagram-followers-data/"
+          prefetch={false}
+        >
           Export guide
         </Link>
-        <Link href="/changelog/">What’s new</Link>
+        <Link href="/changelog/" prefetch={false}>
+          What’s new
+        </Link>
         <a
           href="https://github.com/altayince/instascope/issues/new?template=bug_report.yml"
           target="_blank"
