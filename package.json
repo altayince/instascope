@@ -13,7 +13,7 @@
     "dev": "next dev",
     "predev:family": "node scripts/prepare-profile-ai.mjs",
     "dev:family": "node scripts/dev-family.mjs",
-    "build": "next build --webpack && node scripts/normalize-static-segments.mjs && node scripts/prune-unreleased-platforms.mjs",
+    "build": "node scripts/build.mjs",
     "build:production": "node scripts/build-production.mjs",
     "prebuild:dev": "node scripts/prepare-profile-ai.mjs",
     "build:dev": "node scripts/build-development.mjs",

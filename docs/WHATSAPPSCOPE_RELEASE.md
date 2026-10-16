@@ -10,6 +10,12 @@ WhatsApp HTML/RSC routes and the platform switcher. Preview WhatsApp pages stay
 - Require current-head `quality`, `browser-tests`, `whatsapp-tests`,
   `main-visual-parity`, branch/ownership policy and Cloudflare branch preview
   checks to pass. Review retries separately; a retry is not a clean first pass.
+- Check the actual generated Cloudflare branch-preview URL, not just the green
+  build: all four WhatsApp routes and static assets must return 200, including
+  direct refresh. Pages stay noindex/nofollow, robots Disallow all, sitemap empty.
+  The repository's `npm run build` uses the existing development build only for
+  a recognized non-main Workers Builds context; see `deployment.md`. Main,
+  unknown-branch and ordinary builds keep the original gate/pruning behavior.
 - Run `npm run check` with `NEXT_PUBLIC_SITE_URL=https://instascope.me` for the
   indexable Instagram artifact. Verify `out/whatsapp` is absent, direct WhatsApp
   URLs return 404, the platform switcher is absent, and the production sitemap

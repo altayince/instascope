@@ -13,7 +13,7 @@ const changes = [
           issue: 142,
           title: "Harden WhatsAppScope release paths",
           summary:
-            "Pending imports no longer redirect after leaving their page. PNG download failures offer a safe retry, Vault backup operations announce progress, and empty filtered coverage stays unavailable. Synthetic recovery and navigation checks protect existing local-only behavior; an owner-run release checklist keeps launch separate. Preview only; production remains Instagram-only.",
+            "Pending imports no longer redirect after leaving their page. PNG download failures offer a safe retry, Vault backup operations announce progress, and empty filtered coverage stays unavailable. Cloudflare non-main branch previews reuse the enabled development build, with the existing main gate and pruning preserved. An owner-run release checklist keeps launch separate. Preview only; production remains Instagram-only.",
         },
         {
           issue: 140,
