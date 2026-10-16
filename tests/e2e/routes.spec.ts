@@ -61,9 +61,10 @@ test("public routes render one heading, load assets and fit mobile screens", asy
         ),
       path,
     ).toBe(false);
-    await expect(
-      page.getByRole("link", { name: "InstaScope home" }),
-    ).toBeVisible();
+    await expect(page.locator(".social-switcher summary")).toBeVisible();
+    await expect(page.locator(".social-switcher summary")).toHaveAccessibleName(
+      "Switch platform, currently Instagram",
+    );
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -154,11 +155,17 @@ test("product menus close after sibling navigation, outside clicks and Escape", 
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");
-  const home = page.getByRole("link", { name: "InstaScope home", exact: true });
+  const switcher = page.locator(".social-switcher");
+  await switcher.locator("summary").focus();
+  await switcher.locator("summary").press("Enter");
+  await expect(switcher).toHaveAttribute("open");
+  const home = switcher.getByRole("link", { name: /^Instagram/ });
+  await expect(home).toHaveAttribute("href", "/");
   await home.focus();
   await home.press("Enter");
   await expect(page).toHaveURL(new URL("/", page.url()).toString());
   await expect(menu).not.toHaveAttribute("open");
+  await expect(switcher).not.toHaveAttribute("open");
 
   await summary.click();
   await expect(menu).toHaveAttribute("open");

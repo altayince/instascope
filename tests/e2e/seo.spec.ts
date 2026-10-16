@@ -26,6 +26,9 @@ test("indexable public pages have unique metadata, truthful structured data and 
     publicPaths.map((path) => `https://instascope.me${path}`),
   );
   expect(new Set(urls).size).toBe(urls.length);
+  expect(urls).not.toEqual(
+    expect.arrayContaining([expect.stringContaining("/whatsapp/")]),
+  );
   const titles = new Set<string>(),
     descriptions = new Set<string>();
   for (const url of urls) {
@@ -81,5 +84,9 @@ test("indexable public pages have unique metadata, truthful structured data and 
   }
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toContain("Allow: /");
+  expect(robots).toMatch(/^Disallow: \/api\/$/m);
+  expect(robots).not.toMatch(/^Disallow: \/$/m);
+  // WhatsApp must remain crawlable so its page-level noindex can be read.
+  expect(robots).not.toMatch(/^Disallow: \/whatsapp(?:\/|$)/m);
   expect(robots).toContain("Sitemap: https://instascope.me/sitemap.xml");
 });

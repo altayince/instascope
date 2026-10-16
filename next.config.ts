@@ -14,15 +14,16 @@ try {
 } catch {
   /* A host without Git must supply its build branch explicitly. */
 }
+const hostContext = {
+  pages: process.env.CF_PAGES,
+  pagesBranch: process.env.CF_PAGES_BRANCH,
+  workers: process.env.WORKERS_CI,
+  workersBranch: process.env.WORKERS_CI_BRANCH,
+};
 const production = indexableDeployment(
   process.env.NEXT_PUBLIC_SITE_URL,
   process.env.NEXT_PUBLIC_PREVIEW,
-  {
-    pages: process.env.CF_PAGES,
-    pagesBranch: process.env.CF_PAGES_BRANCH,
-    workers: process.env.WORKERS_CI,
-    workersBranch: process.env.WORKERS_CI_BRANCH,
-  },
+  hostContext,
 );
 const config: NextConfig = {
   output: "export",
@@ -41,6 +42,8 @@ const config: NextConfig = {
           process.env.GITHUB_BASE_REF,
           process.env.GITHUB_REF_NAME,
         ],
+        production,
+        hostContext,
       ),
     ),
     NEXT_PUBLIC_ANALYTICS_ENDPOINT: analyticsEndpoint(

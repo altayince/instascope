@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { whatsappFeatureEnabled } from "../src/lib/platform-config.ts";
+import { indexableDeployment } from "../src/lib/site-config.ts";
 
 function currentBranch() {
   try {
@@ -24,6 +25,12 @@ export async function pruneUnreleasedPlatforms(
   directory,
   { environment = process.env, localBranch = currentBranch() } = {},
 ) {
+  const hostContext = {
+    pages: environment.CF_PAGES,
+    pagesBranch: environment.CF_PAGES_BRANCH,
+    workers: environment.WORKERS_CI,
+    workersBranch: environment.WORKERS_CI_BRANCH,
+  };
   const enabled = whatsappFeatureEnabled(
     environment.NEXT_PUBLIC_WHATSAPP_ENABLED,
     environment.NEXT_PUBLIC_PREVIEW,
@@ -34,6 +41,12 @@ export async function pruneUnreleasedPlatforms(
       environment.GITHUB_BASE_REF,
       environment.GITHUB_REF_NAME,
     ],
+    indexableDeployment(
+      environment.NEXT_PUBLIC_SITE_URL,
+      environment.NEXT_PUBLIC_PREVIEW,
+      hostContext,
+    ),
+    hostContext,
   );
   if (enabled) return false;
 

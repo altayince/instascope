@@ -24,6 +24,8 @@ async function syntheticExport() {
     ["whatsapp/index.html", "WhatsApp home"],
     ["whatsapp/chat-analyzer/index.html", "WhatsApp analyzer"],
     ["whatsapp/wrapped/index.html", "WhatsApp Wrapped"],
+    ["whatsapp/chat-vault/index.html", "WhatsApp Chat Vault"],
+    ["whatsapp/chat-vault/__next._tree.txt", "Synthetic Vault RSC"],
     ["whatsapp/__next._tree.txt", "Synthetic RSC"],
   ]) {
     const target = join(output, path);
@@ -58,6 +60,18 @@ async function expectInstagramPreserved(output: string) {
   expect(await readFile(join(output, "whatsappish/index.html"), "utf8")).toBe(
     "Unrelated route",
   );
+}
+
+async function expectWhatsAppPreserved(output: string) {
+  for (const path of [
+    "whatsapp/index.html",
+    "whatsapp/chat-analyzer/index.html",
+    "whatsapp/wrapped/index.html",
+    "whatsapp/chat-vault/index.html",
+    "whatsapp/chat-vault/__next._tree.txt",
+    "whatsapp/__next._tree.txt",
+  ])
+    await expect(access(join(output, path))).resolves.toBeUndefined();
 }
 
 it.each([
@@ -99,15 +113,104 @@ it("retains WhatsApp HTML and RSC artifacts in an enabled non-main preview", asy
       localBranch: "feature/INS-114-whatsappscope-foundation",
     }),
   ).toBe(false);
-  for (const path of [
-    "whatsapp/index.html",
-    "whatsapp/chat-analyzer/index.html",
-    "whatsapp/wrapped/index.html",
-    "whatsapp/__next._tree.txt",
-  ])
-    await expect(access(join(output, path))).resolves.toBeUndefined();
+  await expectWhatsAppPreserved(output);
   await expectInstagramPreserved(output);
 });
+
+it.each([
+  [
+    "default production",
+    "feature/INS-144-whatsappscope-production-release",
+    {},
+  ],
+  ["local main", "main", {}],
+  ["Workers main", "", { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main" }],
+  ["Pages main", "", { CF_PAGES: "1", CF_PAGES_BRANCH: "main" }],
+])(
+  "retains released WhatsApp and Instagram in %s without preview opt-in",
+  async (_label, localBranch, branchEnvironment) => {
+    const output = await syntheticExport();
+    expect(
+      await pruneUnreleasedPlatforms(output, {
+        environment: {
+          NODE_ENV: "production",
+          NEXT_PUBLIC_SITE_URL: "https://instascope.me",
+          NEXT_PUBLIC_PREVIEW: "false",
+          NEXT_PUBLIC_WHATSAPP_ENABLED: "false",
+          ...branchEnvironment,
+        },
+        localBranch,
+      }),
+    ).toBe(false);
+    await expectWhatsAppPreserved(output);
+    await expectInstagramPreserved(output);
+  },
+);
+
+it.each([
+  ["missing origin and branch", {}],
+  ["localhost", { NEXT_PUBLIC_SITE_URL: "http://localhost:3000" }],
+  [
+    "unknown Workers branch despite official origin",
+    { NEXT_PUBLIC_SITE_URL: "https://instascope.me", WORKERS_CI: "1" },
+  ],
+  [
+    "non-main host without a preview opt-in",
+    {
+      NEXT_PUBLIC_SITE_URL: "https://instascope.me",
+      WORKERS_CI: "1",
+      WORKERS_CI_BRANCH: "dev",
+    },
+  ],
+])(
+  "prunes WhatsApp in an unverified context: %s",
+  async (_label, environment) => {
+    const output = await syntheticExport();
+    expect(
+      await pruneUnreleasedPlatforms(output, {
+        environment: {
+          NODE_ENV: "production",
+          NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+          NEXT_PUBLIC_PREVIEW: "false",
+          ...environment,
+        },
+        localBranch: "",
+      }),
+    ).toBe(true);
+    await expect(access(join(output, "whatsapp"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    await expectInstagramPreserved(output);
+  },
+);
+
+it.each([
+  ["unknown Workers branch", { WORKERS_CI: "1" }],
+  ["detached Workers branch", { WORKERS_CI: "1", WORKERS_CI_BRANCH: "HEAD" }],
+  ["unknown Pages branch", { CF_PAGES: "1" }],
+  ["detached Pages branch", { CF_PAGES: "1", CF_PAGES_BRANCH: "HEAD" }],
+])(
+  "prunes %s despite local Git and inherited preview opt-ins",
+  async (_label, branchEnvironment) => {
+    const output = await syntheticExport();
+    expect(
+      await pruneUnreleasedPlatforms(output, {
+        environment: {
+          NODE_ENV: "production",
+          NEXT_PUBLIC_SITE_URL: "https://instascope.me",
+          NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+          NEXT_PUBLIC_PREVIEW: "true",
+          ...branchEnvironment,
+        },
+        localBranch: "feature/INS-144-whatsappscope-production-release",
+      }),
+    ).toBe(true);
+    await expect(access(join(output, "whatsapp"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    await expectInstagramPreserved(output);
+  },
+);
 
 it.each([
   ["unknown branch", "", {}],
