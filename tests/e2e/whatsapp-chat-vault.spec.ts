@@ -418,6 +418,58 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
     }
   });
 
+  test("backup checking announces work and invalid input can recover to an explicit restore", async ({
+    page,
+  }) => {
+    await savedChat(page);
+    const backup = await downloadBackup(page);
+    await replaceRecords(page, []);
+    await page.reload();
+    await expect(rows(page)).toHaveCount(0);
+    await expect(input(page)).toBeEnabled();
+    await page.evaluate(() => {
+      const text = File.prototype.text;
+      File.prototype.text = function () {
+        return new Promise<string>((resolve, reject) => {
+          Object.assign(window, {
+            releaseChatVaultRead: () => {
+              File.prototype.text = text;
+              text.call(this).then(resolve, reject);
+            },
+          });
+        });
+      };
+    });
+    await input(page).setInputFiles(file("{broken JSON"));
+    const checking = page.getByRole("status").filter({
+      hasText: "Checking the local backup. Nothing is imported yet.",
+    });
+    await expect(checking).toBeVisible();
+    await expect(input(page)).toBeDisabled();
+    await expect(importDialog(page)).toHaveCount(0);
+    expect(await records(page)).toEqual([]);
+    await page.evaluate(() =>
+      (
+        window as unknown as { releaseChatVaultRead: () => void }
+      ).releaseChatVaultRead(),
+    );
+    await expect(page.getByRole("main").getByRole("alert")).toBeVisible();
+    await expect(checking).toHaveCount(0);
+    await expect(input(page)).toBeEnabled();
+    await expect(input(page)).toHaveValue("");
+    expect(await records(page)).toEqual([]);
+    await input(page).setInputFiles(file(backup));
+    await expect(importDialog(page)).toContainText(/1 new/);
+    expect(await records(page)).toEqual([]);
+    await importDialog(page)
+      .getByRole("button", { name: "Confirm import", exact: true })
+      .click();
+    await expect(importDialog(page)).toHaveCount(0);
+    await expect(rows(page)).toHaveCount(1);
+    expect(await records(page)).toEqual(backup.snapshots);
+    await fits(page);
+  });
+
   test("an aborted multi-record import preserves every existing snapshot atomically", async ({
     page,
   }) => {
@@ -433,6 +485,7 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
     await expect(importDialog(page)).toContainText(/2 new/);
     await page.evaluate(() => {
       const add = IDBObjectStore.prototype.add;
+      Object.assign(window, { originalChatVaultAdd: add });
       let writes = 0;
       IDBObjectStore.prototype.add = function (...args) {
         const request = add.apply(this, args);
@@ -448,22 +501,41 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
       /storage is unavailable/i,
     );
     expect(await records(page)).toEqual(before);
+    await page.evaluate(() => {
+      IDBObjectStore.prototype.add = (
+        window as unknown as {
+          originalChatVaultAdd: typeof IDBObjectStore.prototype.add;
+        }
+      ).originalChatVaultAdd;
+    });
     await importDialog(page)
-      .getByRole("button", { name: "Cancel", exact: true })
+      .getByRole("button", { name: "Confirm import", exact: true })
       .click();
-    await expect(rows(page)).toHaveCount(1);
+    await expect(importDialog(page)).toHaveCount(0);
+    await expect(rows(page)).toHaveCount(3);
+    expect(await records(page)).toEqual(backup.snapshots);
   });
 
   test("unavailable browser storage does not prevent chat analysis", async ({
     page,
   }) => {
-    await page.addInitScript(() =>
+    await page.addInitScript(() => {
+      const factory = window.indexedDB;
+      Object.assign(window, { chatVaultStorageDenied: true });
       Object.defineProperty(window, "indexedDB", {
         get() {
-          throw new DOMException("Synthetic blocked storage", "SecurityError");
+          if (
+            (window as unknown as { chatVaultStorageDenied: boolean })
+              .chatVaultStorageDenied
+          )
+            throw new DOMException(
+              "Synthetic blocked storage",
+              "SecurityError",
+            );
+          return factory;
         },
-      }),
-    );
+      });
+    });
     await page.goto("/whatsapp/chat-analyzer/");
     await page
       .getByLabel("Upload WhatsApp chat export", { exact: true })
@@ -490,6 +562,16 @@ test.describe("WhatsAppScope aggregate-only Chat Vault", () => {
       /storage is unavailable/i,
     );
     await expect(input(page)).toBeDisabled();
+    await page.evaluate(() => {
+      Object.assign(window, { chatVaultStorageDenied: false });
+    });
+    await page.getByRole("button", { name: "Retry local storage" }).click();
+    await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
+    await expect(input(page)).toBeEnabled();
+    expect(await records(page)).toEqual([]);
+    await saveCurrent(page);
+    await expect(rows(page)).toHaveCount(1);
+    expect(await records(page)).toHaveLength(1);
     await fits(page);
   });
 

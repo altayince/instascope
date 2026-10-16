@@ -721,6 +721,111 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(page.url()).toBe("http://127.0.0.1:3000/whatsapp/wrapped/");
   });
 
+  test("local PNG download failures are actionable and both download and unsupported-share paths can retry", async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    const downloads: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("download", (result) => downloads.push(result.suggestedFilename()));
+    await page.goto("/whatsapp/wrapped/");
+    await acceptChat(page, sparseChat);
+    await ready(page);
+    const expected = await previewBytes(page);
+    const actions = [
+      downloadButton(page),
+      deck(page).getByRole("button", { name: "Share card", exact: true }),
+    ];
+    for (const [index, action] of actions.entries()) {
+      await page.evaluate(() => {
+        const create = URL.createObjectURL;
+        Object.assign(window, {
+          restoreWrappedDownload: () => {
+            URL.createObjectURL = create;
+          },
+        });
+        URL.createObjectURL = () => {
+          throw new DOMException(
+            "SYNTHETIC_DOWNLOAD_FAILURE_MUST_NOT_BE_SHOWN",
+            "SecurityError",
+          );
+        };
+      });
+      await action.click();
+      await expect(status(page)).toContainText("PNG download could not start");
+      await expect(status(page)).toContainText("Your card is still ready");
+      await expect(status(page)).not.toContainText(
+        /downloaded|SYNTHETIC_DOWNLOAD_FAILURE/,
+      );
+      await ready(page);
+      await expect(fullExportButton(page)).toBeEnabled();
+      await expect(choices(page).first()).toBeEnabled();
+      expect(downloads).toHaveLength(index);
+      await page.evaluate(() =>
+        (
+          window as unknown as { restoreWrappedDownload: () => void }
+        ).restoreWrappedDownload(),
+      );
+      const actual = await downloadPng(page, action);
+      assertPng(actual);
+      await assertArtworkMatches(actual, expected);
+      await expect(status(page)).toContainText(/downloaded/);
+    }
+    expect(downloads).toEqual([
+      "whatsappscope-conversation.png",
+      "whatsappscope-conversation.png",
+    ]);
+    expect(errors).toEqual([]);
+    await fits(page);
+  });
+
+  test("a failed deck encoder releases controls for individual PNGs and a successful ZIP retry", async ({
+    page,
+  }) => {
+    await page.goto("/whatsapp/wrapped/");
+    await acceptChat(page, sparseChat);
+    await ready(page);
+    const expected = await previewBytes(page);
+    await page.evaluate(() => {
+      const encode = HTMLCanvasElement.prototype.toBlob;
+      Object.assign(window, {
+        restoreWrappedDeckEncoder: () => {
+          HTMLCanvasElement.prototype.toBlob = encode;
+        },
+      });
+      HTMLCanvasElement.prototype.toBlob = function (callback) {
+        callback(null);
+      };
+    });
+    await fullExportButton(page).click();
+    await expect(status(page)).toContainText(
+      "Full-deck export could not finish. Try downloading individual PNG cards.",
+    );
+    await expect(status(page)).not.toHaveAttribute("data-deck-progress");
+    await expect(fullExportButton(page)).toBeEnabled();
+    await expect(choices(page).first()).toBeEnabled();
+    await ready(page);
+    await assertArtworkMatches(await downloadPng(page), expected);
+    await page.evaluate(() =>
+      (
+        window as unknown as { restoreWrappedDeckEncoder: () => void }
+      ).restoreWrappedDeckEncoder(),
+    );
+    const received = page.waitForEvent("download");
+    await fullExportButton(page).click();
+    const result = await received;
+    expect(result.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+    const entries = unzipSync(await readFile((await result.path())!));
+    expect(Object.keys(entries)).toEqual([
+      "01-conversation.png",
+      "02-closing.png",
+    ]);
+    for (const bytes of Object.values(entries)) assertPng(bytes);
+    await expect(fullExportButton(page)).toBeEnabled();
+    await expect(status(page)).toContainText("2 portrait PNGs in one ZIP");
+    await fits(page);
+  });
+
   test("native share receives an already prepared PNG during user activation and cancellation keeps it ready", async ({
     page,
   }) => {

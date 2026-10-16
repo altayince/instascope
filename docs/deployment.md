@@ -2,11 +2,45 @@
 
 Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired.
 
+WhatsAppScope remains dev/preview-only and absent from the current production
+artifact. Its separate [owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md)
+covers the future release gate decision, local validation, device smoke and
+rollback. Setting an environment flag alone cannot bypass the current main-branch
+gate. Ordinary WhatsApp PRs do not deploy or change this production process.
+
 ## Static application
 
 On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRANCH=main` or `WORKERS_CI_BRANCH=main` and generates an indexable `out/` automatically. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing branch value fails closed. `NEXT_PUBLIC_PREVIEW=true` always disables indexing. For a manual production release outside Cloudflare, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
 
-The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep preview build commands on `npm run build` and set `NEXT_PUBLIC_PREVIEW=true` for non-Cloudflare preview systems. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
+The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep Workers Builds commands on `npm run build`; the preview wiring below chooses the existing development build only in a recognized non-main Workers context. Set `NEXT_PUBLIC_PREVIEW=true` for other preview systems; enabling WhatsApp there still requires its explicit opt-in and a known non-main branch. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
+
+### Workers branch previews (INS-142)
+
+Workers Builds runs its configured build command before the separate Preview
+command. `previews: {}` and `assets.directory` in the root Wrangler file describe
+the preview deployment; they do not enable Next's compile-time WhatsApp flag.
+An ordinary build without the opt-ins correctly compiles it out and prunes its
+HTML/RSC, explaining the earlier successful preview build with WhatsApp 404s.
+
+The repository's `npm run build` entry now recognizes only `WORKERS_CI=1` with
+an explicit nonempty `WORKERS_CI_BRANCH` and no main branch in any existing
+Git/Cloudflare/GitHub context. It delegates that non-main Workers build to the
+unchanged `build-development.mjs`, which supplies both preview opt-ins. Ordinary
+local/GitHub builds, missing/invalid host branch and every main context retain
+the original Next → normalize → prune path. The feature gate and pruning are
+unchanged. `build:dev` and `build:production` remain explicit, separate commands.
+
+Keep the host build command `npm run build`, Preview command
+`npx wrangler preview`, and production branch `main`. No dashboard, production
+route or separate Worker change is needed for this repository wiring. Cloudflare
+[documents branch-aware build variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
+and [non-production branch preview execution](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/).
+Workers Builds does not honor Wrangler Custom Builds settings; no speculative
+Wrangler build fields are used. The existing OAuth session could read Workers
+but returned 403 for Builds configuration, so dashboard values were not inferred
+from that session. The real generated preview must still be checked after push:
+all four WhatsApp routes and assets 200, noindex/nofollow, robots Disallow all and
+an empty sitemap. Snapshot Compare lives inside Chat Vault, not a separate route.
 
 The 13 October 2026 live audit confirms `http://instascope.me/` returns `301` to `https://instascope.me/`; the earlier HTTP-200 finding is historical. If a future deployment loses that redirect, review Cloudflare's [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) setting. Review any production `*.pages.dev` or `*.workers.dev` alias in Cloudflare and redirect it to the primary domain or block indexing there, because the same static production HTML cannot distinguish hostnames at request time. See [current progress](roadmap-progress.md) for the dated live audit and remaining evidence gaps.
 

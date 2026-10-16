@@ -34,7 +34,10 @@ export function WhatsAppChatVault() {
     storage,
     refresh,
   } = useChatVault();
-  const [busy, setBusy] = useState(false);
+  const [operation, setOperation] = useState<"checking" | "exporting" | null>(
+    null,
+  );
+  const busy = operation !== null;
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [deletion, setDeletion] = useState<
@@ -62,7 +65,8 @@ export function WhatsAppChatVault() {
     setPendingImport(null);
     setError("");
     if (!file) return;
-    setBusy(true);
+    setOperation("checking");
+    setMessage("");
     try {
       if (file.size > MAX_CHAT_VAULT_BACKUP_BYTES)
         throw new ChatVaultValidationError(
@@ -78,7 +82,7 @@ export function WhatsAppChatVault() {
       picker.current?.reset();
     } finally {
       if (alive.current && generation === fileGeneration.current)
-        setBusy(false);
+        setOperation(null);
     }
   }
 
@@ -251,7 +255,8 @@ export function WhatsAppChatVault() {
           <ActionButton
             disabled={!ready || busy || snapshots.length === 0 || corrupt > 0}
             onClick={async () => {
-              setBusy(true);
+              setOperation("exporting");
+              setMessage("");
               setError("");
               try {
                 const json = serializeChatVaultBackup(await storage.backup());
@@ -266,7 +271,7 @@ export function WhatsAppChatVault() {
               } catch (cause) {
                 if (alive.current) setError(chatVaultStorageMessage(cause));
               } finally {
-                if (alive.current) setBusy(false);
+                if (alive.current) setOperation(null);
               }
             }}
           >
@@ -283,6 +288,13 @@ export function WhatsAppChatVault() {
           Validation and a preview come first. Nothing is imported until you
           confirm.
         </p>
+        {busy && (
+          <p role="status">
+            {operation === "checking"
+              ? "Checking the local backup. Nothing is imported yet."
+              : "Preparing your local backup download."}
+          </p>
+        )}
       </section>
 
       {pendingImport && (

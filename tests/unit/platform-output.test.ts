@@ -110,6 +110,7 @@ it("retains WhatsApp HTML and RSC artifacts in an enabled non-main preview", asy
 });
 
 it.each([
+  ["unknown branch", "", {}],
   ["local main branch", "main", {}],
   ["Pages main branch", "feature/task", { CF_PAGES_BRANCH: "main" }],
   ["Workers main branch", "feature/task", { WORKERS_CI_BRANCH: "main" }],

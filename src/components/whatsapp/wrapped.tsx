@@ -302,12 +302,18 @@ export function WhatsAppWrapped({
       /* Download remains available. */
     }
     if (!canShare) {
-      download(file, file.name);
-      setFeedback(
-        native
-          ? "Your PNG was downloaded. Add it to a Story or Status from your photos."
-          : "Your 1080 × 1920 PNG is downloaded.",
-      );
+      try {
+        download(file, file.name);
+        setFeedback(
+          native
+            ? "Your PNG was downloaded. Add it to a Story or Status from your photos."
+            : "Your 1080 × 1920 PNG is downloaded.",
+        );
+      } catch {
+        setFeedback(
+          "PNG download could not start. Your card is still ready; try again or use Share card where supported.",
+        );
+      }
       return;
     }
     actionBusy.current = true;
