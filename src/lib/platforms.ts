@@ -33,7 +33,7 @@ export const PLATFORM_REGISTRY: readonly PlatformDefinition[] = [
   {
     id: "whatsapp",
     name: "WhatsApp",
-    productName: "WhatsAppScope",
+    productName: "InstaScope",
     basePath: "/whatsapp/",
     description: "Explore your chat patterns",
     mark: "chat",

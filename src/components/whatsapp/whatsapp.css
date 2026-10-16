@@ -1,4 +1,5 @@
 .wa-workspace {
+  --wa-mint: #8bd8b2;
   padding-bottom: 30px;
   overflow-wrap: anywhere;
 }
@@ -22,7 +23,7 @@
   display: inline-block;
   width: 7px;
   height: 7px;
-  background: currentColor;
+  background: var(--wa-mint);
   border-radius: 50%;
   margin-right: 8px;
 }
@@ -60,12 +61,11 @@
   position: relative;
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 3px 3px 80px 3px;
+  border-radius: 24px;
   background: var(--white);
   padding: 28px 30px;
   min-height: 472px;
-  transform: rotate(-1.5deg);
-  box-shadow: 0 9px 24px #253b3008;
+  box-shadow: 0 24px 80px #00000033;
   color: var(--ink);
 }
 .wa-art-heading,
@@ -81,13 +81,14 @@
   font-style: normal;
   font-size: 27px;
   font-weight: 400;
+  color: var(--wa-mint);
 }
 .wa-art-bubble {
   position: relative;
   width: 78%;
   padding: 22px 25px;
   border-radius: 3px 23px 23px 23px;
-  background: var(--paper);
+  background: var(--surface-raised);
   font-size: clamp(28px, 2.8vw, 39px);
   line-height: 1.13;
   letter-spacing: -1.5px;
@@ -97,8 +98,9 @@
   width: 76%;
   margin-left: auto;
   padding: 18px 22px;
-  background: var(--ink);
-  color: var(--white);
+  background: color-mix(in srgb, var(--wa-mint) 12%, var(--surface));
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--wa-mint) 25%, var(--line));
   border-radius: 22px 3px 22px 22px;
   font-size: 17px;
   line-height: 1.4;
@@ -120,11 +122,11 @@
 }
 .wa-art-chart i {
   flex: 1;
-  background: #668935;
+  background: var(--wa-mint);
   border-radius: 3px 3px 0 0;
 }
 .wa-art-chart i:nth-child(4n) {
-  background: #305b40;
+  background: color-mix(in srgb, var(--wa-mint) 55%, var(--surface));
 }
 .wa-art-chart small {
   display: block;
@@ -133,10 +135,12 @@
   line-height: 1.5;
   margin-top: 9px;
   font-weight: 400;
+  color: var(--muted);
 }
 .wa-art-footer {
   margin-top: 20px;
   font-size: 9px;
+  color: var(--muted);
 }
 .wa-promise-strip {
   display: flex;
@@ -156,8 +160,8 @@
 .wa-promise-strip i {
   font-style: normal;
   font-size: 10px;
-  color: var(--ink);
-  background: var(--lime);
+  color: var(--on-accent);
+  background: var(--accent);
   border-radius: 50%;
   width: 27px;
   height: 27px;
@@ -236,16 +240,16 @@
   align-items: stretch;
   text-align: center;
   padding: 29px 33px 22px;
-  border: 1px dashed #b5c4a8;
+  border: 1px dashed var(--line);
   border-radius: 15px;
-  background: #f1f4eb;
+  background: var(--surface);
   transition:
     background 0.15s,
     border-color 0.15s;
 }
 .wa-import-panel.is-dragging {
-  border-color: var(--ink);
-  background: #e0edca;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .wa-upload-mark {
   display: flex;
@@ -295,9 +299,9 @@
   margin: 6px 0 12px;
 }
 .wa-import-panel .wa-error {
-  color: #8d3220;
-  background: #f9e7e1;
-  border: 1px solid #e8bcaf;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
   border-radius: 8px;
   padding: 11px 13px;
   text-align: left;
@@ -337,18 +341,22 @@
 }
 .wa-feature-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
 .wa-feature-grid article {
-  border-top: 2px solid var(--line);
-  padding-top: 23px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 26px;
   min-width: 0;
 }
 .wa-feature-number {
   font-size: 9px;
   letter-spacing: 1.1px;
-  color: var(--ink);
+  color: var(--wa-mint);
   font-weight: 700;
 }
 .wa-feature-grid h3 {
@@ -362,6 +370,8 @@
 }
 .wa-feature-grid .insight-link {
   font-size: 12px;
+  margin-top: auto;
+  padding-top: 14px;
 }
 .wa-privacy-footer {
   display: flex;
@@ -382,7 +392,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   border: 1px solid var(--line);
   padding: 16px 20px;
   border-radius: 10px;
@@ -395,8 +405,8 @@
   width: 31px;
   height: 31px;
   border-radius: 50%;
-  color: var(--ink);
-  background: var(--lime);
+  color: var(--on-accent);
+  background: var(--accent);
 }
 .wa-current-chat > div {
   display: flex;
@@ -419,8 +429,9 @@
 .wa-demo-notice {
   font-size: 12px;
   padding: 11px 15px;
-  background: #faf3dc;
-  border: 1px solid #d9c995;
+  background: var(--warning-soft);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--line));
   border-radius: 7px;
   margin: 12px 0;
 }
@@ -437,7 +448,7 @@
 .wa-reading-notes summary span {
   font-size: 10px;
   border-radius: 20px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   padding: 3px 7px;
   margin-left: 7px;
 }
@@ -552,7 +563,7 @@
 }
 .wa-loaded-overview {
   text-align: center;
-  background: #eef2e7;
+  background: var(--surface-raised);
   padding: 32px 20px;
   margin: 30px 0;
   border-radius: 14px;
@@ -677,9 +688,9 @@
   margin: 0;
 }
 .wa-filter-error {
-  color: #8d3220;
-  background: #f9e7e1;
-  border-color: #e8bcaf;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
 }
 .wa-stat-grid {
   display: grid;
@@ -712,15 +723,15 @@
   margin-top: 14px;
 }
 .wa-stat-featured {
-  background: var(--ink);
-  color: var(--white);
-  border-color: var(--ink);
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 .wa-stat-featured strong {
   color: var(--lime);
 }
 .wa-stat-featured small {
-  color: var(--line);
+  color: var(--muted);
 }
 .wa-evidence-note {
   display: flex;
@@ -855,7 +866,7 @@
 .wa-panel-badge {
   flex-shrink: 0;
   font-size: 10px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   border-radius: 30px;
   padding: 6px 9px;
 }
@@ -876,7 +887,7 @@
   place-items: center;
   width: 25px;
   height: 25px;
-  background: #e8ecdf;
+  background: var(--surface-raised);
   border-radius: 50%;
   font-size: 9px;
   color: var(--ink);
@@ -904,7 +915,7 @@
 }
 .wa-participant-track {
   height: 6px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   margin: 8px 0 0 34px;
   border-radius: 20px;
   overflow: hidden;
@@ -912,11 +923,11 @@
 .wa-participant-track i {
   display: block;
   height: 100%;
-  background: #305b40;
+  background: var(--wa-mint);
   border-radius: 20px;
 }
 .wa-participant-row:nth-child(2n) .wa-participant-track i {
-  background: #a26932;
+  background: var(--warning);
 }
 .wa-participant-extras {
   font-size: 9px;
@@ -981,7 +992,7 @@
   min-height: 44px;
   aspect-ratio: 1.12;
   border-radius: 6px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -993,8 +1004,8 @@
 .wa-calendar-day.is-active {
   background: color-mix(
     in srgb,
-    var(--lime) calc(var(--wa-intensity) * 100%),
-    var(--paper)
+    var(--wa-mint) calc(var(--wa-intensity) * 30%),
+    var(--surface)
   );
 }
 .wa-calendar-day small {
@@ -1064,12 +1075,12 @@
 .wa-chart-track i {
   display: block;
   width: 100%;
-  background: #305b40;
+  background: var(--wa-mint);
   min-height: 1px;
   border-radius: 3px 3px 0 0;
 }
 .wa-chart-column:nth-child(2n) i {
-  background: #a26932;
+  background: var(--warning);
 }
 .wa-chart-label {
   font-size: 9px;
@@ -1158,7 +1169,7 @@
   text-align: left;
 }
 .wa-heatmap-table td {
-  background: #eef2e7;
+  background: var(--surface-raised);
   border-radius: 3px;
   height: 29px;
   padding: 3px 1px;
@@ -1169,8 +1180,8 @@
 .wa-heatmap-table td.is-active {
   background: color-mix(
     in srgb,
-    var(--lime) calc(var(--wa-intensity) * 100%),
-    var(--paper)
+    var(--wa-mint) calc(var(--wa-intensity) * 30%),
+    var(--surface)
   );
 }
 .wa-heatmap-table td > span {
@@ -1325,15 +1336,15 @@
   height: 7px;
   overflow: hidden;
   border-radius: 3px;
-  background: #eef2e7;
+  background: var(--surface-raised);
 }
 .wa-rhythm-delay-track i {
   display: block;
   height: 100%;
-  background: #305b40;
+  background: var(--wa-mint);
 }
 .wa-rhythm-delay-counts li:nth-child(2n) .wa-rhythm-delay-track i {
-  background: #a26932;
+  background: var(--warning);
 }
 .wa-rhythm-table-scroll {
   width: 100%;
@@ -1377,7 +1388,7 @@
 .wa-rhythm-table thead th {
   font-size: 10px;
   color: var(--muted);
-  background: #eef2e7;
+  background: var(--surface-raised);
 }
 .wa-rhythm-table tr > :first-child {
   width: 160px;
@@ -1587,15 +1598,15 @@
   height: 6px;
   overflow: hidden;
   border-radius: 3px;
-  background: #eef2e7;
+  background: var(--surface-raised);
 }
 .wa-message-content .wa-message-content-track i {
   display: block;
   height: 100%;
-  background: #305b40;
+  background: var(--wa-mint);
 }
 .wa-message-content .wa-message-content-counts li:nth-child(2n) i {
-  background: #a26932;
+  background: var(--warning);
 }
 .wa-message-content .wa-message-content-participants,
 .wa-message-content .wa-message-content-methodology {
@@ -1677,7 +1688,7 @@
   padding: 21px 13px;
   margin: 16px 0;
   border-radius: 7px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   line-height: 1.4;
 }
 .wa-message-content .wa-message-content-cloud span {
@@ -1727,7 +1738,7 @@
 .wa-message-content .wa-message-content-comparison-table thead th {
   font-size: 10px;
   color: var(--muted);
-  background: #eef2e7;
+  background: var(--surface-raised);
 }
 .wa-message-content .wa-message-content-methodology {
   color: var(--muted);
@@ -1774,12 +1785,12 @@
 }
 .wa-deck-progress span {
   height: 4px;
-  background: #dfe3da;
+  background: var(--line);
   flex: 1;
   border-radius: 8px;
 }
 .wa-deck-progress span.is-seen {
-  background: var(--ink);
+  background: var(--accent);
 }
 .wa-story {
   display: flex;
@@ -2010,8 +2021,8 @@
   color: var(--ink);
 }
 .wa-story-picker button[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--white);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .wa-story-picker button[aria-pressed="true"] span {
   color: inherit;
@@ -2029,7 +2040,7 @@
   font-size: 11px;
   min-height: 38px;
   padding: 11px 13px;
-  background: #eef2e7;
+  background: var(--surface-raised);
   border-radius: 6px;
   color: var(--ink);
 }
@@ -2098,7 +2109,7 @@
   width: 18px;
   height: 18px;
   flex: 0 0 18px;
-  accent-color: var(--ink);
+  accent-color: var(--accent);
 }
 .wa-word-choice .wa-hint {
   margin: 8px 0 0;

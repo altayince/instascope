@@ -90,6 +90,32 @@ export default function Privacy() {
         Fictional demo memory is held in this tab’s memory only and never
         overwrites your real decisions.
       </p>
+      {process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true" && (
+        <>
+          <h2>Your WhatsApp chat stays on your device.</h2>
+          <p>
+            InstaScope reads WhatsApp TXT and ZIP exports in your browser.
+            Message text, participant names and raw exports stay in this
+            tab&apos;s memory until you clear the chat, reload or close the tab.
+            Switching WhatsApp tools keeps the working chat available. No
+            WhatsApp login or account connection is needed.
+          </p>
+          <p>
+            Chat Vault saves only anonymous aggregate snapshots when you choose
+            to save. It does not save message text, participant identities,
+            phone numbers, URLs or raw exports. Saved snapshots and manual
+            backups remain local; there is no cloud sync. Clearing the active
+            chat does not delete saved snapshots, and clearing browser/site data
+            may remove the Vault.
+          </p>
+          <p>
+            WhatsApp Wrapped images are generated on your device with anonymous
+            participant labels. Optional word cards require your choice; review
+            their contents before sharing. Downloads and your device&apos;s
+            share menu are only used when you choose them.
+          </p>
+        </>
+      )}
       <h2>No Instagram credentials.</h2>
       <p>
         We do not ask for a password or session cookie. No Instagram account
@@ -112,13 +138,13 @@ export default function Privacy() {
       <h2>A calendar event, without notifications from us.</h2>
       <p>
         After saving a real snapshot, you can download a calendar file to remind
-        yourself to export fresh Instagram data and return. It contains a generic
-        event and future calendar date, with no usernames, snapshot counts,
-        notes or archive contents. Its random calendar-event identifier stays
-        only in the temporary offer and downloaded file; it is not a tracking
-        identifier. InstaScope stores no reminder and sends nothing to a calendar
-        service or analytics. Import the file and choose any alert in your own
-        calendar. InstaScope sends no notification.
+        yourself to export fresh Instagram data and return. It contains a
+        generic event and future calendar date, with no usernames, snapshot
+        counts, notes or archive contents. Its random calendar-event identifier
+        stays only in the temporary offer and downloaded file; it is not a
+        tracking identifier. InstaScope stores no reminder and sends nothing to
+        a calendar service or analytics. Import the file and choose any alert in
+        your own calendar. InstaScope sends no notification.
       </p>
       <h2>Product events, without your social graph.</h2>
       <p
@@ -138,25 +164,25 @@ export default function Privacy() {
       {analyticsEndpoint(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT) && (
         <>
           <p>
-            A Google-family referrer does not prove a Google Web Search or Google
-            Search Console click. The category &ldquo;none&rdquo; means no referrer
-            was visible; apps, browsers and privacy settings can hide it, so this
-            does not prove direct traffic. The webdriver hint comes only from
-            your browser&apos;s automation flag. A &ldquo;yes&rdquo; value is strong
-            automation evidence; &ldquo;no&rdquo; does not prove a human. The
-            server briefly checks the normal User-Agent header for obvious
-            automation signs and keeps only &ldquo;automation&rdquo;,
-            &ldquo;browserish&rdquo; or &ldquo;unknown&rdquo;. A
-            &ldquo;browserish&rdquo; value does not prove a human. These hints can
-            be spoofed and are not fingerprints.
+            A Google-family referrer does not prove a Google Web Search or
+            Google Search Console click. The category &ldquo;none&rdquo; means
+            no referrer was visible; apps, browsers and privacy settings can
+            hide it, so this does not prove direct traffic. The webdriver hint
+            comes only from your browser&apos;s automation flag. A
+            &ldquo;yes&rdquo; value is strong automation evidence;
+            &ldquo;no&rdquo; does not prove a human. The server briefly checks
+            the normal User-Agent header for obvious automation signs and keeps
+            only &ldquo;automation&rdquo;, &ldquo;browserish&rdquo; or
+            &ldquo;unknown&rdquo;. A &ldquo;browserish&rdquo; value does not
+            prove a human. These hints can be spoofed and are not fingerprints.
           </p>
           <p>
-            The document_entry_observed event means client JavaScript ran for one
-            browser document. It is sent at most once for that document, including
-            navigation within the site; a full reload can count again. It does
-            not count unique visitors, users, sessions or Search Console clicks.
-            Historical events without a source category are pre-audit data; they
-            cannot be attributed to a source later.
+            The document_entry_observed event means client JavaScript ran for
+            one browser document. It is sent at most once for that document,
+            including navigation within the site; a full reload can count again.
+            It does not count unique visitors, users, sessions or Search Console
+            clicks. Historical events without a source category are pre-audit
+            data; they cannot be attributed to a source later.
           </p>
         </>
       )}

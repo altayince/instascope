@@ -36,7 +36,7 @@
   padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -44,9 +44,9 @@
 }
 .review-memory-flags button[aria-pressed="true"],
 .review-memory-filters button[aria-pressed="true"] {
-  background: #e8efe1;
-  border-color: #82966c;
-  color: #294126;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
   font-weight: 600;
 }
 .review-memory-flags button:disabled,
@@ -67,7 +67,7 @@
   resize: vertical;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 16px;
@@ -77,9 +77,9 @@
 .review-memory-discard {
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid #d5bda1;
+  border: 1px solid var(--warning-line);
   border-radius: 10px;
-  background: #f8f1e8;
+  background: var(--warning-soft);
   font-size: 13px;
 }
 .review-memory-discard {
@@ -104,21 +104,21 @@
   width: fit-content;
   margin-top: 7px;
   padding: 4px 8px;
-  border: 1px solid #d7dfcc;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  background: #eff3e9;
-  color: #3a4b31;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
 }
 .account-body .account-memory[data-state="watch"] {
-  background: #e8eef3;
-  border-color: #c7d8e1;
-  color: #334f60;
+  background: var(--info-soft);
+  border-color: var(--info-line);
+  color: var(--info);
 }
 .account-body .account-memory[data-state="reviewed"] {
-  background: #f0f0ec;
+  background: var(--surface-raised);
   border-color: var(--line);
   color: var(--muted);
 }

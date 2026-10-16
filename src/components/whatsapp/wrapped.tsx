@@ -261,7 +261,7 @@ export function WhatsAppWrapped({
           story,
           file: new File(
             [bytes],
-            `whatsappscope-${demo ? "demo-" : ""}${story.id}.png`,
+            `instascope-whatsapp-${demo ? "demo-" : ""}${story.id}.png`,
             { type: "image/png" },
           ),
         });
@@ -454,7 +454,7 @@ export function WhatsAppWrapped({
             className={`wa-story-text ${painted ? "is-readable-only" : "is-fallback"}`}
           >
             <div className="wa-story-brand">
-              <strong>WhatsAppScope / Wrapped</strong>
+              <strong>InstaScope / Wrapped</strong>
               <span>
                 {demo ? "Fictional demo data" : "From your supplied export"}
               </span>
@@ -478,7 +478,7 @@ export function WhatsAppWrapped({
             </div>
             <StoryGraphicText story={story} />
             <p className="wa-story-note">{story.note}</p>
-            <p>Made with WhatsAppScope · A local tool by InstaScope</p>
+            <p>Made with InstaScope · Processed on your device</p>
           </div>
         </div>
         <div className="wa-deck-navigation">

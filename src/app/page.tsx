@@ -7,6 +7,7 @@ import { analyze, compareSnapshots } from "@/lib/analysis/relationships";
 import { DemoButton } from "@/components/demo-button";
 import { pageMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/structured-data";
+import { PlatformMark } from "@/components/social-switcher";
 export const metadata: Metadata = pageMetadata(
   "Review your Instagram relationships",
   "Review your Instagram circle, sent requests and recorded relationship dates. Compare two exports to see changes over time, privately and without a password.",
@@ -100,10 +101,77 @@ export default function Home() {
           url: "https://instascope.me/",
         }}
       />
+      {process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true" && (
+        <section
+          className="platform-discovery"
+          aria-labelledby="platform-discovery-title"
+        >
+          <div className="platform-discovery-heading">
+            <h2 id="platform-discovery-title">
+              One InstaScope. Your social world.
+            </h2>
+            <p>Two ways to explore. Your exports stay on your device.</p>
+          </div>
+          <div className="platform-discovery-grid">
+            <Link
+              className="platform-discovery-card"
+              href="/dashboard/"
+              data-platform="instagram"
+            >
+              <PlatformMark mark="orbit" />
+              <div>
+                <h3>Instagram</h3>
+                <p>Your circle, relationship history and Wrapped.</p>
+              </div>
+              <svg
+                className="platform-discovery-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M6 18 18 6M6 6h12v12"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+            <Link
+              className="platform-discovery-card"
+              href="/whatsapp/"
+              data-platform="whatsapp"
+            >
+              <PlatformMark mark="chat" />
+              <div>
+                <h3>WhatsApp</h3>
+                <p>Chat patterns, Wrapped and your private Chat Vault.</p>
+              </div>
+              <svg
+                className="platform-discovery-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M6 18 18 6M6 6h12v12"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          </div>
+        </section>
+      )}
       <section className="hero">
         <div className="hero-copy">
           <span className="pill">
-            <i /> YOUR RELATIONSHIPS, IN PERSPECTIVE
+            <i /> INSTASCOPE / INSTAGRAM
           </span>
           <h1>
             Your Instagram circle.

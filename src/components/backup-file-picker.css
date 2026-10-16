@@ -28,7 +28,7 @@
   cursor: pointer;
 }
 .backup-file-input:focus-visible + .backup-file-trigger {
-  outline: 3px solid var(--ink);
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 .backup-file-picker[data-disabled="true"] .backup-file-trigger {

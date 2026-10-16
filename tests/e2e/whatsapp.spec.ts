@@ -143,7 +143,7 @@ test("production release exposes WhatsApp without indexing it or changing Instag
 test.describe("WhatsAppScope enabled preview", () => {
   test.skip(!enabled, "WhatsApp requires an explicit dev preview build.");
 
-  test("platform switcher preserves the original shared palette and changes navigation with native accessible dismissal", async ({
+  test("platform switcher preserves the shared dark palette and changes navigation with native accessible dismissal", async ({
     page,
     request,
   }) => {
@@ -193,7 +193,7 @@ test.describe("WhatsAppScope enabled preview", () => {
         "content",
         "noindex, nofollow",
       );
-      expect(await page.title()).toContain("WhatsAppScope");
+      expect(await page.title()).toContain("InstaScope");
       await fits(page);
     }
     expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
@@ -677,7 +677,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       expect(bytes.readUInt32BE(16)).toBe(1080);
       expect(bytes.readUInt32BE(20)).toBe(1920);
       expect(file.suggestedFilename()).toMatch(
-        /^whatsappscope-[a-z0-9-]+\.png$/,
+        /^instascope-whatsapp-[a-z0-9-]+\.png$/,
       );
     }
     const drawn = await page.evaluate(() =>
@@ -720,7 +720,7 @@ test.describe("WhatsAppScope enabled preview", () => {
     const fallbackDownload = page.waitForEvent("download");
     await deck.getByRole("button", { name: "Share card", exact: true }).click();
     expect((await fallbackDownload).suggestedFilename()).toMatch(
-      /^whatsappscope-/,
+      /^instascope-whatsapp-/,
     );
     await expect(deck.getByRole("status")).toContainText(
       "Your PNG was downloaded",

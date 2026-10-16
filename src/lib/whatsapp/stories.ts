@@ -905,7 +905,7 @@ export function buildWhatsAppStories(
     ...base(mode, {
       id: "closing",
       name: "Your Wrapped",
-      label: "MADE WITH WHATSAPPSCOPE",
+      label: "MADE WITH INSTASCOPE",
       title: "Your chat. A little perspective.",
       lead: "A few recorded moments, brought together in one local story.",
       value: whatsappNumber(total.messages),
@@ -917,7 +917,7 @@ export function buildWhatsAppStories(
         },
         { value: whatsappNumber(total.activeDays), label: "active dates" },
       ],
-      note: "Made with WhatsAppScope. Generated locally in your browser; your archive is not uploaded.",
+      note: "Made with InstaScope. Generated locally in your browser; your archive is not uploaded.",
       theme: "forest",
       motif: "rings",
       calculation: {

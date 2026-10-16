@@ -86,29 +86,17 @@ export function SocialSwitcher({ active }: { active: PlatformDefinition }) {
   return (
     <details className="social-switcher" ref={details}>
       <summary
-        className="brand"
+        className="platform-trigger"
         aria-label={`Switch platform, currently ${active.name}`}
       >
-        {active.id === "instagram" ? (
-          <>
-            <PlatformMark mark={active.mark} className="brand-mark" />{" "}
-            insta<span>scope</span>
-          </>
-        ) : (
-          <>
-            <span className="platform-brand-size" aria-hidden="true">
-              <span className="brand-mark">◎</span>{" "}
-              insta<span>scope</span>
-            </span>
-            <span className="platform-brand-identity">
-              <PlatformMark mark={active.mark} className="brand-mark" />{" "}
-              whatsapp<span>scope</span>
-            </span>
-          </>
-        )}
+        <PlatformMark mark={active.mark} />
+        <span>{active.name}</span>
+        <span className="platform-chevron" aria-hidden="true">
+          ⌄
+        </span>
       </summary>
       <div className="social-switcher-panel">
-        <p className="social-switcher-label">Choose your platform</p>
+        <p className="social-switcher-label">Explore InstaScope</p>
         {getAvailablePlatforms(true).map((platform) => (
           <Link
             href={platform.basePath}

@@ -48,7 +48,8 @@ jobs:
       (github.event.pull_request.base.ref == 'main' &&
        github.event.pull_request.head.repo.full_name == github.repository &&
        startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
-       endsWith(github.event.pull_request.head.ref, '-production-release'))
+       (endsWith(github.event.pull_request.head.ref, '-production-release') ||
+        endsWith(github.event.pull_request.head.ref, '-platform-ui-refresh')))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,14 +77,15 @@ jobs:
       (github.event.pull_request.base.ref == 'main' &&
        github.event.pull_request.head.repo.full_name == github.repository &&
        startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
-       endsWith(github.event.pull_request.head.ref, '-production-release'))
+       (endsWith(github.event.pull_request.head.ref, '-production-release') ||
+        endsWith(github.event.pull_request.head.ref, '-platform-ui-refresh')))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          # Current main integrated for INS-146; compare independent builds.
-          ref: cb0a78099565aa601c7bc18c93f11330091d2e6f
+          # Compare independent production and preview builds of this design.
+          ref: ${{ github.sha }}
           path: .tools/main-design-reference
       - uses: actions/setup-node@v4
         with:
@@ -92,13 +94,12 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: .tools/main-design-reference
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run build:production
         working-directory: .tools/main-design-reference
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
-          NEXT_PUBLIC_PREVIEW: 'true'
           NEXT_PUBLIC_PROFILE_ENDPOINT: ''
           NEXT_PUBLIC_ANALYTICS_ENDPOINT: ''
       - run: npm run build:dev
@@ -111,5 +112,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: main-dev-visual-comparison
+          name: production-preview-visual-comparison
           path: test-results/main-visual/

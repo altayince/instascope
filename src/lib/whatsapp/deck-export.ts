@@ -93,7 +93,7 @@ export async function createWhatsAppDeckArchive(
   return {
     blob: new Blob([new Uint8Array(archive)], { type: "application/zip" }),
     filename: options.demo
-      ? "whatsappscope-demo-deck.zip"
-      : "whatsappscope-wrapped-deck.zip",
+      ? "instascope-whatsapp-demo-deck.zip"
+      : "instascope-whatsapp-wrapped-deck.zip",
   };
 }

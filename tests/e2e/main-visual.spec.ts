@@ -2,8 +2,50 @@ import { test, expect, type Page, type TestInfo } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 import sharp from "sharp";
 
+// Independent production and preview builds of the proposed design.
 const mainUrl = process.env.MAIN_VISUAL_REFERENCE_URL!;
-const identity = ".site-header > .brand, .social-switcher > summary.brand";
+
+async function assertDarkPlatform(page: Page) {
+  const theme = await page.evaluate(() => {
+    const style = getComputedStyle(document.body);
+    const rgb = (value: string) =>
+      value
+        .match(/[\d.]+/g)!
+        .slice(0, 3)
+        .map(Number);
+    const luminance = (value: string) =>
+      rgb(value)
+        .map((v) => {
+          const n = v / 255;
+          return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+        })
+        .reduce((sum, n, i) => sum + n * [0.2126, 0.7152, 0.0722][i], 0);
+    const background = luminance(style.backgroundColor);
+    const contrast = (color: string) =>
+      (luminance(color) + 0.05) / (background + 0.05);
+    const muted = getComputedStyle(document.querySelector("main p")!).color;
+    return {
+      background,
+      contrast: contrast(style.color),
+      mutedContrast: contrast(muted),
+      scheme: style.colorScheme,
+    };
+  });
+  expect(theme.background, "near-black page foundation").toBeLessThan(0.015);
+  expect(theme.contrast, "readable primary text").toBeGreaterThanOrEqual(7);
+  expect(
+    theme.mutedContrast,
+    "readable supporting text",
+  ).toBeGreaterThanOrEqual(4.5);
+  expect(theme.scheme).toBe("dark");
+  await expect(page.locator(".shell-identity-row > .brand")).toHaveText(
+    "◎InstaScope",
+  );
+  await expect(page.locator("body")).not.toContainText(/whatsappscope/i);
+  await expect(page.locator(".social-switcher summary")).toHaveAccessibleName(
+    /Switch platform, currently (Instagram|WhatsApp)/,
+  );
+}
 const cases = [
   { path: "/", state: "landing" },
   ...[
@@ -44,8 +86,15 @@ async function artifact(
 }
 
 async function ready(page: Page) {
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(9, 11, 10)",
+  );
   await page.evaluate(async () => {
     await document.fonts.ready;
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
     if (document.activeElement instanceof HTMLElement)
       document.activeElement.blur();
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -139,11 +188,7 @@ async function appearance(page: Page) {
       "transform",
     ];
     return Array.from(document.querySelectorAll("body, body *"))
-      .filter(
-        (node) =>
-          !node.matches("script, style") &&
-          !node.closest(".social-switcher, .site-header > .brand"),
-      )
+      .filter((node) => !node.matches("script, style"))
       .map((node) => {
         const box = node.getBoundingClientRect();
         return {
@@ -176,66 +221,14 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
     appearance(main),
     appearance(dev),
   ]);
-  const [mainIdentity, devIdentity] = await Promise.all([
-    main.locator(identity).boundingBox(),
-    dev.locator(identity).boundingBox(),
-  ]);
-  expect(mainIdentity).not.toBeNull();
-  expect(devIdentity).not.toBeNull();
-  const mask = {
-    x: Math.floor(Math.min(mainIdentity!.x, devIdentity!.x)),
-    y: Math.floor(Math.min(mainIdentity!.y, devIdentity!.y)),
-    right: Math.ceil(
-      Math.max(
-        mainIdentity!.x + mainIdentity!.width,
-        devIdentity!.x + devIdentity!.width,
-      ),
-    ),
-    bottom: Math.ceil(
-      Math.max(
-        mainIdentity!.y + mainIdentity!.height,
-        devIdentity!.y + devIdentity!.height,
-      ),
-    ),
-  };
-  for (const item of [main, dev]) {
-    const navigation = (await item
-      .locator(".product-navigation")
-      .boundingBox())!;
-    expect(
-      mask.right <= navigation.x || mask.bottom <= navigation.y,
-      "the identity mask cannot cover the header navigation",
-    ).toBe(true);
-  }
-  const capture = async (page: Page) => {
-    // The sole masked area is the top-left identity. Keep the complete header,
-    // navigation, privacy note, content, skip link and footer in the comparison.
-    await page.evaluate((box) => {
-      const overlay = document.createElement("div");
-      overlay.dataset.mainVisualIdentityMask = "true";
-      Object.assign(overlay.style, {
-        position: "absolute",
-        left: `${box.x}px`,
-        top: `${box.y}px`,
-        width: `${box.right - box.x}px`,
-        height: `${box.bottom - box.y}px`,
-        background: "#ff00ff",
-        zIndex: "2147483647",
-        pointerEvents: "none",
-      });
-      document.body.append(overlay);
-    }, mask);
-    const png = await page.screenshot({
+  await Promise.all([assertDarkPlatform(main), assertDarkPlatform(dev)]);
+  const capture = (page: Page) =>
+    page.screenshot({
       fullPage: true,
       scale: "css",
       animations: "disabled",
       caret: "hide",
     });
-    await page
-      .locator("[data-main-visual-identity-mask]")
-      .evaluate((node) => node.remove());
-    return png;
-  };
   const [mainPng, devPng] = await Promise.all([capture(main), capture(dev)]);
   const [mainPixels, devPixels] = await Promise.all(
     [mainPng, devPng].map((png) =>
@@ -251,8 +244,8 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
       mainPixels.data[index + 3] !== devPixels.data[index + 3]
     )
       changedPixels++;
-  await artifact(info, "current-main", mainPng, "image/png");
-  await artifact(info, "proposed-dev", devPng, "image/png");
+  await artifact(info, "production-design", mainPng, "image/png");
+  await artifact(info, "preview-design", devPng, "image/png");
   await artifact(
     info,
     "comparison",
@@ -261,21 +254,20 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
       mainDimensions: mainPixels.info,
       devDimensions: devPixels.info,
       comparedElements: mainStyles.length,
-      mask,
     }),
     "application/json",
   );
   expect(
     devStyles,
-    "all computed styles and geometry outside identity",
+    "all computed styles and geometry, including the complete platform shell",
   ).toEqual(mainStyles);
   expect(devPixels.info, "complete page dimensions").toEqual(mainPixels.info);
-  expect(changedPixels, "pixels outside the top-left identity").toBe(0);
+  expect(changedPixels, "all production and preview pixels").toBe(0);
 }
 
-test.describe("actual current main vs enabled dev", () => {
+test.describe("unified dark production and preview design", () => {
   for (const entry of cases)
-    test(`${entry.path} ${entry.state} has exactly main's appearance`, async ({
+    test(`${entry.path} ${entry.state} preserves the same dark design in production and preview`, async ({
       context,
       page,
       baseURL,
@@ -288,7 +280,7 @@ test.describe("actual current main vs enabled dev", () => {
       await compare(reference, page, info);
     });
 
-  test("header geometry and control hover/focus remain exactly main", async ({
+  test("header geometry and hover/focus stay consistent across release contexts", async ({
     page,
     context,
     baseURL,
@@ -351,7 +343,7 @@ test.describe("actual current main vs enabled dev", () => {
       ).toBe(404);
   });
 
-  test("WhatsApp uses current main's rendered controls, surfaces and charts", async ({
+  test("WhatsApp shares dark controls, surfaces and charts with Instagram", async ({
     page,
     context,
     baseURL,
@@ -428,9 +420,10 @@ test.describe("actual current main vs enabled dev", () => {
     }
     await reference.close();
     await ready(page);
+    await assertDarkPlatform(page);
     await artifact(
       info,
-      "whatsapp-current-main-controls",
+      "whatsapp-dark-controls",
       await page.screenshot({
         fullPage: true,
         scale: "css",
@@ -469,7 +462,7 @@ test.describe("actual current main vs enabled dev", () => {
     await ready(page);
     await artifact(
       info,
-      "whatsapp-current-main-charts",
+      "whatsapp-dark-charts",
       await page.screenshot({
         fullPage: true,
         scale: "css",
@@ -487,7 +480,8 @@ test.describe("actual current main vs enabled dev", () => {
     await expect(
       page.getByRole("button", { name: "Share card", exact: true }),
     ).toBeEnabled();
-    const whatsappShare = '.wa-export-actions > .secondary:text-is("Share card")';
+    const whatsappShare =
+      '.wa-export-actions > .secondary:text-is("Share card")';
     const instagramShare = ".wrapped-actions > .secondary";
     expect(
       await styles(page, whatsappShare, [
@@ -522,7 +516,7 @@ test.describe("actual current main vs enabled dev", () => {
     await ready(page);
     await artifact(
       info,
-      "whatsapp-current-main-wrapped",
+      "whatsapp-dark-wrapped",
       await page.screenshot({
         fullPage: true,
         scale: "css",

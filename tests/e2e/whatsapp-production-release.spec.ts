@@ -120,7 +120,7 @@ test("intentional release supports real local imports, Wrapped downloads, saved 
   const receivedPng = page.waitForEvent("download");
   await pngAction.click();
   const png = await receivedPng;
-  expect(png.suggestedFilename()).toMatch(/^whatsappscope-[a-z-]+\.png$/);
+  expect(png.suggestedFilename()).toMatch(/^instascope-whatsapp-[a-z-]+\.png$/);
   expectPortraitPng(await readFile((await png.path())!));
 
   const receivedZip = page.waitForEvent("download");
@@ -128,7 +128,7 @@ test("intentional release supports real local imports, Wrapped downloads, saved 
     .getByRole("button", { name: "Export full deck", exact: true })
     .click();
   const archive = await receivedZip;
-  expect(archive.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+  expect(archive.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
   const cards = unzipSync(await readFile((await archive.path())!));
   expect(Object.keys(cards).length).toBeGreaterThanOrEqual(2);
   expect(Object.keys(cards).length).toBeLessThanOrEqual(12);

@@ -40,7 +40,7 @@ function backup(value: unknown): ChatVaultBackup {
   const parsed = validateChatVaultBackup(value);
   if (!parsed)
     throw new ChatVaultStorageError(
-      "Choose a valid WhatsAppScope Chat Vault V1 backup. Nothing was imported.",
+      "Choose a valid InstaScope Chat Vault V1 backup. Nothing was imported.",
     );
   return parsed;
 }

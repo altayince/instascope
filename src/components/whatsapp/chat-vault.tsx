@@ -94,7 +94,7 @@ export function WhatsAppChatVault() {
       data-whatsapp-mode="vault"
     >
       <section className="wa-page-heading">
-        <span className="wa-eyebrow">WHATSAPPSCOPE / LOCAL SNAPSHOTS</span>
+        <span className="wa-eyebrow">WHATSAPP / LOCAL SNAPSHOTS</span>
         <h1>Chat Vault</h1>
         <p>Keep an anonymous aggregate snapshot, without keeping the chat.</p>
       </section>

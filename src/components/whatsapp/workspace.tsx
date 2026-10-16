@@ -28,11 +28,12 @@ function LandingHero({
       <section className="wa-hero" aria-labelledby="wa-title">
         <div className="wa-hero-copy">
           <span className="wa-eyebrow">
-            <i aria-hidden="true" /> PRIVATE BY DESIGN. CURIOUS BY NATURE.
+            <i aria-hidden="true" /> INSTASCOPE / WHATSAPP
           </span>
           <h1 id="wa-title">
-            Every chat has
-            <br />a <em>little history.</em>
+            Your conversations.
+            <br />
+            <em>A new perspective.</em>
           </h1>
           <p>
             Find the patterns in your WhatsApp conversations. Explore message
@@ -53,7 +54,7 @@ function LandingHero({
         </div>
         <div className="wa-hero-art" aria-hidden="true">
           <div className="wa-art-heading">
-            <span>WHATSAPPSCOPE</span>
+            <span>INSTASCOPE / WHATSAPP</span>
             <i>↗</i>
           </div>
           <div className="wa-art-bubble">
@@ -87,7 +88,7 @@ function LandingHero({
           </div>
         </div>
       </section>
-      <div className="wa-promise-strip" aria-label="How WhatsAppScope works">
+      <div className="wa-promise-strip" aria-label="How InstaScope works">
         <span>
           <i aria-hidden="true">01</i> Open a local export
         </span>
@@ -122,7 +123,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
       ) : (
         <section className="wa-page-heading">
           <span className="wa-eyebrow">
-            WHATSAPPSCOPE / {mode === "analyzer" ? "CHAT ANALYZER" : "WRAPPED"}
+            WHATSAPP / {mode === "analyzer" ? "CHAT ANALYZER" : "WRAPPED"}
           </span>
           <h1 id="wa-title">
             {mode === "analyzer" ? (
@@ -254,14 +255,14 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
               </InsightLink>
             </article>
             <article>
-              <span className="wa-feature-number">02 / THE RHYTHM</span>
-              <h3>Find your recorded patterns.</h3>
+              <span className="wa-feature-number">02 / THE VAULT</span>
+              <h3>A record, without the chat.</h3>
               <p>
-                Look at activity by hour and weekday. See a longest run of
-                active dates, with clear limits on what those numbers mean.
+                Keep anonymous totals on this device. Compare saved exports
+                without saving message text or participant identities.
               </p>
-              <InsightLink href="#wa-import">
-                Start with your export
+              <InsightLink href="/whatsapp/chat-vault/">
+                Explore Chat Vault
               </InsightLink>
             </article>
             <article>

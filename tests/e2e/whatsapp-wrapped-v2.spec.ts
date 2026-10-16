@@ -247,7 +247,7 @@ async function downloadPng(page: Page, action: Locator = downloadButton(page)) {
   const received = page.waitForEvent("download");
   await action.click();
   const result = await received;
-  expect(result.suggestedFilename()).toMatch(/^whatsappscope-[a-z0-9-]+\.png$/);
+  expect(result.suggestedFilename()).toMatch(/^instascope-whatsapp-[a-z0-9-]+\.png$/);
   const bytes = await readFile((await result.path())!);
   assertPng(bytes);
   return bytes;
@@ -509,7 +509,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     const received = page.waitForEvent("download");
     await fullExportButton(page).click();
     const result = await received;
-    expect(result.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toHaveLength(cards);
     for (const [name, bytes] of Object.entries(entries)) {
@@ -580,7 +580,7 @@ test.describe("WhatsApp Wrapped V2", () => {
       const received = page.waitForEvent("download");
       await downloadButton(page).click();
       const downloaded = await received;
-      expect(downloaded.suggestedFilename()).toBe(`whatsappscope-${id}.png`);
+      expect(downloaded.suggestedFilename()).toBe(`instascope-whatsapp-${id}.png`);
       const actual = await readFile((await downloaded.path())!);
       assertPng(actual);
       await assertArtworkMatches(actual, expected);
@@ -684,7 +684,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     await encodingHeld(page);
     await releaseEncoding(page);
     const result = await received;
-    expect(result.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toHaveLength(12);
     expect(
@@ -708,7 +708,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(
       progress.some((text) => /Preparing deck: \d+ \/ 12 cards/.test(text)),
     ).toBe(true);
-    expect(downloads).toEqual(["whatsappscope-wrapped-deck.zip"]);
+    expect(downloads).toEqual(["instascope-whatsapp-wrapped-deck.zip"]);
     expect(requests).toEqual([]);
     const after = await metrics(page);
     expect(after.parseRequests).toBe(before.parseRequests);
@@ -773,8 +773,8 @@ test.describe("WhatsApp Wrapped V2", () => {
       await expect(status(page)).toContainText(/downloaded/);
     }
     expect(downloads).toEqual([
-      "whatsappscope-conversation.png",
-      "whatsappscope-conversation.png",
+      "instascope-whatsapp-conversation.png",
+      "instascope-whatsapp-conversation.png",
     ]);
     expect(errors).toEqual([]);
     await fits(page);
@@ -815,7 +815,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     const received = page.waitForEvent("download");
     await fullExportButton(page).click();
     const result = await received;
-    expect(result.suggestedFilename()).toBe("whatsappscope-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toEqual([
       "01-conversation.png",
@@ -861,7 +861,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     await expect.poll(async () => (await metrics(page)).shares.length).toBe(1);
     expect((await metrics(page)).shares[0]).toMatchObject({ active: true });
     expect((await metrics(page)).shares[0].name).toMatch(
-      /^whatsappscope-[a-z0-9-]+\.png$/,
+      /^instascope-whatsapp-[a-z0-9-]+\.png$/,
     );
     await expect(fullExportButton(page)).toBeDisabled();
     await expect(choices(page).first()).toBeDisabled();
@@ -909,7 +909,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     const receivedPng = page.waitForEvent("download");
     await downloadButton(page).click();
     const png = await receivedPng;
-    expect(png.suggestedFilename()).toBe("whatsappscope-demo-conversation.png");
+    expect(png.suggestedFilename()).toBe("instascope-whatsapp-demo-conversation.png");
     await assertArtworkMatches(
       await readFile((await png.path())!),
       await previewBytes(page),
@@ -920,7 +920,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     const receivedZip = page.waitForEvent("download");
     await fullExportButton(page).click();
     const zip = await receivedZip;
-    expect(zip.suggestedFilename()).toBe("whatsappscope-demo-deck.zip");
+    expect(zip.suggestedFilename()).toBe("instascope-whatsapp-demo-deck.zip");
     const entries = unzipSync(await readFile((await zip.path())!));
     expect(Object.keys(entries)).toHaveLength(count);
     for (const bytes of Object.values(entries)) assertPng(bytes);
