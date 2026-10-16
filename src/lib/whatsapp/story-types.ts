@@ -74,6 +74,8 @@ export type WhatsAppStory = WhatsAppStoryBase &
         data: {
           buckets: WhatsAppStoryEntry[];
           entries: WhatsAppStoryEntry[];
+          /** Qualifying timing labels omitted from the bounded group artwork. */
+          hiddenParticipants: number;
           transitionCount: number;
           rapidCount: number;
           rapidShare: number;

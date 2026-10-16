@@ -254,6 +254,76 @@ describe("WhatsApp Wrapped V2 deck selection", () => {
 });
 
 describe("WhatsApp Wrapped counts and ties", () => {
+  it.each([3, 8, 24])(
+    "keeps all %i group labels in totals, ties and timing while bounding anonymous rows",
+    (participants) => {
+      const messages = participants * 6;
+      const source = sequence(
+        Array.from({ length: messages - 1 }, (_, index) =>
+          (index + 1) % participants === 0 ? 21600 : 60,
+        ),
+        Array.from(
+          { length: messages },
+          (_, index) => `PRIVATE_GROUP_LABEL_${index % participants}`,
+        ),
+      );
+      const stories = build(source);
+      expect(build(source)).toEqual(stories);
+      expect(stories.every((story) => story.mode === "group")).toBe(true);
+      const visible = Math.min(
+        participants,
+        WHATSAPP_STORY_LIMITS.participants,
+      );
+      const ranking = card(stories, "participant-counts", "ranking");
+      expect(ranking.data.entries).toEqual(
+        Array.from({ length: visible }, (_, index) => ({
+          label: `Participant ${index + 1}`,
+          value: 6,
+          display: "6",
+          share: 1 / participants,
+        })),
+      );
+      expect(ranking.data.total).toBe(messages);
+      expect(ranking.data.hiddenParticipants).toBe(participants - visible);
+      expect(ranking.data.leaderTieCount).toBe(participants);
+      expect(ranking.lead).toBe(
+        `${participants} participants tie for the highest exported message count.`,
+      );
+      expect(
+        ranking.data.entries.reduce((sum, entry) => sum + entry.share!, 0),
+      ).toBeCloseTo(visible / participants);
+      const timing = card(stories, "next-message", "rhythm");
+      expect(timing.data.transitionCount).toBe(messages - 1);
+      expect(timing.data.hiddenParticipants).toBe(participants - visible);
+      expect(timing.data.entries).toHaveLength(visible);
+      // All but the first label have six incoming transitions. Their tied
+      // display order follows the accepted export, not a fastest-sender rank.
+      expect(timing.data.entries[0].label).toBe("Participant 2");
+      if (participants > visible) {
+        expect(timing.note).toBe(
+          `${visible} of ${participants} qualifying labels shown; ${participants - visible} not displayed. Adjacent messages do not prove replies.`,
+        );
+      } else {
+        expect(timing.note).not.toContain("not displayed");
+      }
+      expect(timing.calculation.limitations).toContain("not a speed ranking");
+      expect(JSON.stringify(stories)).not.toMatch(
+        /PRIVATE_GROUP_LABEL|Synthetic message|winner|reply time|response time/i,
+      );
+      for (const id of ["session-starters", "silence-breakers"]) {
+        const starts = card(stories, id, "ranking");
+        expect(starts.data.entries).toHaveLength(visible);
+        expect(starts.data.hiddenParticipants).toBe(participants - visible);
+        expect(starts.data.entries[0].label).toBe("Participant 1");
+        expect(starts.data.total).toBe(id === "session-starters" ? 6 : 5);
+        expect(starts.data.entries[0].share).toBe(1);
+      }
+      expect(card(stories, "closing", "closing").data.participants).toBe(
+        participants,
+      );
+    },
+  );
+
   it("retains every tied maximum even when the group display is capped", () => {
     const source = sequence(
       Array(23).fill(60),

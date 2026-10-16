@@ -320,15 +320,26 @@ function WhatsAppAnalyzerResults({
   const { analysis, heatmap, overview, participant } = result;
   const [participantPage, setParticipantPage] = useState(0);
   const [allMonths, setAllMonths] = useState(false);
+  const group = dataset.participants.length > 2;
   const participants = useMemo(
     () =>
       [...analysis.participants].sort(
         (a, b) =>
           b.messageCount - a.messageCount ||
-          a.displayName.localeCompare(b.displayName),
+          // Stable source order breaks group ties without locale collation.
+          (group ? 0 : a.displayName.localeCompare(b.displayName)),
       ),
-    [analysis],
+    [analysis, group],
   );
+  const countRanks = useMemo(() => {
+    const counts = new Map<number, { rank: number; labels: number }>();
+    participants.forEach((participant, index) => {
+      const count = counts.get(participant.messageCount);
+      if (count) count.labels++;
+      else counts.set(participant.messageCount, { rank: index + 1, labels: 1 });
+    });
+    return counts;
+  }, [participants]);
   const visibleParticipants = participants.slice(
     participantPage * 8,
     (participantPage + 1) * 8,
@@ -496,15 +507,39 @@ function WhatsAppAnalyzerResults({
             Message counts and each participant&apos;s share of the selected
             exported messages.
           </p>
+          {group && participants.length > 0 && (
+            <p className="wa-hint" aria-live="polite">
+              Highest counts first; equal counts retain accepted label order.
+              {participants.length > 8 ? (
+                <>
+                  {" "}
+                  Showing {whatsappNumber(participantPage * 8 + 1)}–
+                  {whatsappNumber(
+                    Math.min((participantPage + 1) * 8, participants.length),
+                  )}{" "}
+                  of {whatsappNumber(participants.length)} labels;{" "}
+                  {whatsappNumber(
+                    participants.length - visibleParticipants.length,
+                  )}{" "}
+                  additional labels not displayed on this page.
+                </>
+              ) : (
+                <> All {whatsappNumber(participants.length)} labels shown.</>
+              )}{" "}
+              Shares include all selected messages, including labels on other
+              pages. Rounded shares may not total 100%.
+            </p>
+          )}
           <div className="wa-participant-bars">
             {visibleParticipants.map((participant, position) => (
               <div className="wa-participant-row" key={participant.id}>
                 <div className="wa-participant-label">
                   <span className="wa-participant-avatar" aria-hidden="true">
-                    {String(participantPage * 8 + position + 1).padStart(
-                      2,
-                      "0",
-                    )}
+                    {String(
+                      group
+                        ? countRanks.get(participant.messageCount)!.rank
+                        : participantPage * 8 + position + 1,
+                    ).padStart(2, "0")}
                   </span>
                   <span title={participant.displayName}>
                     {participant.displayName}
@@ -531,6 +566,15 @@ function WhatsAppAnalyzerResults({
                   />
                 </div>
                 <p className="wa-participant-extras">
+                  {group &&
+                    countRanks.get(participant.messageCount)!.labels > 1 && (
+                      <>
+                        {whatsappNumber(
+                          countRanks.get(participant.messageCount)!.labels,
+                        )}{" "}
+                        labels tied at this count ·{" "}
+                      </>
+                    )}
                   Media markers: {whatsappNumber(participant.mediaMessages)} ·
                   Links: {whatsappNumber(participant.links)} · Emoji:{" "}
                   {participant.emoji === null

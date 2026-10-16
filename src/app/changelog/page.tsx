@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 140,
+          title: "Polish WhatsAppScope group mode",
+          summary:
+            "Group message counts now keep source-order ties explicit across paginated rankings. Anonymous Wrapped timing cards disclose qualifying labels outside the displayed rows. Synthetic small and large groups verify full-population totals, local Vault backups and factual comparison without identity or joined/left inference. Preview only; pair mode and PNG/ZIP exports are preserved.",
+        },
+        {
           issue: 138,
           title: "Add WhatsApp Snapshot Compare and Conversation Pulse",
           summary:

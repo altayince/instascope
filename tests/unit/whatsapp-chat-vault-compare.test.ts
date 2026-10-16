@@ -8,6 +8,10 @@ import {
   type ChatVaultSnapshot,
 } from "../../src/lib/whatsapp/chat-vault";
 import { parseWhatsApp } from "../../src/lib/whatsapp/parser";
+import {
+  groupPrivateMarker,
+  syntheticGroupChat,
+} from "../helpers/whatsapp-group";
 
 const firstId = "11111111-1111-4111-8111-111111111111";
 const secondId = "22222222-2222-4222-8222-222222222222";
@@ -56,6 +60,43 @@ const distribution = (
 ) => result.distributions.find((item) => item.key === key)!;
 
 describe("saved Chat Vault pair compatibility and deterministic order", () => {
+  it.each([3, 8, 24])(
+    "compares %i-label group snapshots as full aggregates without participant-membership inference",
+    (participants) => {
+      const earlier = make(syntheticGroupChat(participants).split("\n"));
+      const newer = make(
+        syntheticGroupChat(participants + 1, 4).split("\n"),
+        secondId,
+        1800000000001,
+      );
+      const original = structuredClone({ earlier, newer });
+      const result = compare(earlier, newer);
+      expect(result.compatibility.status).toBe("comparable");
+      expect(metric(result, "totals.participants")).toMatchObject({
+        label: "Exported participant labels",
+        earlier: participants,
+        later: participants + 1,
+        delta: 1,
+        classification: "exact",
+      });
+      const hours = distribution(result, "hours");
+      expect(hours.earlierTotal).toBe(participants * 6);
+      expect(hours.laterTotal).toBe((participants + 1) * 8);
+      expect(hours.buckets[9]).toMatchObject({
+        earlierCount: participants * 6,
+        laterCount: (participants + 1) * 8,
+        earlierShare: 1,
+        laterShare: 1,
+        deltaShare: 0,
+      });
+      expect(JSON.stringify(result)).not.toContain(groupPrivateMarker);
+      expect(JSON.stringify(result)).not.toMatch(
+        /(?:\d+|two) (?:people|participants) (?:joined|left)|fingerprint|participantId|displayName/i,
+      );
+      expect({ earlier, newer }).toEqual(original);
+    },
+  );
+
   it("accepts supported aligned full exports with matching definitions", () => {
     const result = compare();
     expect(result.compatibility).toEqual({ status: "comparable", reasons: [] });

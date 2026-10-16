@@ -17,6 +17,10 @@ import {
   DEFAULT_WHATSAPP_FILTERS,
 } from "../../src/lib/whatsapp/filters";
 import { parseWhatsApp } from "../../src/lib/whatsapp/parser";
+import {
+  groupPrivateMarker,
+  syntheticGroupChat,
+} from "../helpers/whatsapp-group";
 
 const firstId = "11111111-1111-4111-8111-111111111111";
 const secondId = "22222222-2222-4222-8222-222222222222";
@@ -51,6 +55,44 @@ function objectPaths(value: unknown, path: string[] = []): string[][] {
 }
 
 describe("anonymous aggregate Chat Vault projection", () => {
+  it.each([3, 8, 24])(
+    "keeps all %i tied group labels in aggregates and round-trips an identity-free V1 backup",
+    (participants) => {
+      const dataset = parseWhatsApp(
+        syntheticGroupChat(participants),
+        "dmy-24h",
+      );
+      const original = structuredClone(dataset);
+      const saved = createChatVaultSnapshot(dataset, options);
+      expect(saved.version).toBe(1);
+      expect(saved.definitionsVersion).toBe(1);
+      expect(saved.totals).toMatchObject({
+        messages: participants * 6,
+        participants,
+        activeDays: 3,
+        mediaMessages: participants,
+        attributedCallEvents: 1,
+        unattributedCallEvents: 1,
+      });
+      expect(saved.activity.hours.reduce((sum, value) => sum + value, 0)).toBe(
+        participants * 6,
+      );
+      expect(
+        saved.activity.weekdays.reduce((sum, value) => sum + value, 0),
+      ).toBe(participants * 6);
+      expect(
+        saved.activity.heatmap.flat().reduce((sum, value) => sum + value, 0),
+      ).toBe(participants * 6);
+      const serialized = serializeChatVaultBackup([saved]);
+      expect(parseChatVaultBackup(serialized).snapshots).toEqual([saved]);
+      expect(serialized).not.toContain(groupPrivateMarker);
+      expect(serialized).not.toMatch(
+        /participantId|displayName|participant-\d|fingerprint|conversationId|Participant \d/,
+      );
+      expect(dataset).toEqual(original);
+    },
+  );
+
   it("projects full-source existing analysis without retaining identities or content", () => {
     const dataset = fixture();
     const original = structuredClone(dataset);
