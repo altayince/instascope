@@ -49,6 +49,9 @@ checks on desktop, Pixel and iPhone WebKit. This does not authorize a merge or
 deployment or change the routing for unreleased product work.
 Both visual builds use the same explicit optional-service settings so factual
 deployment-specific privacy copy remains comparable without masking it.
+Released WhatsApp landing fixes named `bugfix/INS-<issue>-whatsapp-landing`
+also run these WhatsApp and visual jobs on same-repository PRs targeting `main`.
+This is test coverage for the released landing, not authorization to deploy it.
 
 The ownership workflow reads private Project metadata using `INS_PROJECT_TOKEN`. This repository secret needs repo and Project read access. Never print or commit the credential. The job must never check out PR code or run scripts from it.
 

@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 150,
+    title: "Make WhatsApp landing steps useful",
+    summary:
+      "The three landing steps open import, Analyzer or Wrapped with clear entry points when no chat is loaded. A compact, labelled preview uses the existing fictional demo facts; navigating keeps your current chat. The shared dark theme, local processing and existing tools are preserved.",
+  },
+  {
     issue: 148,
     title: "Unify Instagram and WhatsApp in a premium dark InstaScope platform",
     summary:

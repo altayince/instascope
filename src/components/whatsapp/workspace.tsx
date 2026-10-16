@@ -1,7 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useMemo } from "react";
 import { ActionButton, ActionLink, InsightLink } from "@/components/actions";
+import { analyzeWhatsApp, createWhatsAppDemo } from "@/lib/whatsapp";
 import { whatsappDate, whatsappNumber } from "@/lib/whatsapp/stories";
 import { useWhatsApp } from "./provider";
 import { WhatsAppImport } from "./import";
@@ -16,12 +19,47 @@ import { useBrowserReady } from "@/components/use-browser-ready";
 export type WhatsAppWorkspaceMode =
   "overview" | "analyzer" | "wrapped" | "vault";
 
+function LandingPreview() {
+  const analysis = useMemo(() => analyzeWhatsApp(createWhatsAppDemo()), []);
+  return (
+    <section className="wa-landing-preview" aria-labelledby="wa-preview-title">
+      <span className="wa-eyebrow">InstaScope / WhatsApp</span>
+      <h2 id="wa-preview-title">Recorded chat facts</h2>
+      <p className="wa-preview-source">Demo data · Fictional example</p>
+      <div className="wa-stat-grid">
+        <div className="wa-stat wa-stat-featured">
+          <span>Exported messages</span>
+          <strong>{whatsappNumber(analysis.totals.messages)}</strong>
+        </div>
+        <div className="wa-stat">
+          <span>Active dates</span>
+          <strong>{whatsappNumber(analysis.totals.activeDays)}</strong>
+        </div>
+        <div className="wa-stat">
+          <span>Participant labels</span>
+          <strong>{whatsappNumber(analysis.totals.participants)}</strong>
+        </div>
+        <div className="wa-stat">
+          <span>Media markers</span>
+          <strong>{whatsappNumber(analysis.totals.mediaMessages)}</strong>
+        </div>
+      </div>
+      <p className="wa-preview-note">
+        Fictional export totals. Labels are not verified people; media contents
+        are unavailable.
+      </p>
+    </section>
+  );
+}
+
 function LandingHero({
   onDemo,
   ready,
+  hasChat,
 }: {
   onDemo: () => void;
   ready: boolean;
+  hasChat: boolean;
 }) {
   return (
     <>
@@ -41,64 +79,75 @@ function LandingHero({
             Wrapped worth sharing.
           </p>
           <div className="wa-hero-actions">
-            <ActionLink variant="primary" href="#wa-import">
-              Explore your chat <span aria-hidden="true">↗</span>
-            </ActionLink>
-            <ActionButton variant="tertiary" onClick={onDemo} disabled={!ready}>
-              Try a fictional demo <span aria-hidden="true">→</span>
-            </ActionButton>
+            {hasChat ? (
+              <>
+                <ActionLink variant="primary" href="/whatsapp/chat-analyzer/">
+                  Continue to Chat Analyzer
+                </ActionLink>
+                <ActionLink variant="tertiary" href="/whatsapp/wrapped/">
+                  Open WhatsApp Wrapped
+                </ActionLink>
+              </>
+            ) : (
+              <>
+                <a className="button primary" href="#wa-import-title">
+                  Explore your chat
+                </a>
+                <ActionButton
+                  variant="tertiary"
+                  onClick={onDemo}
+                  disabled={!ready}
+                >
+                  Try a fictional demo
+                </ActionButton>
+              </>
+            )}
           </div>
           <p className="wa-hero-reassurance">
             Your export stays on this device. No login needed.
           </p>
         </div>
-        <div className="wa-hero-art" aria-hidden="true">
-          <div className="wa-art-heading">
-            <span>INSTASCOPE / WHATSAPP</span>
-            <i>↗</i>
-          </div>
-          <div className="wa-art-bubble">
-            The catch-ups.
-            <br />
-            The plans.
-            <br />
-            <em>The everyday.</em>
-          </div>
-          <div className="wa-art-reply">
-            A little perspective
-            <br />
-            on all those messages.
-          </div>
-          <div className="wa-art-chart">
-            <span>YOUR CONVERSATION, IN PERSPECTIVE</span>
-            <div>
-              {[22, 41, 30, 64, 48, 86, 58, 100, 67, 46, 76, 55].map(
-                (height, index) => (
-                  <i key={index} style={{ height: `${height}%` }} />
-                ),
-              )}
-            </div>
-            <small>
-              An illustrated preview. Your results come from your export.
-            </small>
-          </div>
-          <div className="wa-art-footer">
-            <span>Local files. Clear facts.</span>
-            <span>01 / 03</span>
-          </div>
-        </div>
+        <LandingPreview />
       </section>
-      <div className="wa-promise-strip" aria-label="How InstaScope works">
-        <span>
+      <nav className="wa-promise-strip" aria-label="How InstaScope works">
+        <a href="#wa-import-title">
           <i aria-hidden="true">01</i> Open a local export
-        </span>
-        <span>
-          <i aria-hidden="true">02</i> Explore the recorded facts
-        </span>
-        <span>
-          <i aria-hidden="true">03</i> Make your own Wrapped
-        </span>
-      </div>
+        </a>
+        <Link
+          href={
+            hasChat
+              ? "/whatsapp/chat-analyzer/"
+              : "/whatsapp/chat-analyzer/#wa-import-title"
+          }
+        >
+          <i aria-hidden="true">02</i>
+          <span>
+            Explore the recorded facts
+            <small>
+              {hasChat
+                ? "Continue with your loaded chat"
+                : "Import a chat or try the demo in Analyzer"}
+            </small>
+          </span>
+        </Link>
+        <Link
+          href={
+            hasChat
+              ? "/whatsapp/wrapped/"
+              : "/whatsapp/wrapped/#wa-import-title"
+          }
+        >
+          <i aria-hidden="true">03</i>
+          <span>
+            Make your own Wrapped
+            <small>
+              {hasChat
+                ? "Use your loaded chat"
+                : "Import a chat or try the demo in Wrapped"}
+            </small>
+          </span>
+        </Link>
+      </nav>
     </>
   );
 }
@@ -119,7 +168,11 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
   return (
     <main id="main" className="wa-workspace" data-whatsapp-mode={mode}>
       {mode === "overview" ? (
-        <LandingHero onDemo={exploreDemo} ready={ready} />
+        <LandingHero
+          onDemo={exploreDemo}
+          ready={ready}
+          hasChat={Boolean(dataset)}
+        />
       ) : (
         <section className="wa-page-heading">
           <span className="wa-eyebrow">

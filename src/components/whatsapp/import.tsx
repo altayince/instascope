@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { WHATSAPP_FORMATS, type WhatsAppFormatId } from "@/lib/whatsapp";
 import { ActionButton } from "@/components/actions";
 import { useWhatsApp } from "./provider";
@@ -23,6 +24,8 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
     dataset,
   } = useWhatsApp();
   const picker = useRef<HTMLInputElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const pathname = usePathname();
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -31,6 +34,13 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
     };
   }, []);
   const ready = useBrowserReady();
+  useEffect(() => {
+    // This import view survives tool navigation. Honor an explicit fragment
+    // entry even when Next's route transition reuses the existing heading.
+    if (ready && window.location.hash === "#wa-import-title") {
+      heading.current?.focus({ preventScroll: true });
+    }
+  }, [pathname, ready]);
   const [dragging, setDragging] = useState(false);
   const selected = WHATSAPP_FORMATS.find((item) => item.id === format);
   const detection = inspection?.detection;
@@ -52,7 +62,7 @@ export function WhatsAppImport({ onImported }: { onImported?: () => void }) {
     >
       <div className="wa-import-intro">
         <span className="wa-eyebrow">START WITH YOUR EXPORT</span>
-        <h2 id="wa-import-title" tabIndex={-1}>
+        <h2 id="wa-import-title" tabIndex={-1} ref={heading}>
           Bring your chat. <em>Keep it yours.</em>
         </h2>
         <p>
