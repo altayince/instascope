@@ -10,6 +10,12 @@ const changes = [
   ...(process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true"
     ? [
         {
+          issue: 144,
+          title: "Prepare WhatsAppScope production release gate",
+          summary:
+            "A reviewed repository release state retains WhatsApp tools and the platform switcher in intentional production builds, while WhatsApp stays noindex and outside the sitemap. Preview and unknown-context protections remain. An optional production smoke and owner release/rollback checklist prepare the later launch; this change does not deploy it.",
+        },
+        {
           issue: 142,
           title: "Harden WhatsAppScope release paths",
           summary:

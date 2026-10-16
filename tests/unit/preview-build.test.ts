@@ -1,5 +1,8 @@
 import { expect, it } from "vitest";
-import { isWorkersPreviewBuild } from "../../scripts/build.mjs";
+import {
+  isHostedProductionBuild,
+  isWorkersPreviewBuild,
+} from "../../scripts/build.mjs";
 
 const featureBranch = "feature/INS-142-whatsappscope-release-hardening";
 
@@ -34,6 +37,45 @@ it("chooses the preview path despite inherited production public settings", () =
     ),
   ).toBe(true);
 });
+
+it.each([
+  { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main" },
+  { CF_PAGES: "1", CF_PAGES_BRANCH: "main" },
+])(
+  "normalizes an identified main build despite inherited preview flags (%j)",
+  (host) => {
+    const environment = {
+      ...host,
+      NEXT_PUBLIC_PREVIEW: "true",
+      NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+    };
+    expect(isHostedProductionBuild(environment)).toBe(true);
+    expect(isWorkersPreviewBuild(environment, "main")).toBe(false);
+  },
+);
+
+it.each([
+  {},
+  { WORKERS_CI: "1" },
+  { WORKERS_CI: "1", WORKERS_CI_BRANCH: "" },
+  { WORKERS_CI: "1", WORKERS_CI_BRANCH: "HEAD" },
+  { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main " },
+  { WORKERS_CI_BRANCH: "main" },
+  { WORKERS_CI: "1", WORKERS_CI_BRANCH: "dev" },
+  { CF_PAGES: "1" },
+  { CF_PAGES: "1", CF_PAGES_BRANCH: "dev" },
+  {
+    WORKERS_CI: "1",
+    WORKERS_CI_BRANCH: "main",
+    CF_PAGES: "1",
+    CF_PAGES_BRANCH: "dev",
+  },
+])(
+  "does not promote unknown or conflicting host contexts to production (%j)",
+  (environment) => {
+    expect(isHostedProductionBuild(environment)).toBe(false);
+  },
+);
 
 it.each([
   ["missing Workers marker", undefined],

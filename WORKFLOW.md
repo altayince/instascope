@@ -30,8 +30,9 @@ feature merge. Coding agents must never merge `dev` into `main` without an
 explicit owner instruction to perform that release. Do not deploy production or
 change production settings as part of ordinary unreleased feature work.
 
-WhatsAppScope additionally requires the explicit preview-only build gate; its
-routes and switcher are absent from the default production export.
+WhatsAppScope's reviewed repository release state permits intentional production
+builds; its pages remain noindex and outside the sitemap until separate SEO work.
+Preview/unknown-context protections still apply. Only the owner releases dev to main.
 For dev-targeted WhatsAppScope PRs, also require the existing `whatsapp-tests`
 and `main-visual-parity` jobs. No production deployment is part of these checks.
 

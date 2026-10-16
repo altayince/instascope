@@ -171,9 +171,25 @@ async function savedChat(page: Page) {
   await expect(rows(page)).toHaveCount(1);
 }
 
-test("production release does not expose Chat Vault", async ({ request }) => {
-  test.skip(enabled, "The explicit dev build is tested separately.");
-  expect((await request.get("/whatsapp/chat-vault/")).status()).toBe(404);
+test("production release keeps Chat Vault local, functional and noindex", async ({
+  page,
+  request,
+}) => {
+  test.skip(enabled, "The preview build is tested separately.");
+  expect((await request.get("/whatsapp/chat-vault/")).status()).toBe(200);
+  await savedChat(page);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex, nofollow",
+  );
+  expect((await page.reload())?.status()).toBe(200);
+  await expect(rows(page)).toHaveCount(1);
+  expect(await records(page)).toHaveLength(1);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex, nofollow",
+  );
+  await fits(page);
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
     "whatsapp",
   );

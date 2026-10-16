@@ -74,27 +74,69 @@ async function sharedControls(page: Page) {
   });
 }
 
-test("release build keeps WhatsApp routes and switcher invisible", async ({
+test("production release exposes WhatsApp without indexing it or changing Instagram indexing", async ({
   page,
   request,
 }) => {
-  test.skip(
-    enabled,
-    "Enabled preview is tested separately from release isolation.",
+  test.skip(enabled, "The preview build has its own global indexing boundary.");
+  expect((await page.goto("/"))?.status()).toBe(200);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "index, follow",
   );
-  await page.goto("/");
-  await expect(page.locator(".social-switcher")).toHaveCount(0);
-  await expect(page.locator('a[href^="/whatsapp/"]')).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Try demo", exact: true }),
+  ).toBeEnabled();
+  await switchPlatform(page, "WhatsApp");
+  await expect(page).toHaveURL(/\/whatsapp\/$/);
+  await expect(page.locator(".social-switcher summary")).toHaveAccessibleName(
+    /currently WhatsApp/,
+  );
   for (const route of [
     "/whatsapp/",
     "/whatsapp/chat-analyzer/",
     "/whatsapp/wrapped/",
     "/whatsapp/chat-vault/",
-  ])
-    expect((await request.get(route)).status(), route).toBe(404);
+  ]) {
+    expect((await page.goto(route))?.status(), route).toBe(200);
+    await expect(page.locator("main h1")).toHaveCount(1);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, nofollow",
+    );
+    await expect(
+      page.getByLabel(
+        route === "/whatsapp/chat-vault/"
+          ? "Import Chat Vault backup"
+          : "Upload WhatsApp chat export",
+        { exact: true },
+      ),
+    ).toBeEnabled();
+    expect((await page.reload())?.status(), `${route} refresh`).toBe(200);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, nofollow",
+    );
+    await fits(page);
+  }
+  await expect(
+    page.getByLabel("Import Chat Vault backup", { exact: true }),
+  ).toBeEnabled();
+  await switchPlatform(page, "Instagram");
+  await expect(page).toHaveURL(new URL("/", page.url()).href);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "index, follow",
+  );
+  expect((await request.get("/followers-analyzer/")).status()).toBe(200);
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
     "whatsapp",
   );
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toMatch(/^Allow: \/$/m);
+  expect(robots).toMatch(/^Disallow: \/api\/$/m);
+  expect(robots).not.toMatch(/^Disallow: \/$/m);
+  expect(robots).not.toMatch(/^Disallow: \/whatsapp(?:\/|$)/m);
 });
 
 test.describe("WhatsAppScope enabled preview", () => {

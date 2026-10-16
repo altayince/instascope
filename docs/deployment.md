@@ -1,16 +1,19 @@
 # Deployment and launch
 
-Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired.
+Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired. After the owner deploys the WhatsApp release, add `--require-whatsapp` to verify the four tools, Instagram indexing, WhatsApp noindex, sitemap/robots and required page-linked JS/CSS. Ordinary smoke does not require WhatsApp on today's live site.
 
-WhatsAppScope remains dev/preview-only and absent from the current production
-artifact. Its separate [owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md)
-covers the future release gate decision, local validation, device smoke and
-rollback. Setting an environment flag alone cannot bypass the current main-branch
-gate. Ordinary WhatsApp PRs do not deploy or change this production process.
+INS-144 prepares WhatsAppScope's explicit repository production release state;
+the live site changes only after the owner's later dev -> main release. Its
+[owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md) covers that sequence,
+post-deploy manual testing and rollback. Production builds retain Instagram and
+all four WhatsApp routes/switcher without a dashboard flag. WhatsApp stays
+noindex/nofollow and outside the sitemap; public Instagram indexing is unchanged.
+Ordinary WhatsApp PRs never merge or deploy that production release. The owner
+has skipped physical-device pre-certification; it is not claimed as completed.
 
 ## Static application
 
-On Cloudflare Pages or Workers Builds, `npm run build` recognizes `CF_PAGES_BRANCH=main` or `WORKERS_CI_BRANCH=main` and generates an indexable `out/` automatically. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing branch value fails closed. `NEXT_PUBLIC_PREVIEW=true` always disables indexing. For a manual production release outside Cloudflare, use `npm run build:production` (or set `NEXT_PUBLIC_SITE_URL=https://instascope.me` before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
+On Cloudflare Pages or Workers Builds, `npm run build` recognizes an identified main production branch and uses the production wrapper to generate an indexable `out/`, resetting inherited preview flags. Cloudflare preview branches generate `noindex, nofollow`, `Disallow: /` and an empty sitemap even if they inherit `NEXT_PUBLIC_SITE_URL=https://instascope.me`. Set the production branch to `main`; a missing/conflicting host branch fails closed. Explicit preview artifacts remain noindex. For a manual production release outside Cloudflare, use `npm run build:production` (or explicitly set `NEXT_PUBLIC_SITE_URL=https://instascope.me` with preview off before `npm run build`). Publish the resulting `out/` directory. The canonical origin is always instascope.me.
 
 The live site previously served a preview/unconfigured build despite correct canonical URLs. If a main-branch deployment still returns `noindex`, inspect the host's build logs and confirm its build command runs `npm run build` on `main` with the Cloudflare branch variable present; alternatively configure the production build command as `npm run build:production`. Keep Workers Builds commands on `npm run build`; the preview wiring below chooses the existing development build only in a recognized non-main Workers context. Set `NEXT_PUBLIC_PREVIEW=true` for other preview systems; enabling WhatsApp there still requires its explicit opt-in and a known non-main branch. Cloudflare's [Pages build variables](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [Workers Builds variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) document the injected branch names.
 
@@ -19,16 +22,20 @@ The live site previously served a preview/unconfigured build despite correct can
 Workers Builds runs its configured build command before the separate Preview
 command. `previews: {}` and `assets.directory` in the root Wrangler file describe
 the preview deployment; they do not enable Next's compile-time WhatsApp flag.
-An ordinary build without the opt-ins correctly compiles it out and prunes its
-HTML/RSC, explaining the earlier successful preview build with WhatsApp 404s.
+Before the INS-144 release decision, an ordinary build without the opt-ins
+compiled it out and pruned its HTML/RSC, explaining the earlier successful
+preview build with WhatsApp 404s.
 
 The repository's `npm run build` entry now recognizes only `WORKERS_CI=1` with
 an explicit nonempty `WORKERS_CI_BRANCH` and no main branch in any existing
 Git/Cloudflare/GitHub context. It delegates that non-main Workers build to the
 unchanged `build-development.mjs`, which supplies both preview opt-ins. Ordinary
 local/GitHub builds, missing/invalid host branch and every main context retain
-the original Next → normalize → prune path. The feature gate and pruning are
-unchanged. `build:dev` and `build:production` remain explicit, separate commands.
+the original Next → normalize → prune path, except recognized Cloudflare main
+builds now use `build-production.mjs` to normalize inherited preview flags.
+Availability/pruning share the reviewed repository release state; preview
+dispatch still uses its separate strict non-main predicate. `build:dev` and
+`build:production` remain explicit, separate commands.
 
 Keep the host build command `npm run build`, Preview command
 `npx wrangler preview`, and production branch `main`. No dashboard, production
