@@ -242,7 +242,10 @@ test("timeline filters real export dates and exports an aggregate-only story wit
   const card = page.locator(".wrapped-card");
   await expect(card).toContainText("2024-01-01");
   await expect(card).toContainText("2025-01-10");
-  await expect(card).toContainText("do not prove continuous following");
+  await expect(page.locator(".wrapped-actions")).toContainText(
+    "Recorded dates do not prove continuous following or past totals.",
+  );
+  await expect(card).not.toContainText("do not prove continuous following");
   await expect(card).not.toContainText("request.old");
   const event = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download my Wrapped" }).click();
@@ -255,6 +258,7 @@ test("timeline filters real export dates and exports an aggregate-only story wit
     () => (window as unknown as { drawnTexts: string[] }).drawnTexts,
   );
   expect(drawn).toContain("2024-01-01");
+  expect(drawn.join(" ")).not.toContain("do not prove continuous following");
   expect(drawn.join(" ")).not.toMatch(
     /request\.|close\.friend|blocked\.person|story\.hidden|unfollow\.again|follow\.old/,
   );

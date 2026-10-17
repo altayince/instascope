@@ -244,6 +244,14 @@ for (const source of ["demo", "imported"] as const) {
     await expect(
       page.getByRole("button", { name: "Download PNG", exact: true }),
     ).toBeEnabled();
+    await expect(page.locator(".wa-story")).toHaveAttribute(
+      "data-story-id",
+      source === "demo" ? "words" : "conversation",
+    );
+    await page
+      .getByRole("group", { name: "Choose a Wrapped card", exact: true })
+      .getByRole("button", { name: /The conversation/ })
+      .click();
     await expect(page.locator(".wa-story-value strong")).toHaveText(
       String(count),
     );
