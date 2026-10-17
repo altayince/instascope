@@ -122,7 +122,7 @@ export function WhatsAppPublicHelp({ mode }: { mode: Mode }) {
   return (
     <section
       className="prose wa-public-help"
-      aria-labelledby="wa-public-help-title"
+      aria-label="Tool explanation and limitations"
     >
       <Breadcrumbs name={product.title} path={product.path} />
       <StructuredData

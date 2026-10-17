@@ -63,8 +63,14 @@ test("public routes render one heading, load assets and fit mobile screens", asy
     ).toBe(false);
     await expect(page.locator(".social-switcher summary")).toBeVisible();
     await expect(page.locator(".social-switcher summary")).toHaveAccessibleName(
-      "Switch platform, currently Instagram",
+      `Switch platform, currently ${path.startsWith("/whatsapp/") ? "WhatsApp" : "Instagram"}`,
     );
+    if (path === "/how-to-download-instagram-followers-data/") {
+      const format = page.locator(".article-table-scroll th").first();
+      await expect(format).toHaveText("Format");
+      // Keep the short format labels readable, with scrolling inside the table.
+      expect((await format.boundingBox())!.width).toBeGreaterThanOrEqual(64);
+    }
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

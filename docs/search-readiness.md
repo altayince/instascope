@@ -37,8 +37,11 @@ imports and mobile layouts.
 The pre-change 17 October audit found all 31 existing public Instagram URLs
 returning 200, index/follow and matching canonical/OG URLs; the sitemap and
 referenced JS/CSS passed. This does not establish the cause of the owner's
-reported zero-impression period or prove Google's selected canonical/index
-state. Current `www` DNS and the publicly indexable Workers alias are hosting
+reported zero-impression interval or prove Google's selected canonical. The
+owner's latest account update confirms three critical Instagram URLs indexed
+and passing live inspection, with no manual action, temporary removal or host
+access issue. A site-wide ranking loss is unproven; the latest 24-hour zero
+remains unexplained. Current `www` DNS and the publicly indexable Workers alias are hosting
 hygiene gaps requiring owner review; neither is proven to explain that report.
 No account setting, DNS record, deployment or collector is changed here.
 

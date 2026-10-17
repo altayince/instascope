@@ -7,6 +7,13 @@ Ursache ist **nicht festgestellt**. Unterschiedliche Datumsangaben werden nicht
 als Erklärung verwendet. Ein erfolgreicher HTTP-Abruf beweist weder Indexierung
 noch Googles gewählte kanonische URL. Es besteht kein Zugriff auf aktuelle
 URL-Prüfung, Crawling-Statistik, manuelle Maßnahmen oder Sicherheitsprobleme.
+Der Eigentümer bestätigt inzwischen: Drei wichtige Instagram-URLs sind indexiert
+und bestehen den Live-Test; keine manuelle Maßnahme, temporäre Entfernung oder
+Host-Zugriffsstörung. Die abgeschlossenen Vergleichszeiträume zeigen Zuwächse bei
+mehreren wichtigen Seiten. Das letzte 24-Stunden-Fenster bleibt ohne Impressionen;
+ein websiteweiter Rankingverlust ist damit nicht belegt. Die drei konkreten URLs,
+Google-Canonicals und übrigen Ausschlussgründe sind noch nicht benannt. Diese
+Angaben sind Eigentümerbelege, keine unabhängig ausgelesenen Kontodaten.
 
 Vor der Änderung geprüft: `main` **8ecb31747d2bff976afb48e4ade5026eed99d9e6**,
 Cloudflare-Build **df626ac5-78d2-4860-8c03-1163ce280168** erfolgreich,

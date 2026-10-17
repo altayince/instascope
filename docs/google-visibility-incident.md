@@ -1,10 +1,11 @@
 # Google visibility investigation — INS-154
 
-The owner reports zero Google impressions for the latest three days. Treat this
-as an unresolved visibility incident. Differences between report dates are not
-the diagnosis. Historical performance establishes previously visible intents;
-it does not refute the current report. Private Search Console exports and
-analytics excerpts are not included here.
+The owner's latest Search Console update confirms zero impressions/clicks in
+the latest 24 hours, while the preceding completed-period comparisons improved
+for several important Instagram pages. The short zero-impression interval remains
+unexplained; a site-wide ranking loss is not established. Differences between
+report dates are not the diagnosis. Private Search Console exports and analytics
+excerpts are not included here.
 
 ## Confirmed baseline
 
@@ -51,10 +52,13 @@ Google access, so it is not used as proof. No security rule has been changed.
 
 ## Unverified evidence and next diagnosis
 
-URL Inspection (indexed and live), last Google crawl, Google-selected canonical,
-Page Indexing reasons, Crawl Stats/host health, Manual Actions, Security Issues
-and temporary removals require the owner's account evidence. One consolidated
-request has been made; no credentials or account writes are requested.
+The owner reports that three critical Instagram URLs are indexed and pass live
+inspection, and confirms no manual action, temporary removal or host-access
+problem. This is owner-supplied account evidence, not direct API access. The
+specific three URLs, Google's selected canonicals, last crawl details, remaining
+exclusion reasons and Security Issues results were not supplied. Do not claim
+the complete inventory's Google status is verified. One consolidated evidence
+request was made; no credentials or account writes are requested.
 
 **Cause not yet established.** Eligibility checks cannot prove indexing,
 ranking or traffic recovery. If inspection shows an unintended canonical or

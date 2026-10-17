@@ -262,7 +262,9 @@ test.describe("WhatsAppScope release boundaries", () => {
       await expect(page.locator("main h1")).toHaveCount(1);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
         "content",
-        "noindex, nofollow",
+        process.env.EXPECT_INDEXABLE !== "false"
+          ? "index, follow"
+          : "noindex, nofollow",
       );
       await expect(
         navigation(page).locator('a[aria-current="page"]'),

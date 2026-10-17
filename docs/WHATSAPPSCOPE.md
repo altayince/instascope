@@ -1,9 +1,9 @@
 # WhatsAppScope: local import and factual analysis
 
-WhatsAppScope's production release gate is prepared in INS-144; the live release
-still requires the owner's dev -> main PR. Work starts from `dev`; review PRs
-target `dev` only. This task performs no merge, production deployment or
-Cloudflare configuration change.
+WhatsAppScope is released through merged PR #147. Unreleased roadmap work still
+starts from `dev` and targets `dev`; explicitly requested production fixes and
+SEO follow the main-based rules in [WORKFLOW.md](../WORKFLOW.md). INS-154 prepares
+the public search launch separately, without merging or deploying it.
 
 ## Release isolation and local review
 
@@ -15,9 +15,13 @@ and retain all four WhatsApp routes plus the switcher without preview opt-ins.
 builds normalize inherited preview flags through the production build path.
 Unknown/unconfigured contexts remain disabled; a development preview still
 requires both opt-ins and a known non-main branch. The Workers branch-preview
-dispatcher remains separate from release availability. Public-path/sitemap
-registration is unchanged; WhatsApp pages always carry `noindex, nofollow`,
-while public Instagram production pages remain indexable.
+dispatcher remains separate from release availability. INS-154's shared public
+inventory registers the four tool landing pages, guide hub and ten guides for
+production `index, follow`, self-canonicals and sitemap inclusion. Chat Vault's
+public education does not expose saved records or create private result URLs.
+Preview/unknown contexts retain `noindex, nofollow`, robots Disallow all and an
+empty sitemap. Instagram public/private rules remain unchanged. See
+[search readiness](search-readiness.md) for the complete current policy.
 
 From a dev-derived branch:
 
@@ -495,8 +499,9 @@ snapshots, a new month, replies, causes or relationship changes. Recorded clocks
 have no inferred timezone. Participant counts are exported-label counts only;
 no identity, who-joined/left or responsiveness inference is possible. There are
 no LLM/API calls, comparison analytics events, fingerprints or stored pairings.
-The INS-144 gate now prepares intentional production availability. The owner's
-live release and later WhatsApp SEO remain separate; see the release checklist.
+INS-144 prepared intentional production availability, subsequently released in
+PR #147. INS-154's public search launch does not change these comparison rules;
+the [release checklist](WHATSAPPSCOPE_RELEASE.md) preserves the historical sequence.
 
 ## Group presentation (INS-140)
 
@@ -540,14 +545,16 @@ by the explicit INS-144 release decision below; preview metadata stays
 noindex/nofollow. The [owner-run release checklist](WHATSAPPSCOPE_RELEASE.md)
 separates preparing the gate from the actual owner production release.
 
-## Production release gate (INS-144)
+## Production release gate (INS-144; historical indexing policy)
 
 One repository release state feeds Next's compiled availability and static output
 pruning. Known main Cloudflare builds use the explicit production wrapper, so
 inherited preview flags cannot accidentally make Instagram noindex. Production
-keeps all existing Instagram pages and all four WhatsApp tools; WhatsApp remains
-page-level noindex/nofollow and absent from the production sitemap. Production
-robots still permits crawling so the page-level noindex can be read.
+keeps all existing Instagram pages and all four WhatsApp tools. The original
+INS-144 release kept WhatsApp page-level noindex/nofollow and outside the sitemap,
+with robots permitting crawlers to read that metadata. INS-154 supersedes only
+that public indexing policy through the shared inventory described above; the
+release gate and private-data boundaries remain unchanged.
 
 Recognized non-main Workers builds retain INS-142's development path, globally
 noindex with Disallow all and an empty sitemap. No-origin/unconfigured or unknown
@@ -558,9 +565,12 @@ decision, not completed; manual production testing follows the owner's release.
 
 ## Validation commands
 
-`npm run check` and the full default Playwright suite validate the production
-artifact, including the non-indexable WhatsApp release boundary. For preview coverage,
-build with `npm run build:dev`, set `EXPECT_WHATSAPP=true`, and run
+`npm run check`, an explicit `npm run build:production` and the full default
+Playwright suite validate the production artifact and its public/private search
+policy. Run `node scripts/audit-public-seo.mjs --static out` against that output.
+For preview coverage, build with `npm run build:dev`, audit using
+`node scripts/audit-public-seo.mjs --static out --mode preview`, set
+`EXPECT_WHATSAPP=true` and `EXPECT_INDEXABLE=false`, and run
 `npx playwright test --config playwright.whatsapp.config.ts`. This focused
 configuration includes desktop/mobile Chromium and iPhone WebKit emulation;
 install those browsers with `npx playwright install chromium webkit` if needed.

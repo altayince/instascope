@@ -116,7 +116,20 @@ test("existing guides link back to the matching question pages", async ({
   ] as const) {
     await page.goto(source);
     await expect(
-      page.locator(`main article a[href="${destination}"]`),
+      page
+        .getByRole("navigation", {
+          name: "Put this guide into practice",
+          exact: true,
+        })
+        .locator(`a[href="${destination}"]`),
     ).toBeVisible();
+    if (source === "/instagram-sent-follow-requests/") {
+      await expect(
+        page.getByRole("link", {
+          name: "Follow the sent-request walkthrough",
+          exact: true,
+        }),
+      ).toHaveAttribute("href", destination);
+    }
   }
 });

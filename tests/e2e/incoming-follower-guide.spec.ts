@@ -90,9 +90,18 @@ test("incoming follower guide has its own metadata, evidence, working links and 
     schema.find((item) => item["@type"] === "BreadcrumbList").itemListElement[1]
       .item,
   ).toBe(canonical);
-  expect(
-    schema.some((item) => ["Article", "FAQPage"].includes(item["@type"])),
-  ).toBe(false);
+  expect(schema.filter((item) => item["@type"] === "Article")).toEqual([
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: articles[slug].title,
+      description: articles[slug].description,
+      url: canonical,
+      mainEntityOfPage: canonical,
+    },
+  ]);
+  expect(schema.some((item) => item["@type"] === "FAQPage")).toBe(false);
+  expect(JSON.stringify(schema)).not.toMatch(/aggregateRating|reviewCount/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

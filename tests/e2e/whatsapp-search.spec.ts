@@ -167,8 +167,14 @@ test("guide CTAs reach the existing tool and imported content never enters publi
     );
   await page.reload();
   await expect(
-    page.getByLabel("Upload WhatsApp chat export", { exact: true }),
+    page.getByRole("button", { name: "Open chat export", exact: true }),
   ).toBeVisible();
+  await expect(page.locator(".wa-current-chat")).toHaveCount(0);
+  expect(
+    await page
+      .getByLabel("Upload WhatsApp chat export", { exact: true })
+      .evaluate((input: HTMLInputElement) => input.files?.length),
+  ).toBe(0);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
     production + "/whatsapp/chat-analyzer/",

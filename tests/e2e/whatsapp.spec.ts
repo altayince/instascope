@@ -5,6 +5,7 @@ import { upload } from "../helpers/vault";
 import { isSafeDocumentEntryRequest } from "../helpers/analytics";
 
 const enabled = process.env.EXPECT_WHATSAPP === "true";
+const indexable = process.env.EXPECT_INDEXABLE !== "false";
 const privateName = `Private participant ${"longname".repeat(18)}`;
 const source = [
   "31/12/2024, 23:58 - Messages are encrypted.",
@@ -146,7 +147,7 @@ test("production release indexes public WhatsApp pages and preserves Instagram i
 });
 
 test.describe("WhatsAppScope enabled preview", () => {
-  test.skip(!enabled, "WhatsApp requires an explicit dev preview build.");
+  test.skip(!enabled, "This suite requires an enabled WhatsApp build.");
 
   test("platform switcher preserves the shared palette and changes navigation with native accessible dismissal", async ({
     page,
@@ -196,14 +197,15 @@ test.describe("WhatsAppScope enabled preview", () => {
       await expect(page.locator("main h1")).toHaveCount(1);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
         "content",
-        "noindex, nofollow",
+        indexable ? "index, follow" : "noindex, nofollow",
       );
       expect(await page.title()).toContain("InstaScope");
       await fits(page);
     }
-    expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
-      "whatsapp",
-    );
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    if (indexable)
+      expect(sitemap).toContain("<loc>https://instascope.me/whatsapp/</loc>");
+    else expect(sitemap).not.toContain("<loc>");
   });
 
   test("native platform selection opened before hydration stays open until navigation or dismissal", async ({
@@ -343,7 +345,7 @@ test.describe("WhatsAppScope enabled preview", () => {
       .getByRole("link", { name: "Wrapped", exact: true })
       .click();
     await expect(
-      page.getByRole("region", { name: "WhatsApp Wrapped" }),
+      page.getByRole("region", { name: "WhatsApp Wrapped", exact: true }),
     ).toBeVisible();
     await page
       .getByRole("navigation", { name: "Main navigation" })
@@ -691,7 +693,10 @@ test.describe("WhatsAppScope enabled preview", () => {
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("link", { name: "Wrapped", exact: true })
       .click();
-    const deck = page.getByRole("region", { name: "WhatsApp Wrapped" });
+    const deck = page.getByRole("region", {
+      name: "WhatsApp Wrapped",
+      exact: true,
+    });
     await expect(deck).toBeVisible();
     const choices = deck
       .getByRole("group", { name: "Choose a Wrapped card" })
