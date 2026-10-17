@@ -84,7 +84,7 @@ async function openVault(page: Page) {
     .click();
   await expect(page).toHaveURL(/\/whatsapp\/chat-vault\/$/);
   await expect(
-    page.getByRole("heading", { name: "Chat Vault", exact: true }),
+    page.getByRole("heading", { name: "WhatsApp Chat Vault", exact: true }),
   ).toBeVisible();
 }
 

@@ -69,9 +69,8 @@ function LandingHero({
             <i aria-hidden="true" /> INSTASCOPE / WHATSAPP
           </span>
           <h1 id="wa-title">
-            Your conversations.
-            <br />
-            <em>A new perspective.</em>
+            WhatsApp <br />
+            <em>Chat Analysis</em>
           </h1>
           <p>
             Find the patterns in your WhatsApp conversations. Explore message
@@ -188,11 +187,11 @@ export function WhatsAppWorkspace({
           <h1 id="wa-title">
             {mode === "analyzer" ? (
               <>
-                A closer look at <em>your chat.</em>
+                WhatsApp <em>Chat Analyzer</em>
               </>
             ) : (
               <>
-                Your conversation, <em>Wrapped.</em>
+                WhatsApp <em>Wrapped</em>
               </>
             )}
           </h1>

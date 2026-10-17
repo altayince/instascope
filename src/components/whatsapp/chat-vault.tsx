@@ -95,7 +95,7 @@ export function WhatsAppChatVault({ children }: { children?: ReactNode }) {
     >
       <section className="wa-page-heading">
         <span className="wa-eyebrow">WHATSAPP / LOCAL SNAPSHOTS</span>
-        <h1>Chat Vault</h1>
+        <h1>WhatsApp Chat Vault</h1>
         <p>Keep an anonymous aggregate snapshot, without keeping the chat.</p>
       </section>
       <section className="wa-panel" aria-labelledby="chat-vault-privacy">

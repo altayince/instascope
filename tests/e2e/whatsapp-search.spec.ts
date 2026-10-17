@@ -6,6 +6,12 @@ import { collectEvents } from "../helpers/analytics";
 
 const production = "https://instascope.me";
 const indexable = process.env.EXPECT_INDEXABLE !== "false";
+const productHeadings: Record<string, string> = {
+  "/whatsapp/": "WhatsApp Chat Analysis",
+  "/whatsapp/chat-analyzer/": "WhatsApp Chat Analyzer",
+  "/whatsapp/wrapped/": "WhatsApp Wrapped",
+  "/whatsapp/chat-vault/": "WhatsApp Chat Vault",
+};
 const guidePaths = whatsappPublicPaths.filter(
   (path) =>
     path.startsWith("/whatsapp/guides/") && path !== "/whatsapp/guides/",
@@ -39,6 +45,8 @@ test("public WhatsApp initial HTML and private workspaces follow the production/
     expect(document.title, path).toHaveLength(1);
     expect(document.description, path).toHaveLength(1);
     expect(document.h1, path).toHaveLength(1);
+    if (Object.hasOwn(productHeadings, path))
+      expect(document.h1, path).toEqual([productHeadings[path]]);
     expect(document.mainText.length, path).toBeGreaterThan(180);
     expect(titles.has(document.title[0]), path).toBe(false);
     expect(descriptions.has(document.description[0]), path).toBe(false);
