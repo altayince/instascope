@@ -1,15 +1,58 @@
 # Deployment and launch
 
-Production is live at https://instascope.me. Public-page indexing and the application-only Dashboard have their existing independent metadata rules. `node scripts/smoke-production.mjs` checks public HTTP responses and public-photo infrastructure readiness without user archives or Instagram requests; add `--require-profile` to fail when the profile service is not wired. After the owner deploys the WhatsApp release, add `--require-whatsapp` to verify the four tools, Instagram indexing, WhatsApp noindex, sitemap/robots and required page-linked JS/CSS. Ordinary smoke does not require WhatsApp on today's live site.
+Production is live at https://instascope.me. WhatsAppScope was released by merged
+PR #147; the original [release checklist](WHATSAPPSCOPE_RELEASE.md) is historical
+provenance. INS-154 separately prepares its public search launch: four tool
+landing pages, `/whatsapp/guides/` and ten guides become indexable in production.
+Public Chat Vault education is indexable; locally saved records have no public
+URLs. Instagram Dashboard and Snapshot Vault remain noindex. Preview/unknown
+builds remain noindex/nofollow with an empty sitemap. These repository changes
+become live only after the owner merges and deploys them.
 
-INS-144 prepares WhatsAppScope's explicit repository production release state;
-the live site changes only after the owner's later dev -> main release. Its
-[owner-managed release checklist](WHATSAPPSCOPE_RELEASE.md) covers that sequence,
-post-deploy manual testing and rollback. Production builds retain Instagram and
-all four WhatsApp routes/switcher without a dashboard flag. WhatsApp stays
-noindex/nofollow and outside the sitemap; public Instagram indexing is unchanged.
-Ordinary WhatsApp PRs never merge or deploy that production release. The owner
-has skipped physical-device pre-certification; it is not claimed as completed.
+`node scripts/smoke-production.mjs https://instascope.me --require-profile --require-whatsapp --require-seo`
+checks public HTTP responses, configured public photo infrastructure and the
+complete shared search inventory. It performs GETs only, does not execute page
+JavaScript, send analytics, contact Instagram or read an archive. The WhatsApp
+gate now expects the production public search policy; it intentionally fails
+against the older noindex release. Use preview mode below for preview artifacts.
+Physical-device behavior and Google's index status remain separate evidence.
+
+### Search launch validation (INS-154)
+
+The source of truth is `src/lib/public-paths.ts`, shared by sitemap generation,
+tests and the Node 24 auditor. From a reviewed branch run:
+
+```sh
+npm run check
+npm run build:production
+node scripts/audit-public-seo.mjs --static out
+npm run test:e2e
+npm run build:dev
+node scripts/audit-public-seo.mjs --static out --mode preview
+npm run test:e2e -- --config playwright.whatsapp.config.ts
+```
+
+Existing CI jobs audit each output immediately after its build, then run browser
+tests. Shared visual coverage still compares Light and Dark production/preview
+builds. The auditor checks all registered public/private pages, initial HTML,
+unique metadata, canonical/OG URLs, robots headers/meta/rules, sitemap completeness
+and duplicates, linked scripts/styles/images, internal anchors and fragments,
+reachable public pages, parameter canonicals and true 404s. Static mode also
+reads `_headers` and rejects unregistered indexable HTML. It uses at most six
+concurrent same-origin GETs (default four), 15-second request limits and 8 MiB
+response limits, never follows redirects or contacts `/api/`. It neither proves
+Google indexing nor exercises dynamic product flows.
+
+After owner deployment, run `node scripts/audit-public-seo.mjs https://instascope.me`
+and strict smoke above. Audit a full preview with
+`node scripts/audit-public-seo.mjs https://<preview-host> --mode preview`.
+Production canonicals remain `https://instascope.me` even on preview; previews
+must still return noindex/nofollow, robots Disallow all and an empty sitemap.
+Unknown/unreleased build pruning remains a separate existing release-gate test;
+a missing registered page in an enabled preview fails instead of silently
+disappearing from the inventory. DNS, aliases, active deployment, real
+Googlebot/WAF access and Search Console require additional live/account evidence.
+See the [German Search Console handoff and rollback checklist](google-search-handoff.md).
 
 ## Static application
 

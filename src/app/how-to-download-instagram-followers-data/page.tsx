@@ -27,6 +27,13 @@ export default function Guide() {
         <strong>Already have your export?</strong>{" "}
         <Link href="/followers-analyzer/">Analyze it with InstaScope.</Link>
       </p>
+      <p>
+        For relationship analysis, include{" "}
+        <strong>Followers and Following</strong>, choose{" "}
+        <strong>All time</strong> when available, and prefer{" "}
+        <strong>JSON</strong>. Open the ZIP locally; InstaScope does not need
+        your photos, messages or Instagram password to compare these lists.
+      </p>
       <nav aria-label="Export guide sections">
         <ul>
           <li>
@@ -40,6 +47,12 @@ export default function Guide() {
           </li>
           <li>
             <a href="#export-settings">Choose the right export settings</a>
+          </li>
+          <li>
+            <a href="#file-formats">JSON, HTML and split files</a>
+          </li>
+          <li>
+            <a href="#category-coverage">Which categories do I need?</a>
           </li>
         </ul>
       </nav>
@@ -108,8 +121,8 @@ export default function Guide() {
           </li>
           <li>
             Set the date range to <strong>All time</strong> and the format to{" "}
-            <strong>JSON</strong>. HTML is also supported, with fewer date
-            details.
+            <strong>JSON</strong>. Supported HTML records also work; their
+            visible dates have no source timezone.
           </li>
           <li>
             Request the export and download the ZIP when Instagram makes it
@@ -130,6 +143,153 @@ export default function Guide() {
           Preparation is handled by Instagram. Return to its export area to
           check availability; InstaScope cannot speed it up or retrieve it for
           you.
+        </p>
+      </section>
+      <section id="file-formats">
+        <h2>JSON, HTML and split follower files</h2>
+        <p>
+          JSON is recommended for structured records and timestamp precision.
+          HTML is useful when you also want to browse the export yourself.
+          InstaScope supports recognized relationship records in either format;
+          it does not require you to convert one into the other.
+        </p>
+        <div
+          className="article-table-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Instagram export formats"
+        >
+          <table>
+            <caption>What InstaScope reads from your chosen format</caption>
+            <thead>
+              <tr>
+                <th scope="col">Format</th>
+                <th scope="col">Accounts and dates</th>
+                <th scope="col">What to select</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">JSON</th>
+                <td>
+                  Supported usernames and usable numeric timestamps; dates
+                  display in UTC. Missing dates remain unavailable.
+                </td>
+                <td>All followers parts and following.json, or their ZIP.</td>
+              </tr>
+              <tr>
+                <th scope="row">HTML</th>
+                <td>
+                  Supported profile links and visible recorded dates. The source
+                  does not supply a timezone.
+                </td>
+                <td>All followers parts and following.html, or their ZIP.</td>
+              </tr>
+              <tr>
+                <th scope="row">ZIP</th>
+                <td>
+                  A container, not a third record format. Recognized JSON/HTML
+                  files are read locally; unrelated media is not analyzed.
+                </td>
+                <td>The original ZIP downloaded from Instagram.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Common names include <code>followers_1.json</code>,{" "}
+          <code>followers_2.json</code> and <code>following.json</code>, often
+          inside a <code>followers_and_following</code> folder. HTML exports use
+          corresponding <code>.html</code> files. Folder depth and the number of
+          parts can vary. If you select extracted files, include every followers
+          part together with Following in one import.
+        </p>
+        <p>
+          <strong>Synthetic example:</strong> one follower part contains
+          sample.cedar and sample.fern; a second contains sample.oak. Selecting
+          only the first supplies two followers, not three. Including all parts
+          restores the available coverage. Duplicate usernames are counted once;
+          an omitted username is not evidence that someone unfollowed you.
+        </p>
+      </section>
+      <section id="category-coverage">
+        <h2>Choose categories for the question you want to answer</h2>
+        <p>
+          Check the categories offered for your Instagram profile. Names and
+          grouping can vary, and an All time request does not guarantee that
+          every optional category or every historical event will be available.
+        </p>
+        <div
+          className="article-table-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Instagram export category coverage"
+        >
+          <table>
+            <caption>
+              Required core lists and optional connection records
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Question</th>
+                <th scope="col">Include</th>
+                <th scope="col">Next tool</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Who follows back?</th>
+                <td>Both Followers and Following</td>
+                <td>
+                  <Link href="/followers-analyzer/">Followers Analyzer</Link>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">When was a relationship recorded?</th>
+                <td>The same core lists, with usable source dates</td>
+                <td>
+                  <Link href="/relationship-timeline/">
+                    Relationship Timeline
+                  </Link>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Which requests were sent?</th>
+                <td>
+                  The optional pending/sent follow-request category plus both
+                  core lists
+                </td>
+                <td>
+                  <Link href="/pending-follow-requests/">Pending Requests</Link>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Whom did I recently unfollow?</th>
+                <td>
+                  The optional recently-unfollowed category plus both core lists
+                </td>
+                <td>
+                  <Link href="/unfollow-history/">Unfollow History</Link>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Which privacy lists were supplied?</th>
+                <td>
+                  Relevant close-friends, blocked, restricted or
+                  story-visibility categories plus both core lists
+                </td>
+                <td>
+                  <Link href="/connection-privacy/">Connection Privacy</Link>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          A missing optional list is reported as not included; an explicitly
+          empty supported list can correctly contain zero accounts. An
+          unreadable category needs attention before you interpret it. Do not
+          treat these three situations as the same result.
         </p>
       </section>
       <p>

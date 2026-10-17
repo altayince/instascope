@@ -1,13 +1,7 @@
 // Public static release checks only; never imports a chat or contacts Instagram.
+import { whatsappPublicPaths } from "../src/lib/whatsapp/public-content.ts";
 const productionOrigin = "https://instascope.me";
-const paths = [
-  "/",
-  "/followers-analyzer/",
-  "/whatsapp/",
-  "/whatsapp/chat-analyzer/",
-  "/whatsapp/wrapped/",
-  "/whatsapp/chat-vault/",
-];
+const paths = ["/", "/followers-analyzer/", ...whatsappPublicPaths];
 
 function tags(html, name) {
   return [...html.matchAll(new RegExp(`<${name}\\b([^>]*)>`, "gi"))].map(
@@ -51,7 +45,6 @@ export async function checkWhatsAppRelease(origin, fetcher = fetch) {
       (tag) => tag.rel?.toLowerCase() === "canonical",
     )?.href;
     const directives = new Set(robots?.split(/\s*,\s*/));
-    const whatsapp = path.startsWith("/whatsapp/");
     const scripts = tags(html, "script").filter((tag) => tag.src);
     const styles = tags(html, "link").filter(
       (tag) => tag.rel?.toLowerCase() === "stylesheet" && tag.href,
@@ -69,15 +62,14 @@ export async function checkWhatsAppRelease(origin, fetcher = fetch) {
       valid:
         response?.status === 200 &&
         response.headers.get("content-type")?.includes("text/html") &&
-        directives.has(whatsapp ? "noindex" : "index") &&
-        directives.has(whatsapp ? "nofollow" : "follow") &&
-        !directives.has(whatsapp ? "index" : "noindex") &&
-        !directives.has(whatsapp ? "follow" : "nofollow") &&
-        (whatsapp ||
-          (canonical === `${productionOrigin}${path}` &&
-            !/(?:noindex|nofollow|none)/i.test(
-              response.headers.get("x-robots-tag") ?? "",
-            ))) &&
+        directives.has("index") &&
+        directives.has("follow") &&
+        !directives.has("noindex") &&
+        !directives.has("nofollow") &&
+        canonical === `${productionOrigin}${path}` &&
+        !/(?:noindex|nofollow|none)/i.test(
+          response.headers.get("x-robots-tag") ?? "",
+        ) &&
         scripts.length > 0 &&
         styles.length > 0,
     });
@@ -106,13 +98,9 @@ export async function checkWhatsAppRelease(origin, fetcher = fetch) {
     status: sitemapResponse?.status ?? null,
     valid:
       sitemapResponse?.status === 200 &&
-      urls.includes(`${productionOrigin}/`) &&
-      urls.includes(`${productionOrigin}/followers-analyzer/`) &&
-      urls.every(
-        (url) =>
-          url.startsWith(`${productionOrigin}/`) &&
-          !url.startsWith(`${productionOrigin}/whatsapp`),
-      ),
+      paths.every((path) => urls.includes(`${productionOrigin}${path}`)) &&
+      new Set(urls).size === urls.length &&
+      urls.every((url) => url.startsWith(`${productionOrigin}/`)),
   };
   const checkedAssets = [];
   for (const [reference, kind] of assets) {

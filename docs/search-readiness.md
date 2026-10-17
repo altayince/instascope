@@ -1,9 +1,51 @@
 # Search readiness
 
-Production builds use the official origin https://instascope.me for canonical, OpenGraph, Twitter and sitemap URLs. Every public page has a unique title/description and social preview image. A Cloudflare main build is indexable by default; Cloudflare preview branches and unconfigured local builds remain noindex and emit an empty sitemap. CI tests the configured production build; `NEXT_PUBLIC_PREVIEW=true` overrides inherited production configuration.
+`src/lib/public-paths.ts` is the shared public URL inventory for sitemap, tests
+and the read-only auditor. INS-154 retains the existing Instagram URLs and adds
+the four released WhatsApp tool pages, `/whatsapp/guides/` and ten guides. It
+changes public education and indexing, not private analysis or release gates.
 
-Structured data describes only observable product facts: WebSite on the homepage, WebApplication on tool pages, and BreadcrumbList matching visible breadcrumbs. No reviews, ratings, organization identity or user counts are invented. Sources: [Schema.org WebApplication](https://schema.org/WebApplication) and [Google breadcrumb guidance](https://developers.google.com/search/docs/appearance/structured-data/breadcrumb). This markup does not promise rich-result eligibility or rankings.
+| Surface                                | Production                                                                    | Preview / unknown context                |
+| -------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------- |
+| Published Instagram and WhatsApp pages | `index, follow`; self-canonical; in sitemap once                              | `noindex, nofollow`; empty sitemap       |
+| `/dashboard/`, `/snapshot-vault/`      | `noindex, follow`; absent from sitemap                                        | `noindex, nofollow`; absent from sitemap |
+| WhatsApp Chat Vault landing            | Public education is indexable; saved records remain local with no public URLs | `noindex, nofollow`                      |
+| Missing/unreleased routes              | True 404 / existing release pruning                                           | True 404 / existing release pruning      |
+| `robots.txt`                           | `User-agent: *`, `Allow: /`, `Disallow: /api/`                                | `User-agent: *`, `Disallow: /`           |
 
-The Playwright SEO audit visits every sitemap URL, checks uniqueness, response codes, canonical/OG consistency, indexability, visible breadcrumbs and parseable structured data. A separate route sweep checks assets, layout and one H1. Before Search Console submission, confirm the live `/robots.txt` allows `/` while excluding `/api/`, the live sitemap lists public URLs, and all listed pages serve `index, follow` with matching instascope.me canonicals. The host's main-branch build/deployment must finish before that live audit can pass.
+Both robots files reference `https://instascope.me/sitemap.xml`. Canonical,
+OpenGraph, Twitter and sitemap URLs always use the official origin. Parameter
+states canonicalize to their clean page URL; no private result, participant,
+query state or stored snapshot enters the sitemap. Public pages have distinct
+titles/descriptions and meaningful initial HTML. Existing Instagram social art
+is preserved; WhatsApp uses its own self-hosted preview image.
 
-The 13 October 2026 live check confirms `http://instascope.me/` returns HTTP 301 to HTTPS. Public homepage/Privacy canonicals and indexing metadata, robots rules and the 31-URL sitemap also pass the current audit; see [current progress](roadmap-progress.md). Search Console ownership, submission and actual indexing are separate external evidence. Any production `pages.dev` or `workers.dev` alias needs a host-level redirect or indexing block; the primary-domain audit does not certify aliases.
+Structured data describes observable product and visible content: WebSite,
+WebApplication, BreadcrumbList, Article and visible FAQ where appropriate. No
+invented reviews, ratings, user counts or organization identity. Markup does not
+promise rich results. See [Google's structured data policies](https://developers.google.com/search/docs/appearance/structured-data/sd-policies).
+
+Run `node scripts/audit-public-seo.mjs --static out` after an explicit production
+build; use `--mode preview` after `build:dev`. After owner deployment run the same
+script with `https://instascope.me` instead of `--static out`, then
+`node scripts/smoke-production.mjs https://instascope.me --require-profile --require-whatsapp --require-seo`.
+CI runs static audits for both environments. The script makes bounded same-origin
+GETs, executes no browser JavaScript and never sends synthetic analytics. Browser
+suites separately exercise guide-to-tool paths, initial rendering, private
+imports and mobile layouts.
+
+The pre-change 17 October audit found all 31 existing public Instagram URLs
+returning 200, index/follow and matching canonical/OG URLs; the sitemap and
+referenced JS/CSS passed. This does not establish the cause of the owner's
+reported zero-impression interval or prove Google's selected canonical. The
+owner's latest account update confirms three critical Instagram URLs indexed
+and passing live inspection, with no manual action, temporary removal or host
+access issue. A site-wide ranking loss is unproven; the latest 24-hour zero
+remains unexplained. Current `www` DNS and the publicly indexable Workers alias are hosting
+hygiene gaps requiring owner review; neither is proven to explain that report.
+No account setting, DNS record, deployment or collector is changed here.
+
+Keep four separate outcomes: **IMPLEMENTATION READY**, **PRODUCTION VERIFIED**,
+**GOOGLE INDEX STATUS VERIFIED**, **TRAFFIC RECOVERY OBSERVED**. Passing local
+checks supports only the first. See the [German owner handoff](google-search-handoff.md)
+for the prioritized URL-inspection queue, live evidence and rollback steps.

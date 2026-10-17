@@ -1,5 +1,11 @@
 # WhatsAppScope owner-managed release checklist
 
+Historical INS-146/PR #147 release record. PR #147 is merged and WhatsAppScope is
+live. The noindex policy below records that original release, not the subsequent
+INS-154 public search launch. For current public/private/preview indexing and
+the current rollback baseline, use [search readiness](search-readiness.md) and
+the [Google Search handoff](google-search-handoff.md).
+
 INS-146 prepares the final owner-reviewed production integration; it does not
 merge the release PR or deploy it. PR #145 / INS-144 is merged into current dev;
 the release branch integrates current main without rewriting either branch.

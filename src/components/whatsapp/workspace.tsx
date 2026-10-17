@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { ActionButton, ActionLink, InsightLink } from "@/components/actions";
 import { analyzeWhatsApp, createWhatsAppDemo } from "@/lib/whatsapp";
 import { whatsappDate, whatsappNumber } from "@/lib/whatsapp/stories";
@@ -69,9 +69,8 @@ function LandingHero({
             <i aria-hidden="true" /> INSTASCOPE / WHATSAPP
           </span>
           <h1 id="wa-title">
-            Your conversations.
-            <br />
-            <em>A new perspective.</em>
+            WhatsApp <br />
+            <em>Chat Analysis</em>
           </h1>
           <p>
             Find the patterns in your WhatsApp conversations. Explore message
@@ -152,7 +151,13 @@ function LandingHero({
   );
 }
 
-export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
+export function WhatsAppWorkspace({
+  mode,
+  children,
+}: {
+  mode: WhatsAppWorkspaceMode;
+  children?: ReactNode;
+}) {
   const router = useRouter();
   const ready = useBrowserReady();
   const { dataset, revision, analysis, busy, clear, startDemo } = useWhatsApp();
@@ -164,7 +169,8 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
     startDemo();
     imported();
   }
-  if (mode === "vault") return <WhatsAppChatVault />;
+  if (mode === "vault")
+    return <WhatsAppChatVault>{children}</WhatsAppChatVault>;
   return (
     <main id="main" className="wa-workspace" data-whatsapp-mode={mode}>
       {mode === "overview" ? (
@@ -181,11 +187,11 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
           <h1 id="wa-title">
             {mode === "analyzer" ? (
               <>
-                A closer look at <em>your chat.</em>
+                WhatsApp <em>Chat Analyzer</em>
               </>
             ) : (
               <>
-                Your conversation, <em>Wrapped.</em>
+                WhatsApp <em>Wrapped</em>
               </>
             )}
           </h1>
@@ -344,6 +350,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
             : "No archive is sent to a server or written to browser storage."}
         </p>
       </div>
+      {children}
     </main>
   );
 }

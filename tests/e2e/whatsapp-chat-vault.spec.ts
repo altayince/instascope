@@ -84,7 +84,7 @@ async function openVault(page: Page) {
     .click();
   await expect(page).toHaveURL(/\/whatsapp\/chat-vault\/$/);
   await expect(
-    page.getByRole("heading", { name: "Chat Vault", exact: true }),
+    page.getByRole("heading", { name: "WhatsApp Chat Vault", exact: true }),
   ).toBeVisible();
 }
 
@@ -172,7 +172,7 @@ async function savedChat(page: Page) {
   await expect(rows(page)).toHaveCount(1);
 }
 
-test("production release keeps Chat Vault local, functional and noindex", async ({
+test("production release indexes the public Chat Vault page while saved records stay local", async ({
   page,
   request,
 }) => {
@@ -181,18 +181,18 @@ test("production release keeps Chat Vault local, functional and noindex", async 
   await savedChat(page);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
-    "noindex, nofollow",
+    "index, follow",
   );
   expect((await page.reload())?.status()).toBe(200);
   await expect(rows(page)).toHaveCount(1);
   expect(await records(page)).toHaveLength(1);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
-    "noindex, nofollow",
+    "index, follow",
   );
   await fits(page);
-  expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
-    "whatsapp",
+  expect(await (await request.get("/sitemap.xml")).text()).toContain(
+    "<loc>https://instascope.me/whatsapp/chat-vault/</loc>",
   );
 });
 

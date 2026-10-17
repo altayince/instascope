@@ -1,20 +1,10 @@
 import { expect, it, vi } from "vitest";
 import { checkWhatsAppRelease } from "../../scripts/whatsapp-health.mjs";
+import { whatsappPublicPaths as whatsappPaths } from "../../src/lib/whatsapp/public-content";
 
 const origin = "https://instascope.test";
 const production = "https://instascope.me";
-const whatsappPaths = [
-  "/whatsapp/",
-  "/whatsapp/chat-analyzer/",
-  "/whatsapp/wrapped/",
-  "/whatsapp/chat-vault/",
-];
-const markup = (
-  path: string,
-  robots = path.startsWith("/whatsapp/")
-    ? "noindex, nofollow"
-    : "index, follow",
-) => `<html><head>
+const markup = (path: string, robots = "index, follow") => `<html><head>
   <meta name="robots" content="${robots}">
   <link rel="canonical" href="${production}${path}">
   <link rel="stylesheet" href="/_next/static/release.css">
@@ -24,8 +14,9 @@ const robots = `User-Agent: *
 Allow: /
 Disallow: /api/
 Sitemap: ${production}/sitemap.xml`;
-const sitemap = `<urlset><url><loc>${production}/</loc></url>
-<url><loc>${production}/followers-analyzer/</loc></url></urlset>`;
+const sitemap = `<urlset>${["/", "/followers-analyzer/", ...whatsappPaths]
+  .map((path) => `<url><loc>${production}${path}</loc></url>`)
+  .join("")}</urlset>`;
 type Resource = {
   body: string;
   type: string;
@@ -62,7 +53,7 @@ function site(overrides: Record<string, Partial<Resource>> = {}) {
   });
 }
 
-it("opt-in release smoke checks public routes, separate indexing policies and deduplicated same-origin assets", async () => {
+it("opt-in release smoke checks every published WhatsApp route, indexing and deduplicated same-origin assets", async () => {
   const fetcher = site();
   const result = await checkWhatsAppRelease(origin, fetcher);
   expect(result.ready).toBe(true);
@@ -96,7 +87,7 @@ it.each(whatsappPaths)(
 );
 
 it.each([
-  ["/whatsapp/", markup("/whatsapp/", "index, follow")],
+  ["/whatsapp/", markup("/whatsapp/", "noindex, nofollow")],
   ["/whatsapp/wrapped/", markup("/whatsapp/wrapped/", "noindex, follow")],
   ["/", markup("/", "noindex, nofollow")],
   [
@@ -112,18 +103,21 @@ it.each([
   ).toBe(false);
 });
 
-it("rejects an indexing-blocking production response header", async () => {
-  expect(
-    (
-      await checkWhatsAppRelease(
-        origin,
-        site({
-          "/": { headers: { "x-robots-tag": "noindex" } },
-        }),
-      )
-    ).ready,
-  ).toBe(false);
-});
+it.each(["/", "/whatsapp/", "/whatsapp/chat-vault/"])(
+  "rejects an indexing-blocking production response header at %s",
+  async (path) => {
+    expect(
+      (
+        await checkWhatsAppRelease(
+          origin,
+          site({
+            [path]: { headers: { "x-robots-tag": "noindex" } },
+          }),
+        )
+      ).ready,
+    ).toBe(false);
+  },
+);
 
 it.each(["/", "/whatsapp/"])(
   "rejects production robots blocking %s",
@@ -151,15 +145,12 @@ it.each([
     `<url><loc>${production}/whatsapp/</loc></url></urlset>`,
   ),
   sitemap.replace(production, "https://preview.invalid"),
-])(
-  "rejects an empty, WhatsApp-inclusive or nonproduction sitemap",
-  async (body) => {
-    expect(
-      (await checkWhatsAppRelease(origin, site({ "/sitemap.xml": { body } })))
-        .ready,
-    ).toBe(false);
-  },
-);
+])("rejects an empty, duplicate or nonproduction sitemap", async (body) => {
+  expect(
+    (await checkWhatsAppRelease(origin, site({ "/sitemap.xml": { body } })))
+      .ready,
+  ).toBe(false);
+});
 
 it.each([
   ["/_next/static/release.css", { status: 404 }],

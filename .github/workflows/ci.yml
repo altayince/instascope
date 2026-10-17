@@ -34,6 +34,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: 'https://instascope.me'
+      - run: node scripts/audit-public-seo.mjs --static out
       - run: npm run test:e2e
         env:
           EXPECT_INDEXABLE: 'true'
@@ -60,6 +61,7 @@ jobs:
       - run: npm run build:dev
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      - run: node scripts/audit-public-seo.mjs --static out --mode preview
       - run: npm run test:e2e -- --config playwright.whatsapp.config.ts
         env:
           EXPECT_WHATSAPP: 'true'

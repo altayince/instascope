@@ -22,8 +22,10 @@ available browser storage. Changes in another tab are reflected locally.
 
 Theme selection does not change parsing, calculations, storage schemas,
 share/export artwork, routes, indexing, release gates or telemetry. Wrapped
-PNG/ZIP artwork keeps its intentional palette. WhatsApp remains noindex/nofollow
-and outside the production sitemap.
+PNG/ZIP artwork keeps its intentional palette. INS-154 separately registers
+WhatsApp's public tools, guide hub and ten guides for production indexing;
+theme selection does not affect that policy. Preview/unknown contexts retain
+noindex/nofollow and an empty sitemap. See [search readiness](search-readiness.md).
 
 Browser coverage deliberately exercises both themes, first paint, blocked
 storage, keyboard/mobile operation and active datasets. Production/preview

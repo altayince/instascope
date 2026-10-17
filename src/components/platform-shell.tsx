@@ -57,9 +57,14 @@ function PlatformFooter() {
           Instagram
         </Link>
         {whatsappEnabled && (
-          <Link href="/whatsapp/" prefetch={false}>
-            WhatsApp
-          </Link>
+          <>
+            <Link href="/whatsapp/" prefetch={false}>
+              WhatsApp
+            </Link>
+            <Link href="/whatsapp/guides/" prefetch={false}>
+              WhatsApp guides
+            </Link>
+          </>
         )}
         <Link href="/guides/" prefetch={false}>
           Guides

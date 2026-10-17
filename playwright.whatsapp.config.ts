@@ -17,6 +17,7 @@ export default defineConfig({
     "**/whatsapp-analytics.spec.ts",
     "**/whatsapp-production-release.spec.ts",
     "**/whatsapp-landing.spec.ts",
+    "**/whatsapp-search.spec.ts",
     "**/themes.spec.ts",
   ],
   outputDir: "test-results/whatsapp",

@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 const guides = [
   {
     path: "/instagram-sent-follow-requests/",
-    title: "How to see follow requests you sent on Instagram | InstaScope",
+    title:
+      "Instagram sent follow requests: what your export can show | InstaScope",
     primary: "/pending-follow-requests/",
     secondary: null,
     question: "/how-to-see-who-you-requested-to-follow-on-instagram/",
@@ -74,6 +75,17 @@ test("three focused guides answer their intent and lead to working tools", async
     await expect(page.locator("main h1")).toHaveCount(1);
     for (const fact of guide.facts) {
       await expect(page.locator("main article")).toContainText(fact);
+    }
+    if (guide.path === "/instagram-sent-follow-requests/") {
+      await expect(
+        page.getByRole("link", {
+          name: "Review your exported sent requests",
+          exact: true,
+        }),
+      ).toHaveAttribute("href", guide.primary);
+      await expect(page.locator("main article")).toContainText(
+        "not interchangeable with a pending list",
+      );
     }
     const practice = page.getByRole("navigation", {
       name: "Put this guide into practice",

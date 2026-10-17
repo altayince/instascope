@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 154,
+    title: "Improve search answers and publish WhatsApp guides",
+    summary:
+      "Instagram guides gain practical local-export walkthroughs and fictional examples without moving existing URLs. WhatsApp tools and ten focused guides join the production public sitemap, with useful source limitations and local Vault explanations. Preview indexing stays blocked; private chats and snapshots never become public pages. Search eligibility is verified separately from Google's indexing and traffic recovery.",
+  },
+  {
     issue: 152,
     title: "Restore Light and offer a shared Dark mode",
     summary:

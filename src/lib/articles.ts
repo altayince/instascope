@@ -1,9 +1,17 @@
 export type Article = {
   title: string;
   description: string;
-  sections: { heading: string; paragraphs: string[] }[];
+  primaryAction?: { href: string; label: string };
+  sections: {
+    heading: string;
+    paragraphs: string[];
+    steps?: string[];
+    table?: { columns: string[]; rows: string[][] };
+    links?: { href: string; label: string }[];
+  }[];
   links: { href: string; label: string }[];
   related: string[];
+  sources?: { href: string; label: string }[];
 };
 
 export const articles: Record<string, Article> = {
@@ -225,6 +233,10 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-view-instagram-profiles-without-an-account": {
+    primaryAction: {
+      href: "/profile-picture-viewer/",
+      label: "Try the public profile-picture lookup",
+    },
     related: [
       "profile-picture-viewer",
       "is-instagram-follower-tracker-safe",
@@ -240,6 +252,26 @@ export const articles: Record<string, Article> = {
           "Sometimes, but anonymous access is not guaranteed. What you can see without an Instagram account depends on what Instagram makes publicly accessible at that time. Instagram may show limited profile information, require a login, rate-limit requests or change its public access behavior.",
           "You can try opening a public profile directly in a browser. If Instagram presents a login screen or withholds the page, InstaScope cannot remove that restriction or provide privileged access.",
         ],
+        table: {
+          columns: ["Your goal", "What to try", "Limit"],
+          rows: [
+            [
+              "Read a public profile",
+              "Open the profile directly on Instagram",
+              "Instagram may require login or limit the page",
+            ],
+            [
+              "Enlarge an available profile photo",
+              "InstaScope Profile Picture Viewer",
+              "Photo lookup only; availability and source resolution vary",
+            ],
+            [
+              "See private posts, stories or hidden lists",
+              "There is no InstaScope tool for this",
+              "The viewer does not bypass privacy or login controls",
+            ],
+          ],
+        },
       },
       {
         heading: "Viewing a public Instagram profile without logging in",
@@ -267,6 +299,7 @@ export const articles: Record<string, Article> = {
         paragraphs: [
           "Open the Instagram Profile Picture Viewer and enter a username, @username or profile URL. When the configured public lookup returns an available image, InstaScope displays it with zoom, square or circular preview, and fullscreen controls.",
           "InstaScope does not ask for your Instagram login or password for this lookup. Only the username you enter is sent to the configured photo service, and the result remains subject to Instagram's public delivery and rate limits.",
+          "For example, a successful lookup can show an available photo with zoom controls while revealing no posts at all. A failed lookup can mean the service could not retrieve a photo; it is not evidence that an account is private, deleted or blocking you. Full size means the image returned by the source, not a promise of an original-resolution photograph.",
         ],
       },
       {
@@ -289,12 +322,16 @@ export const articles: Record<string, Article> = {
     ],
   },
   "instagram-sent-follow-requests": {
+    primaryAction: {
+      href: "/pending-follow-requests/",
+      label: "Review your exported sent requests",
+    },
     related: [
       "how-to-see-who-you-requested-to-follow-on-instagram",
       "how-to-download-instagram-followers-data",
       "how-to-analyze-instagram-data-download",
     ],
-    title: "How to see follow requests you sent on Instagram",
+    title: "Instagram sent follow requests: what your export can show",
     description:
       "Find sent follow requests recorded in your Instagram export, learn which optional data to include and why an old record cannot confirm a request is still pending.",
     sections: [
@@ -310,6 +347,49 @@ export const articles: Record<string, Article> = {
         paragraphs: [
           "When downloading your Instagram information, include Followers and Following plus the optional sent follow requests category. Choose All time and JSON when available, then select the ZIP in InstaScope. The two basic relationship lists alone do not contain your sent-request records.",
           "If that optional list is absent, the tool says it was not included rather than reporting zero requests. The export guide explains how to request another copy with the relevant category. A new download is also the way to inspect a later snapshot.",
+        ],
+      },
+      {
+        heading: "Pending requests and recent request records are different",
+        paragraphs: [
+          "A supported pending_follow_requests file supplies the Pending Requests view. A recent_follow_requests file is a separate optional record of recent sent activity; it is not interchangeable with a pending list. InstaScope keeps supported recent-request extras separate rather than treating them as proof that a request is still open.",
+          "Fictional example: sample.cedar appears in the pending file prepared on May 12. That establishes its presence in that export. If you open the file on May 20, the same row cannot establish that the request remains pending on May 20. A recorded request date describes the source entry, not a later acceptance or cancellation date.",
+        ],
+        table: {
+          columns: ["Export result", "Interpretation", "Next step"],
+          rows: [
+            [
+              "Pending category included with records",
+              "These requests were recorded in this snapshot",
+              "Check Instagram before acting on one",
+            ],
+            [
+              "Pending category explicitly empty",
+              "No entries were supplied in that category",
+              "Do not extend that result beyond the export's coverage",
+            ],
+            [
+              "Category missing or unreadable",
+              "There is no usable pending-list evidence",
+              "Include the category in a fresh export or resolve the import warning",
+            ],
+          ],
+        },
+      },
+      {
+        heading: "Choose the guide or the tool for your next step",
+        paragraphs: [
+          "This page explains the meaning and limits of sent-request records. The step-by-step guide walks through obtaining and reviewing those records. Pending Requests is the working tool where you open your files, search usernames and sort the available dates.",
+        ],
+        links: [
+          {
+            href: "/how-to-see-who-you-requested-to-follow-on-instagram/",
+            label: "Follow the sent-request walkthrough",
+          },
+          {
+            href: "/pending-follow-requests/",
+            label: "Open the Pending Requests tool",
+          },
         ],
       },
       {
@@ -421,6 +501,10 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-see-when-you-followed-someone-on-instagram": {
+    primaryAction: {
+      href: "/following-analyzer/",
+      label: "Find a recorded date in Following",
+    },
     related: [
       "oldest-instagram-follows",
       "how-to-see-when-someone-followed-you-on-instagram",
@@ -431,17 +515,61 @@ export const articles: Record<string, Article> = {
       "Find a recorded Instagram follow date in your export, sort dated current follows and understand what the timestamp cannot prove.",
     sections: [
       {
-        heading: "Look for a timestamp in your Following export",
+        heading:
+          "Open Following, search the username and read its recorded date",
         paragraphs: [
-          "Instagram exports may attach a timestamp to an account in your current Following list. InstaScope reads supported timestamps, lets you sort recorded follows by date and places dated relationships in the Relationship Timeline. Search the list for the username when you want to check one account.",
+          "To check when you followed someone, open your own Instagram export in Following Analyzer, select Following and enter their username in Search accounts. Read the recorded date beneath the matching account. A supported JSON timestamp or visible HTML date can supply that answer; a missing date cannot be reconstructed.",
+          "Following is outgoing: accounts you follow. Followers is incoming: accounts following you. The same username can have different dates in those two lists. For this question, use Following rather than the follower's incoming date.",
           "If the record has no usable timestamp, the date remains unknown. InstaScope does not estimate a missing value from list order, account age or other relationships.",
         ],
+      },
+      {
+        heading: "Walk through your export",
+        paragraphs: [
+          "You request the files from Instagram, then inspect them locally in InstaScope. The analyzer needs both relationship lists even when your question concerns just one outgoing follow.",
+        ],
+        steps: [
+          "Request your Instagram information through Accounts Center. Include Followers and Following and choose All time when available. JSON is recommended; supported HTML relationship records also work.",
+          "Open Following Analyzer and choose the ZIP. For extracted files, select following.json or following.html together with every numbered followers part.",
+          "Select Following, then type the exact username into Search accounts. Read the date beneath the account; do not use its position in the list as a calendar date.",
+          "For a broader view, clear the search and sort the recorded dates, or open Relationship Timeline with the outgoing direction selected. Undated records remain undated.",
+        ],
+        links: [
+          {
+            href: "/how-to-download-instagram-followers-data/",
+            label: "Get the right Instagram export",
+          },
+        ],
+      },
+      {
+        heading: "A fictional example: two directions, two dates",
+        paragraphs: [
+          "Suppose your synthetic Following record for sample.fern has a usable JSON date of May 12, 2021, while its Followers record has August 3, 2022. Following Analyzer displays May 12, 2021 for the outgoing relationship. The later incoming date answers when the source recorded sample.fern following you instead.",
+        ],
+        table: {
+          columns: ["Synthetic record", "What the result answers"],
+          rows: [
+            [
+              "Following: sample.fern — May 12, 2021",
+              "Recorded date for you following sample.fern",
+            ],
+            [
+              "Followers: sample.fern — August 3, 2022",
+              "Recorded date for sample.fern following you",
+            ],
+            [
+              "Following: sample.cedar — no usable date",
+              "Date unavailable; the account stays visible",
+            ],
+          ],
+        },
       },
       {
         heading: "Interpret the recorded date carefully",
         paragraphs: [
           "A timestamp can identify the date attached to that current Following record. It does not prove that you followed the account without interruption from that day, because the export does not reconstruct every unfollow and refollow event.",
           "The date is also not necessarily the first time you ever followed that person, and it is not the creation date of either Instagram account. Supported HTML exports can include a visible date without a timezone, while JSON may provide a precise timestamp; InstaScope preserves those limits instead of inventing precision.",
+          "JSON calendar dates are displayed in UTC. Supported HTML records preserve their recorded calendar date without an inferred timezone. If a username is absent from the loaded Following list, that establishes absence from these files, not that you never followed it. If it is present but says Date unavailable, the record has no usable supported date.",
         ],
       },
       {
@@ -700,6 +828,10 @@ export const articles: Record<string, Article> = {
     ],
   },
   "how-to-analyze-instagram-data-download": {
+    primaryAction: {
+      href: "/followers-analyzer/",
+      label: "Open your Instagram export in Analyzer",
+    },
     related: [
       "how-to-download-instagram-followers-data",
       "instagram-followers-json-explained",
@@ -712,8 +844,60 @@ export const articles: Record<string, Article> = {
       {
         heading: "Choose the part of your archive that answers your question",
         paragraphs: [
+          "Open your Instagram ZIP in Followers Analyzer to compare the Followers and Following lists, search accounts and inspect dates that the export actually contains. You can choose extracted JSON or HTML files instead. The analysis happens in your browser; you do not give InstaScope your Instagram password.",
           "For follower relationships, request Followers and Following with All time coverage. JSON is recommended for machine-readable entries and timestamps. Your full archive may contain media and messages; InstaScope's relationship tools do not need those files.",
           "Select the ZIP directly or select all extracted followers parts together with the following file. If followers are split into several files, leaving out a part changes the result. A missing list is different from an explicitly empty list.",
+        ],
+      },
+      {
+        heading: "Match the file to the question and tool",
+        paragraphs: [
+          "These are common supported file names, not a promise that every export includes every category. Folder depth and numbered parts can vary. Keep Followers and Following together as the base dataset; add optional files only for the questions they can answer.",
+        ],
+        table: {
+          columns: ["Files or records", "Question", "InstaScope tool"],
+          rows: [
+            [
+              "All followers parts + following.json or following.html",
+              "Who is mutual, a fan or not following back?",
+              "Followers Analyzer / Not Following Back",
+            ],
+            [
+              "Usable dates attached to Followers or Following entries",
+              "What dates were recorded for these relationships?",
+              "Following Analyzer / Relationship Timeline",
+            ],
+            [
+              "pending_follow_requests + both core lists",
+              "Which sent requests are recorded in this export?",
+              "Pending Requests",
+            ],
+            [
+              "recently_unfollowed_profiles + both core lists",
+              "Which of my own unfollows were included?",
+              "Unfollow History",
+            ],
+            [
+              "Two independent exports with comparable coverage",
+              "Which usernames were added or missing between snapshots?",
+              "Snapshot Comparison",
+            ],
+          ],
+        },
+        links: [
+          {
+            href: "/not-following-back/",
+            label: "Check outgoing one-way follows",
+          },
+          {
+            href: "/pending-follow-requests/",
+            label: "Inspect exported pending requests",
+          },
+          {
+            href: "/unfollow-history/",
+            label: "Review your own recorded unfollows",
+          },
+          { href: "/snapshot-comparison/", label: "Compare two exports" },
         ],
       },
       {
@@ -721,6 +905,29 @@ export const articles: Record<string, Article> = {
         paragraphs: [
           "Followers are accounts listed as following you. Following is the set you follow. Mutuals occur in both sets; fans are followers absent from Following; not-following-back accounts are in Following but absent from Followers.",
           "These categories help you check the result: mutuals plus fans equals followers, and mutuals plus not-following-back equals following. Duplicate usernames are counted once in these account lists. Compare against the exported files, rather than assuming a live profile count represents the same moment.",
+        ],
+      },
+      {
+        heading: "Work through a small synthetic result",
+        paragraphs: [
+          "Use these fictional input lists: Followers contains sample.cedar, sample.fern and sample.oak. Following contains sample.fern, sample.oak, sample.pine and sample.sage. There are three followers, four following accounts and two mutuals. These are worked-example records, not a person's account data.",
+        ],
+        table: {
+          columns: ["Result", "Count", "Synthetic usernames"],
+          rows: [
+            ["Mutuals: in both lists", "2", "sample.fern, sample.oak"],
+            ["Fans: Followers minus Following", "1", "sample.cedar"],
+            [
+              "Not Following Back: Following minus Followers",
+              "2",
+              "sample.pine, sample.sage",
+            ],
+          ],
+        },
+        steps: [
+          "Check the two core totals against the supplied lists: 2 mutuals + 1 fan = 3 followers; 2 mutuals + 2 not following back = 4 following.",
+          "Choose Not Following Back and search sample.pine. Its presence means it is absent from the supplied Followers list, not that it previously followed and then unfollowed you.",
+          "Use a separate older export if you want to compare changes. Copying the same file or relying on one dated list does not create a second snapshot.",
         ],
       },
       {
