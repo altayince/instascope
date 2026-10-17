@@ -225,6 +225,9 @@ async function appearance(page: Page) {
     ];
     return Array.from(document.querySelectorAll("body, body *"))
       .filter((node) => !node.matches("script, style"))
+      // Preview adds one unreleased menu option; its gate is tested separately.
+      // All visible pixels and the rest of the shell still require exact parity.
+      .filter((node) => !node.closest('.social-switcher-panel [data-platform="facebook"]'))
       .map((node) => {
         const box = node.getBoundingClientRect();
         return {

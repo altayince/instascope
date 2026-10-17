@@ -3,7 +3,10 @@ import { lstat, rm } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { whatsappFeatureEnabled } from "../src/lib/platform-config.ts";
+import {
+  facebookFeatureEnabled,
+  whatsappFeatureEnabled,
+} from "../src/lib/platform-config.ts";
 import { indexableDeployment } from "../src/lib/site-config.ts";
 
 function currentBranch() {
@@ -48,23 +51,41 @@ export async function pruneUnreleasedPlatforms(
     ),
     hostContext,
   );
-  if (enabled) return false;
-
   const output = resolve(directory);
-  const target = resolve(output, "whatsapp");
-  if (relative(output, target) !== "whatsapp")
-    throw new Error(
-      "Unreleased platform output must remain inside the export.",
-    );
-  try {
-    await lstat(target);
-  } catch (error) {
-    if (error.code === "ENOENT") return false;
-    throw error;
+  const facebookEnabled = facebookFeatureEnabled(
+    environment.NEXT_PUBLIC_FACEBOOK_ENABLED,
+    environment.NEXT_PUBLIC_PREVIEW,
+    [
+      localBranch,
+      environment.CF_PAGES_BRANCH,
+      environment.WORKERS_CI_BRANCH,
+      environment.GITHUB_HEAD_REF,
+      environment.GITHUB_REF_NAME,
+    ],
+    hostContext,
+  );
+  let pruned = false;
+  for (const [platform, keep] of [
+    ["whatsapp", enabled],
+    ["facebook", facebookEnabled],
+  ]) {
+    if (keep) continue;
+    const target = resolve(output, platform);
+    if (relative(output, target) !== platform)
+      throw new Error(
+        "Unreleased platform output must remain inside the export.",
+      );
+    try {
+      await lstat(target);
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    // rm removes a symlink itself; it does not traverse a target outside output.
+    await rm(target, { recursive: true, force: true });
+    pruned = true;
   }
-  // rm removes a symlink itself; it does not traverse a target outside output.
-  await rm(target, { recursive: true, force: true });
-  return true;
+  return pruned;
 }
 
 if (

@@ -2,7 +2,36 @@
 export const PLATFORM_RELEASES = {
   instagram: "released",
   whatsapp: "released",
+  facebook: "unreleased",
 } as const;
+
+/** Facebook has no production release path. Host context must also be known. */
+export function facebookFeatureEnabled(
+  requested: string | undefined,
+  preview: string | undefined,
+  branches: readonly (string | undefined)[] = [],
+  host: {
+    pages?: string;
+    pagesBranch?: string;
+    workers?: string;
+    workersBranch?: string;
+  } = {},
+) {
+  const hostBranches = [
+    ...(host.pages === "1" ? [host.pagesBranch] : []),
+    ...(host.workers === "1" ? [host.workersBranch] : []),
+  ];
+  if (
+    hostBranches.some(
+      (branch) => !branch || branch === "HEAD" || branch !== branch.trim(),
+    )
+  )
+    return false;
+  return whatsappPreviewEnabled(requested, preview, [
+    ...branches,
+    ...hostBranches,
+  ]);
+}
 
 export function platformReleased(platform: string) {
   return (

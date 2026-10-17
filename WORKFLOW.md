@@ -20,6 +20,9 @@ analytics, infrastructure and other work explicitly intended for production use
 `main` -> `feature/INS-*` or `bugfix/INS-*` -> PR targeting `main`.
 
 `dev` is the integration line for unreleased product-family development.
+Facebook is unreleased: task branches start from current `dev` and target `dev`.
+FB-01 includes JSON and HTML ZIP import plus Friends Explorer; it does not
+authorize production routes, SEO, deployment or a dev-to-main release.
 WhatsAppScope is released on `main`; its unreleased roadmap work still starts
 from CURRENT `dev` and targets `dev`. Explicit production fixes and SEO use the
 production rule above. Issue, ownership, changelog, validation, privacy/security and

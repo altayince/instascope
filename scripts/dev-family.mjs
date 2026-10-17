@@ -10,6 +10,7 @@ const child = spawn(
       ...process.env,
       NEXT_PUBLIC_PREVIEW: "true",
       NEXT_PUBLIC_WHATSAPP_ENABLED: "true",
+      NEXT_PUBLIC_FACEBOOK_ENABLED: "true",
     },
   },
 );

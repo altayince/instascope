@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 import { indexableDeployment } from "./src/lib/site-config";
 import { profileEndpoint } from "./src/lib/profile-lookup";
 import { analyticsEndpoint } from "./src/lib/analytics-config";
-import { whatsappFeatureEnabled } from "./src/lib/platform-config";
+import {
+  facebookFeatureEnabled,
+  whatsappFeatureEnabled,
+} from "./src/lib/platform-config";
 import { execFileSync } from "node:child_process";
 let localBranch: string | undefined;
 try {
@@ -31,6 +34,20 @@ const config: NextConfig = {
   poweredByHeader: false,
   images: { unoptimized: true },
   env: {
+    NEXT_PUBLIC_FACEBOOK_ENABLED: String(
+      facebookFeatureEnabled(
+        process.env.NEXT_PUBLIC_FACEBOOK_ENABLED,
+        process.env.NEXT_PUBLIC_PREVIEW,
+        [
+          localBranch,
+          process.env.CF_PAGES_BRANCH,
+          process.env.WORKERS_CI_BRANCH,
+          process.env.GITHUB_HEAD_REF,
+          process.env.GITHUB_REF_NAME,
+        ],
+        hostContext,
+      ),
+    ),
     NEXT_PUBLIC_WHATSAPP_ENABLED: String(
       whatsappFeatureEnabled(
         process.env.NEXT_PUBLIC_WHATSAPP_ENABLED,
