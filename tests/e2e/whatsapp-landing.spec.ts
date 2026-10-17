@@ -14,15 +14,16 @@ const navigation = (page: Page) =>
   page.getByRole("navigation", { name: "Main navigation", exact: true });
 const loadedChat = (page: Page) => page.locator(".wa-current-chat");
 
-async function darkAndFits(page: Page) {
+async function lightAndFits(page: Page) {
   // As in the shared visual suite, paint WebKit's background tab before
   // inspecting computed styles; retain exact color and overflow assertions.
   await page.screenshot({ scale: "css", animations: "disabled" });
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(9, 11, 10)",
+    "rgb(250, 249, 245)",
   );
-  await expect(page.locator("body")).toHaveCSS("color", "rgb(244, 246, 242)");
+  await expect(page.locator("body")).toHaveCSS("color", "rgb(38, 59, 48)");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("body")).not.toContainText(/WhatsAppScope/i);
   expect(
     await page.evaluate(
@@ -42,7 +43,7 @@ test.beforeEach(async ({ page }) => {
   await collectEvents(page);
 });
 
-test("WhatsApp direct entry, refresh and platform switching retain the shared dark theme and a factual demo preview", async ({
+test("WhatsApp direct entry, refresh and platform switching retain default Light and a factual demo preview", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -85,10 +86,10 @@ test("WhatsApp direct entry, refresh and platform switching retain the shared da
   ).toHaveCount(0);
   await expect(preview).not.toContainText("01 / 03");
   await expect(loadedChat(page)).toHaveCount(0);
-  await darkAndFits(page);
+  await lightAndFits(page);
   await page.reload();
   await expect(preview).toBeVisible();
-  await darkAndFits(page);
+  await lightAndFits(page);
   const selector = page.locator(".social-switcher");
   await selector.locator("summary").click();
   await selector.getByRole("link", { name: /^Instagram/ }).click();
@@ -97,12 +98,12 @@ test("WhatsApp direct entry, refresh and platform switching retain the shared da
     "data-platform",
     "instagram",
   );
-  await darkAndFits(page);
+  await lightAndFits(page);
   await selector.locator("summary").click();
   await selector.getByRole("link", { name: /^WhatsApp/ }).click();
   await expect(page).toHaveURL(/\/whatsapp\/$/);
   await expect(preview).toBeVisible();
-  await darkAndFits(page);
+  await lightAndFits(page);
   expect(errors).toEqual([]);
   expect(failedAssets).toEqual([]);
 });
@@ -133,7 +134,7 @@ for (const [index, route] of [
     ).toBeEnabled();
     await expect(loadedChat(page)).toHaveCount(0);
     await expect(page.locator(".wa-wrapped")).toHaveCount(0);
-    await darkAndFits(page);
+    await lightAndFits(page);
     await page
       .getByRole("button", { name: "Try the fictional demo", exact: true })
       .click();
@@ -246,6 +247,6 @@ for (const source of ["demo", "imported"] as const) {
     );
     await overview(page);
     await expect(loadedChat(page)).toHaveText(original);
-    await darkAndFits(page);
+    await lightAndFits(page);
   });
 }

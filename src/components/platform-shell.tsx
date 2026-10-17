@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { getActivePlatform, type PlatformDefinition } from "@/lib/platforms";
 import { ToolNavigation } from "./tool-navigation";
 import { SocialSwitcher } from "./social-switcher";
+import { ThemeToggle } from "./theme-toggle";
 import { WhatsAppProvider } from "./whatsapp/provider";
 import "./platform-shell.css";
 
@@ -112,6 +113,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
           ) : (
             <span className="platform-trigger">Instagram</span>
           )}
+          <ThemeToggle />
           <span className="header-note">
             <i />
             Your data stays yours

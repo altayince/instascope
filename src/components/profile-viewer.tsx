@@ -11,8 +11,10 @@ import {
 } from "@/lib/profile-lookup";
 import { enhancePublicPhoto } from "@/lib/profile-enhancement";
 import { PROFILE_SAMPLE_URL } from "@/lib/profile-sample";
+import { useBrowserReady } from "./use-browser-ready";
 const endpoint = process.env.NEXT_PUBLIC_PROFILE_ENDPOINT;
 export function ProfileViewer() {
+  const ready = useBrowserReady();
   const [input, setInput] = useState(""),
     [image, setImage] = useState(""),
     [username, setUsername] = useState(""),
@@ -266,11 +268,11 @@ export function ProfileViewer() {
             onChange={(event) => setInput(event.target.value)}
             maxLength={200}
             required
-            disabled={loading}
+            disabled={!ready || loading}
           />
           <button
             className="button primary"
-            disabled={loading || remaining > 0}
+            disabled={!ready || loading || remaining > 0}
           >
             {loading ? (
               <>
@@ -297,7 +299,7 @@ export function ProfileViewer() {
       <button
         type="button"
         className="button secondary"
-        disabled={loading || enhancing}
+        disabled={!ready || loading || enhancing}
         onClick={toggleSample}
       >
         {sample ? "Exit sample" : "Try with sample photo"}

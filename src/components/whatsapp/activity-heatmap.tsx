@@ -30,8 +30,8 @@ export function WhatsAppActivityHeatmap({ counts }: { counts: number[][] }) {
         </div>
       </div>
       <p>
-        Exported participant messages in the selected subset. Brighter cells
-        contain more messages. These are written clock values, without an
+        Exported participant messages in the selected subset. Stronger shading
+        indicates more messages. These are written clock values, without an
         inferred timezone; they do not show online presence.
       </p>
       <div

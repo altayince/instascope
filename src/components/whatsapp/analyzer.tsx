@@ -243,8 +243,9 @@ function ActivityCalendar({ analysis }: { analysis: WhatsAppAnalysis }) {
         ))}
       </div>
       <p className="wa-hint">
-        Brighter cells contain more selected exported messages. An empty date
-        means no participant messages match the current filters on that date.
+        Stronger shading indicates more selected exported messages. An empty
+        date means no participant messages match the current filters on that
+        date.
       </p>
     </section>
   );

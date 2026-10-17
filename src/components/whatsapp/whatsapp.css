@@ -1,5 +1,5 @@
 .wa-workspace {
-  --wa-mint: #8bd8b2;
+  --wa-mint: var(--chart-primary);
   padding-bottom: 30px;
   overflow-wrap: anywhere;
 }
@@ -712,7 +712,7 @@
   border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 .wa-stat-featured strong {
-  color: var(--lime);
+  color: var(--accent);
 }
 .wa-stat-featured small {
   color: var(--muted);
@@ -911,7 +911,7 @@
   border-radius: 20px;
 }
 .wa-participant-row:nth-child(2n) .wa-participant-track i {
-  background: var(--warning);
+  background: var(--chart-secondary);
 }
 .wa-participant-extras {
   font-size: 9px;
@@ -1064,7 +1064,7 @@
   border-radius: 3px 3px 0 0;
 }
 .wa-chart-column:nth-child(2n) i {
-  background: var(--warning);
+  background: var(--chart-secondary);
 }
 .wa-chart-label {
   font-size: 9px;
@@ -1328,7 +1328,7 @@
   background: var(--wa-mint);
 }
 .wa-rhythm-delay-counts li:nth-child(2n) .wa-rhythm-delay-track i {
-  background: var(--warning);
+  background: var(--chart-secondary);
 }
 .wa-rhythm-table-scroll {
   width: 100%;
@@ -1590,7 +1590,7 @@
   background: var(--wa-mint);
 }
 .wa-message-content .wa-message-content-counts li:nth-child(2n) i {
-  background: var(--warning);
+  background: var(--chart-secondary);
 }
 .wa-message-content .wa-message-content-participants,
 .wa-message-content .wa-message-content-methodology {

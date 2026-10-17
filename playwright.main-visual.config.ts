@@ -11,7 +11,25 @@ export default defineConfig({
   projects: [
     ...base.projects!,
     { name: "webkit-mobile", use: { ...devices["iPhone 13"] } },
-  ],
+  ].flatMap((project) =>
+    (["light", "dark"] as const).map((theme) => ({
+      ...project,
+      name: `${project.name}-${theme}`,
+      metadata: { theme },
+      use: {
+        ...project.use,
+        storageState: {
+          cookies: [],
+          origins: ["http://127.0.0.1:3000", "http://127.0.0.1:3101"].map(
+            (origin) => ({
+              origin,
+              localStorage: [{ name: "instascope-theme", value: theme }],
+            }),
+          ),
+        },
+      },
+    })),
+  ),
   outputDir: "test-results/main-visual",
   use: { ...base.use, timezoneId: "UTC", locale: "en-US" },
   webServer: [

@@ -4,6 +4,7 @@ import { PlatformShell } from "@/components/platform-shell";
 import { DataProvider } from "@/components/data-provider";
 import { ReviewMemoryProvider } from "@/components/review-memory-provider";
 import { AnalyticsInitializer } from "@/components/analytics-initializer";
+import { THEME_INIT_SCRIPT } from "@/lib/appearance";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,7 +25,10 @@ export const metadata: Metadata = {
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <AnalyticsInitializer />
         <DataProvider>

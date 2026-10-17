@@ -25,6 +25,27 @@
   margin-left: auto;
   color: var(--muted);
 }
+.theme-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 11px;
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  background: var(--surface-raised);
+}
+.theme-toggle svg {
+  flex-shrink: 0;
+}
 .site-header .product-navigation {
   gap: 8px;
   padding: 0 0 14px;
@@ -95,7 +116,7 @@
 }
 [data-platform="whatsapp"] .platform-trigger .platform-mark,
 .platform-discovery-card[data-platform="whatsapp"] .platform-mark {
-  color: #8dddbb;
+  color: var(--platform-mark);
 }
 .social-switcher-panel {
   position: absolute;
@@ -109,7 +130,7 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
-  box-shadow: 0 18px 48px #0008;
+  box-shadow: var(--shadow-menu);
 }
 .social-switcher-label {
   margin: 8px 10px 12px;
@@ -250,23 +271,29 @@
   }
   .shell-identity-row {
     min-height: 78px;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 0;
     justify-content: space-between;
   }
   .shell-identity-row > .brand {
     font-size: 21px;
   }
   .shell-identity-row .brand-mark {
-    font-size: 32px;
+    font-size: 26px;
     margin-right: 5px;
   }
   .shell-identity-row .header-note {
     display: none;
   }
   .platform-trigger {
-    gap: 7px;
-    font-size: 13px;
-    padding: 8px 10px;
+    gap: 6px;
+    font-size: 12px;
+    padding: 8px;
+  }
+  .theme-toggle {
+    gap: 6px;
+    padding: 8px;
   }
   .platform-chevron {
     margin-left: 4px;
