@@ -10,13 +10,23 @@ export function StructuredData({ value }: { value: unknown }) {
     />
   );
 }
-export function Breadcrumbs({ name, path }: { name: string; path: string }) {
+export function Breadcrumbs({
+  name,
+  path,
+  prefetch,
+}: {
+  name: string;
+  path: string;
+  prefetch?: boolean;
+}) {
   return (
     <>
       <nav aria-label="Breadcrumb" className="breadcrumbs">
         <ol>
           <li>
-            <Link href="/">InstaScope</Link>
+            <Link href="/" prefetch={prefetch}>
+              InstaScope
+            </Link>
           </li>
           <li aria-current="page">{name}</li>
         </ol>

@@ -124,7 +124,7 @@ export function WhatsAppPublicHelp({ mode }: { mode: Mode }) {
       className="prose wa-public-help"
       aria-label="Tool explanation and limitations"
     >
-      <Breadcrumbs name={product.title} path={product.path} />
+      <Breadcrumbs name={product.title} path={product.path} prefetch={false} />
       <StructuredData
         value={applicationData(
           product.title,
@@ -142,12 +142,16 @@ export function WhatsAppPublicHelp({ mode }: { mode: Mode }) {
         <ul>
           {content.links.map((link) => (
             <li key={link.href}>
-              <Link href={link.href}>{link.label}</Link>
+              <Link href={link.href} prefetch={false}>
+                {link.label}
+              </Link>
             </li>
           ))}
         </ul>
         <p>
-          <Link href="/whatsapp/guides/">Browse all WhatsApp guides</Link>
+          <Link href="/whatsapp/guides/" prefetch={false}>
+            Browse all WhatsApp guides
+          </Link>
         </p>
       </nav>
     </section>
