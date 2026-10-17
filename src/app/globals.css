@@ -1890,6 +1890,7 @@ footer > nav a {
 }
 .article-table-scroll table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 14px;
   line-height: 1.6;

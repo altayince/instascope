@@ -20,9 +20,9 @@ analytics, infrastructure and other work explicitly intended for production use
 `main` -> `feature/INS-*` or `bugfix/INS-*` -> PR targeting `main`.
 
 `dev` is the integration line for unreleased product-family development.
-WhatsAppScope currently lives here: update CURRENT `dev`, branch from it, then
-open the INS task PR targeting `dev`. Ordinary WhatsAppScope feature PRs must
-not target `main`. Issue, ownership, changelog, validation, privacy/security and
+WhatsAppScope is released on `main`; its unreleased roadmap work still starts
+from CURRENT `dev` and targets `dev`. Explicit production fixes and SEO use the
+production rule above. Issue, ownership, changelog, validation, privacy/security and
 no-force-push rules apply on both lines.
 
 `dev` -> `main` is an explicit owner-managed product release, not a normal
@@ -31,8 +31,11 @@ explicit owner instruction to perform that release. Do not deploy production or
 change production settings as part of ordinary unreleased feature work.
 
 WhatsAppScope's reviewed repository release state permits intentional production
-builds; its pages remain noindex and outside the sitemap until separate SEO work.
-Preview/unknown-context protections still apply. Only the owner releases dev to main.
+builds. INS-154 publishes its four tool landing pages, guide hub and ten guides
+through the shared public-path inventory. Public production pages are indexable;
+private Instagram workspaces remain noindex. Preview/unknown-context protections
+and release pruning still apply. Public Chat Vault education does not expose
+locally saved records. Only the owner releases dev to main.
 Same-repository PRs targeting `main` or `dev`, and pushes to `dev`, also run
 `whatsapp-tests` and `main-visual-parity`. Shared product changes require both
 platforms' coverage without branch-name exceptions. The visual job compares

@@ -75,7 +75,7 @@ async function sharedControls(page: Page) {
   });
 }
 
-test("production release exposes WhatsApp without indexing it or changing Instagram indexing", async ({
+test("production release indexes public WhatsApp pages and preserves Instagram indexing", async ({
   page,
   request,
 }) => {
@@ -103,7 +103,7 @@ test("production release exposes WhatsApp without indexing it or changing Instag
     await expect(page.locator("main h1")).toHaveCount(1);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
-      "noindex, nofollow",
+      "index, follow",
     );
     await expect(
       page.getByLabel(
@@ -116,7 +116,7 @@ test("production release exposes WhatsApp without indexing it or changing Instag
     expect((await page.reload())?.status(), `${route} refresh`).toBe(200);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
-      "noindex, nofollow",
+      "index, follow",
     );
     await fits(page);
   }
@@ -130,9 +130,14 @@ test("production release exposes WhatsApp without indexing it or changing Instag
     "index, follow",
   );
   expect((await request.get("/followers-analyzer/")).status()).toBe(200);
-  expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
-    "whatsapp",
-  );
+  const publicSitemap = await (await request.get("/sitemap.xml")).text();
+  for (const path of [
+    "/whatsapp/",
+    "/whatsapp/chat-analyzer/",
+    "/whatsapp/wrapped/",
+    "/whatsapp/chat-vault/",
+  ])
+    expect(publicSitemap).toContain(`<loc>https://instascope.me${path}</loc>`);
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toMatch(/^Allow: \/$/m);
   expect(robots).toMatch(/^Disallow: \/api\/$/m);

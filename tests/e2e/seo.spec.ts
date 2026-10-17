@@ -26,13 +26,18 @@ test("indexable public pages have unique metadata, truthful structured data and 
     publicPaths.map((path) => `https://instascope.me${path}`),
   );
   expect(new Set(urls).size).toBe(urls.length);
-  expect(urls).not.toEqual(
-    expect.arrayContaining([expect.stringContaining("/whatsapp/")]),
-  );
+  for (const path of [
+    "/whatsapp/",
+    "/whatsapp/chat-analyzer/",
+    "/whatsapp/wrapped/",
+    "/whatsapp/chat-vault/",
+    "/whatsapp/guides/",
+  ])
+    expect(urls).toContain(`https://instascope.me${path}`);
   const titles = new Set<string>(),
     descriptions = new Set<string>();
   for (const url of urls) {
-    expect(url).toMatch(/^https:\/\/instascope\.me\/(?:[a-z-]+\/)?$/);
+    expect(url).toMatch(/^https:\/\/instascope\.me\/(?:[a-z-]+\/)*$/);
     const path = new URL(url).pathname;
     expect((await page.goto(path))?.status()).toBe(200);
     const title = await page.title();
@@ -55,7 +60,9 @@ test("indexable public pages have unique metadata, truthful structured data and 
     );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      "https://instascope.me/opengraph-image.png",
+      path.startsWith("/whatsapp/")
+        ? "https://instascope.me/whatsapp-opengraph-image.png"
+        : "https://instascope.me/opengraph-image.png",
     );
     await expect(
       page.locator('meta[property="og:description"]'),
@@ -76,7 +83,7 @@ test("indexable public pages have unique metadata, truthful structured data and 
       const breadcrumb = parsed.find(
         (item) => item["@type"] === "BreadcrumbList",
       );
-      expect(breadcrumb.itemListElement[1].item).toBe(url);
+      expect(breadcrumb.itemListElement.at(-1).item).toBe(url);
       await expect(
         page.getByRole("navigation", { name: "Breadcrumb", exact: true }),
       ).toBeVisible();
@@ -86,7 +93,7 @@ test("indexable public pages have unique metadata, truthful structured data and 
   expect(robots).toContain("Allow: /");
   expect(robots).toMatch(/^Disallow: \/api\/$/m);
   expect(robots).not.toMatch(/^Disallow: \/$/m);
-  // WhatsApp must remain crawlable so its page-level noindex can be read.
+  // Both public product areas must remain crawlable; API exclusions remain.
   expect(robots).not.toMatch(/^Disallow: \/whatsapp(?:\/|$)/m);
   expect(robots).toContain("Sitemap: https://instascope.me/sitemap.xml");
 });

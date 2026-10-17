@@ -370,7 +370,9 @@ test("intentional release supports real local imports, Wrapped downloads, saved 
   await expect(comparison).not.toContainText("SYNTHETIC_RELEASE_PRIVATE");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
-    "noindex, nofollow",
+    process.env.EXPECT_INDEXABLE === "false"
+      ? "noindex, nofollow"
+      : "index, follow",
   );
   expect(await productEvents(page)).toEqual(["document_entry_observed"]);
   await expect

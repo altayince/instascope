@@ -1,6 +1,7 @@
 // Read-only public smoke check; never imports or uploads an archive.
 import { checkProfileInfrastructure } from "./profile-health.mjs";
 import { checkWhatsAppRelease } from "./whatsapp-health.mjs";
+import { auditPublicSeo } from "./audit-public-seo.mjs";
 const origin =
   process.argv.slice(2).find((arg) => !arg.startsWith("--")) ||
   "https://instascope.me";
@@ -51,4 +52,9 @@ if (process.argv.includes("--require-whatsapp")) {
   const whatsappRelease = await checkWhatsAppRelease(origin);
   console.log(JSON.stringify({ whatsappRelease }, null, 2));
   if (!whatsappRelease.ready) process.exitCode = 1;
+}
+if (process.argv.includes("--require-seo")) {
+  const publicSeo = await auditPublicSeo(origin);
+  console.log(JSON.stringify({ publicSeo }, null, 2));
+  if (!publicSeo.ready) process.exitCode = 1;
 }
