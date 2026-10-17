@@ -261,12 +261,15 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
     appearance(dev),
   ]);
   await Promise.all([assertPlatformTheme(main), assertPlatformTheme(dev)]);
-  // Fractional mobile DPRs can round CSS-scale screenshot resampling differently
-  // between identical pages. Compare native pixels without that resize stage.
-  const capture = (page: Page) =>
+  // Fractional DPR resampling can round identical pages differently. Use native
+  // pixels there; integer DPRs keep CSS scale so long WebKit pages stay within
+  // its 32,767-pixel screenshot dimension limit. Pixel equality stays exact.
+  const capture = async (page: Page) =>
     page.screenshot({
       fullPage: true,
-      scale: "device",
+      scale: await page.evaluate(() => Number.isInteger(devicePixelRatio))
+        ? "css"
+        : "device",
       animations: "disabled",
       caret: "hide",
     });
