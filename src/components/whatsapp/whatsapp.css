@@ -57,107 +57,72 @@
 .wa-hero-copy .wa-hero-reassurance {
   font-size: 12px;
 }
-.wa-hero-art {
-  position: relative;
+.wa-landing-preview {
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: var(--white);
-  padding: 28px 30px;
-  min-height: 472px;
-  box-shadow: 0 24px 80px #00000033;
-  color: var(--ink);
+  border-radius: 20px;
+  background: var(--surface);
+  padding: 20px;
 }
-.wa-art-heading,
-.wa-art-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-}
-.wa-art-heading i {
-  font-style: normal;
+.wa-landing-preview h2 {
+  margin: 14px 0 6px;
   font-size: 27px;
-  font-weight: 400;
+  letter-spacing: -0.7px;
+}
+.wa-landing-preview .wa-preview-source {
+  margin: 0 0 16px;
   color: var(--wa-mint);
+  font-size: 12px;
 }
-.wa-art-bubble {
-  position: relative;
-  width: 78%;
-  padding: 22px 25px;
-  border-radius: 3px 23px 23px 23px;
-  background: var(--surface-raised);
-  font-size: clamp(28px, 2.8vw, 39px);
-  line-height: 1.13;
-  letter-spacing: -1.5px;
-  margin: 22px 0 15px;
+.wa-landing-preview .wa-stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
-.wa-art-reply {
-  width: 76%;
-  margin-left: auto;
-  padding: 18px 22px;
-  background: color-mix(in srgb, var(--wa-mint) 12%, var(--surface));
-  color: var(--ink);
-  border: 1px solid color-mix(in srgb, var(--wa-mint) 25%, var(--line));
-  border-radius: 22px 3px 22px 22px;
-  font-size: 17px;
-  line-height: 1.4;
+.wa-landing-preview .wa-stat {
+  padding: 12px;
 }
-.wa-art-chart {
-  margin-top: 23px;
+.wa-landing-preview .wa-stat > span {
+  margin-bottom: 8px;
 }
-.wa-art-chart > span {
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 1px;
+.wa-landing-preview .wa-stat strong {
+  font-size: 34px;
 }
-.wa-art-chart > div {
-  height: 68px;
-  display: flex;
-  align-items: end;
-  gap: 7px;
-  padding-top: 10px;
-}
-.wa-art-chart i {
-  flex: 1;
-  background: var(--wa-mint);
-  border-radius: 3px 3px 0 0;
-}
-.wa-art-chart i:nth-child(4n) {
-  background: color-mix(in srgb, var(--wa-mint) 55%, var(--surface));
-}
-.wa-art-chart small {
-  display: block;
-  font-size: 8px;
-  letter-spacing: 0;
-  line-height: 1.5;
-  margin-top: 9px;
-  font-weight: 400;
+.wa-landing-preview .wa-preview-note {
+  margin: 14px 0 0;
   color: var(--muted);
-}
-.wa-art-footer {
-  margin-top: 20px;
-  font-size: 9px;
-  color: var(--muted);
+  font-size: 12px;
 }
 .wa-promise-strip {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  padding: 23px 0;
+  padding: 16px 0;
   font-size: 13px;
 }
-.wa-promise-strip span {
+.wa-promise-strip a {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 48px;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.wa-promise-strip a:hover {
+  background: var(--surface-raised);
+}
+.wa-promise-strip small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 .wa-promise-strip i {
+  flex-shrink: 0;
   font-style: normal;
   font-size: 10px;
   color: var(--on-accent);
@@ -2155,10 +2120,6 @@
   .wa-hero-copy h1 {
     letter-spacing: -2.3px;
   }
-  .wa-hero-art {
-    padding: 24px;
-    min-height: 440px;
-  }
   .wa-import {
     gap: 45px;
   }
@@ -2209,22 +2170,14 @@
   .wa-hero-actions {
     margin-top: 24px;
   }
-  .wa-hero-art {
-    max-width: 460px;
-    width: calc(100% - 12px);
-    margin: 8px auto 15px;
-    min-height: 422px;
-  }
-  .wa-art-bubble {
-    font-size: 36px;
-  }
   .wa-promise-strip {
-    gap: 13px;
-    padding: 18px 0;
-    font-size: 11px;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px 0;
   }
-  .wa-promise-strip span {
+  .wa-landing-preview {
     width: 100%;
+    padding: 20px;
   }
   .wa-import {
     grid-template-columns: 1fr;
@@ -2417,19 +2370,6 @@
   .wa-hero-actions .button {
     font-size: 12px;
     padding: 11px 13px;
-  }
-  .wa-hero-art {
-    min-height: 402px;
-    padding: 21px;
-  }
-  .wa-art-bubble {
-    font-size: 31px;
-  }
-  .wa-art-reply {
-    font-size: 15px;
-  }
-  .wa-art-chart > div {
-    height: 58px;
   }
   .wa-import-intro h2 {
     font-size: 31px;
