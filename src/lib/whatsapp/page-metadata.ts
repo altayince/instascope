@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
-export function whatsappMetadata(title: string, description: string): Metadata {
+import { pageMetadata } from "../seo";
+import { isIndexable } from "../site";
+import { isPublicPath } from "../public-paths";
+
+export function whatsappMetadata(
+  title: string,
+  description: string,
+  path: string,
+): Metadata {
+  const base = pageMetadata(title, description, path);
+  const index =
+    isIndexable &&
+    process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true" &&
+    isPublicPath(path);
   return {
-    title: { absolute: `${title} | InstaScope` },
-    description,
-    robots: { index: false, follow: false },
+    ...base,
+    robots: { index, follow: index },
     openGraph: {
+      ...base.openGraph,
       title,
       description,
       siteName: "InstaScope",
       type: "website",
       images: [],
     },
-    twitter: { card: "summary", title, description, images: [] },
+    twitter: { ...base.twitter, card: "summary", images: [] },
   };
 }

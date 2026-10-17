@@ -1,4 +1,4 @@
-import { productionOrigin, indexableDeployment } from "./site-config";
+import { productionOrigin, indexableDeployment } from "./site-config.ts";
 // Canonicals identify the official site; only production build contexts index.
 export const siteUrl = productionOrigin;
 export const isIndexable = indexableDeployment(

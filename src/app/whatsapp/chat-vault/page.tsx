@@ -5,6 +5,7 @@ import { whatsappMetadata } from "@/lib/whatsapp/page-metadata";
 export const metadata = whatsappMetadata(
   "Chat Vault",
   "Explicitly save anonymous aggregate chat snapshots and manage local JSON backups on this browser.",
+  "/whatsapp/chat-vault/",
 );
 export default function WhatsAppChatVaultPage() {
   if (process.env.NEXT_PUBLIC_WHATSAPP_ENABLED !== "true") notFound();

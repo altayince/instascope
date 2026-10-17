@@ -4,6 +4,7 @@ import { whatsappMetadata } from "@/lib/whatsapp/page-metadata";
 export const metadata = whatsappMetadata(
   "WhatsApp Wrapped",
   "Create local, factual story cards from your WhatsApp chat export without sharing messages or participant names.",
+  "/whatsapp/wrapped/",
 );
 export default function WhatsAppWrappedPage() {
   if (process.env.NEXT_PUBLIC_WHATSAPP_ENABLED !== "true") notFound();
