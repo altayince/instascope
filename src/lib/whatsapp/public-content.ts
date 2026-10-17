@@ -1,3 +1,6 @@
+import { whatsappGuides } from "./guide-content.ts";
+export { whatsappGuides } from "./guide-content.ts";
+
 /** Published public education only. Never derive this registry from a chat. */
 export const whatsappProducts = {
   overview: {
@@ -26,6 +29,22 @@ export const whatsappProducts = {
   },
 } as const;
 
-export const whatsappPublicPaths: string[] = Object.values(
-  whatsappProducts,
-).map((product) => product.path);
+export const whatsappGuideHub = {
+  path: "/whatsapp/guides/",
+  title: "WhatsApp Export and Chat Analysis Guides",
+  description:
+    "Practical guides to WhatsApp text exports, recorded activity, local analysis, Wrapped and anonymous Chat Vault backups. Learn what your export can and cannot show.",
+} as const;
+
+export const whatsappGuideCatalog = Object.fromEntries(
+  Object.entries(whatsappGuides).map(([slug, guide]) => [
+    `whatsapp/guides/${slug}`,
+    { href: `/whatsapp/guides/${slug}/`, title: guide.title },
+  ]),
+);
+
+export const whatsappPublicPaths: string[] = [
+  ...Object.values(whatsappProducts).map((product) => product.path),
+  whatsappGuideHub.path,
+  ...Object.values(whatsappGuideCatalog).map((guide) => guide.href),
+];

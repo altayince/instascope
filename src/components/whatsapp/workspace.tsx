@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { ActionButton, ActionLink, InsightLink } from "@/components/actions";
 import { analyzeWhatsApp, createWhatsAppDemo } from "@/lib/whatsapp";
 import { whatsappDate, whatsappNumber } from "@/lib/whatsapp/stories";
@@ -152,7 +152,13 @@ function LandingHero({
   );
 }
 
-export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
+export function WhatsAppWorkspace({
+  mode,
+  children,
+}: {
+  mode: WhatsAppWorkspaceMode;
+  children?: ReactNode;
+}) {
   const router = useRouter();
   const ready = useBrowserReady();
   const { dataset, revision, analysis, busy, clear, startDemo } = useWhatsApp();
@@ -164,7 +170,8 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
     startDemo();
     imported();
   }
-  if (mode === "vault") return <WhatsAppChatVault />;
+  if (mode === "vault")
+    return <WhatsAppChatVault>{children}</WhatsAppChatVault>;
   return (
     <main id="main" className="wa-workspace" data-whatsapp-mode={mode}>
       {mode === "overview" ? (
@@ -344,6 +351,7 @@ export function WhatsAppWorkspace({ mode }: { mode: WhatsAppWorkspaceMode }) {
             : "No archive is sent to a server or written to browser storage."}
         </p>
       </div>
+      {children}
     </main>
   );
 }

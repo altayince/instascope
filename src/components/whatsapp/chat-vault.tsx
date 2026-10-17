@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ActionButton, ActionLink } from "@/components/actions";
 import {
   BackupFilePicker,
@@ -24,7 +24,7 @@ import { useChatVault } from "./use-chat-vault";
 import { ChatVaultCompare } from "./chat-vault-compare";
 import { chatVaultCoverageLabel as coverageLabel } from "./chat-vault-labels";
 
-export function WhatsAppChatVault() {
+export function WhatsAppChatVault({ children }: { children?: ReactNode }) {
   const { dataset, revision } = useWhatsApp();
   const {
     snapshots,
@@ -360,6 +360,7 @@ export function WhatsAppChatVault() {
           </p>
         </VaultConfirmation>
       )}
+      {children}
     </main>
   );
 }

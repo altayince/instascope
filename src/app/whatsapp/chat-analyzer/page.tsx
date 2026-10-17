@@ -1,12 +1,19 @@
 import { notFound } from "next/navigation";
 import { WhatsAppWorkspace } from "@/components/whatsapp/workspace";
+import { WhatsAppPublicHelp } from "@/components/whatsapp/public-help";
 import { whatsappMetadata } from "@/lib/whatsapp/page-metadata";
+import { whatsappProducts } from "@/lib/whatsapp/public-content";
+const product = whatsappProducts.analyzer;
 export const metadata = whatsappMetadata(
-  "WhatsApp Chat Analyzer",
-  "Explore recorded messages, activity, links and media placeholders from your local WhatsApp export.",
-  "/whatsapp/chat-analyzer/",
+  product.title,
+  product.description,
+  product.path,
 );
 export default function WhatsAppAnalyzerPage() {
   if (process.env.NEXT_PUBLIC_WHATSAPP_ENABLED !== "true") notFound();
-  return <WhatsAppWorkspace mode="analyzer" />;
+  return (
+    <WhatsAppWorkspace mode="analyzer">
+      <WhatsAppPublicHelp mode="analyzer" />
+    </WhatsAppWorkspace>
+  );
 }
