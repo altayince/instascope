@@ -140,6 +140,16 @@ function base(
   return { ...values, mode, note: values.note ?? scope };
 }
 
+/** Number-only exported labels are not suitable personal names for shared artwork. */
+export function whatsappStoryDisplayName(displayName: string, index: number) {
+  const label = displayName
+    .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+    .trim();
+  return !label || (/\p{Nd}/u.test(label) && /^[+\p{Nd}\s().\-]+$/u.test(label))
+    ? `Contact ${index + 1}`
+    : label;
+}
+
 type ParticipantCount = { id: string; count: number };
 
 /** Stable ordering resolves display positions only; it never resolves a tied winner. */
@@ -182,13 +192,12 @@ function participantEntries(
  * The accepted dataset is always the scope, independent of temporary Analyzer filters.
  * The normal caller supplies its full-source core analysis. If its source totals do
  * not match, use that same core engine on the full source instead. No source records,
- * identifiers, names or recorded timestamp clocks are projected into artwork data.
- * Lexical analysis is not even invoked unless the current-session opt-in is true.
+ * identifiers or recorded timestamp clocks are projected into artwork data.
+ * Exported display names and eligible words remain local to the share renderer.
  */
 export function buildWhatsAppStories(
   suppliedAnalysis: WhatsAppAnalysis,
   dataset: WhatsAppDataset,
-  options: { includeWords?: boolean } = {},
 ): WhatsAppStory[] {
   if (!dataset.messages.length) return [];
   const analysis =
@@ -210,7 +219,7 @@ export function buildWhatsAppStories(
   const aliases = new Map(
     dataset.participants.map((participant, index) => [
       participant.id,
-      `Participant ${index + 1}`,
+      whatsappStoryDisplayName(participant.displayName, index),
     ]),
   );
   const coreParticipants = new Map(
@@ -234,7 +243,7 @@ export function buildWhatsAppStories(
     dataset.messages,
     dataset.participants,
   );
-  const participantLimitations = `Anonymous aliases follow the accepted export order. All ${whatsappNumber(dataset.participants.length)} participant labels are counted; group artwork shows at most ${WHATSAPP_STORY_LIMITS.participants}. Labels may represent people, renamed senders or shared accounts. Counts do not describe relationships or personalities.`;
+  const participantLimitations = `Exported display names follow the accepted export order; number-only labels use neutral contact labels. All ${whatsappNumber(dataset.participants.length)} participant labels are counted; group artwork shows at most ${WHATSAPP_STORY_LIMITS.participants}. Labels may represent people, renamed senders or shared accounts. Counts do not describe relationships or personalities.`;
   const firstDate = whatsappDate(analysis.first.date, true);
   const lastDate = whatsappDate(analysis.latest.date, true);
   const stories: WhatsAppStory[] = [
@@ -312,7 +321,7 @@ export function buildWhatsAppStories(
             label: "participants at the maximum",
           },
         ],
-        note: "Anonymous aliases, counted from the full export. A message count is just a message count.",
+        note: "Exported display names, counted from the full export. Number-only labels are replaced. A message count is just a message count.",
         theme: "cream",
         motif: "bubbles",
         calculation: {
@@ -829,7 +838,7 @@ export function buildWhatsAppStories(
     });
   }
 
-  if (options.includeWords === true) {
+  {
     const text = analyzeWhatsAppText(dataset.messages, dataset.participants, {
       comparisonAllowed: false,
     });
@@ -856,13 +865,13 @@ export function buildWhatsAppStories(
       text.eligibleWords >= WHATSAPP_STORY_EVIDENCE.eligibleWords &&
       words.length >= WHATSAPP_STORY_EVIDENCE.distinctWords
     ) {
-      stories.push({
+      stories.unshift({
         ...base(mode, {
           id: "words",
           name: "Word-based insights",
-          label: "MESSAGE-DERIVED WORDS · OPTED IN",
+          label: "RECURRING WORDS",
           title: "A few recurring words.",
-          lead: "Words from message text, included because you opted in for this session.",
+          lead: "The words that kept coming back in your conversation.",
           value: whatsappNumber(text.eligibleWords),
           valueLabel: "eligible word occurrences",
           facts: [
@@ -882,7 +891,7 @@ export function buildWhatsAppStories(
             classification: "Derived",
             definition:
               "Eligible Unicode tokens after URL/email removal and combined Turkish/German/English stopword filtering, using the existing Analyzer text results. Typed media/events, omission markers and empty text are excluded. Original participant-label tokens are excluded from the shareable selection.",
-            threshold: `Explicit current-session opt-in; eligible token length ${MIN_WORD_LENGTH}–${MAX_WORD_LENGTH} Unicode code points; at least ${WHATSAPP_STORY_EVIDENCE.eligibleTextMessages} eligible text messages, ${WHATSAPP_STORY_EVIDENCE.eligibleWords} eligible word occurrences and ${WHATSAPP_STORY_EVIDENCE.distinctWords} selected words occurring at least ${WHATSAPP_STORY_EVIDENCE.wordOccurrences} times. Show at most ${WHATSAPP_STORY_LIMITS.words} of the existing bounded top words.`,
+            threshold: `Eligible token length ${MIN_WORD_LENGTH}–${MAX_WORD_LENGTH} Unicode code points; at least ${WHATSAPP_STORY_EVIDENCE.eligibleTextMessages} eligible text messages, ${WHATSAPP_STORY_EVIDENCE.eligibleWords} eligible word occurrences and ${WHATSAPP_STORY_EVIDENCE.distinctWords} selected words occurring at least ${WHATSAPP_STORY_EVIDENCE.wordOccurrences} times. Show at most ${WHATSAPP_STORY_LIMITS.words} of the existing bounded top words.`,
             limitations:
               "These are message-derived words and may expose private context in an exported PNG. This is not sentiment, topic, personality or relationship analysis. At the 12-card limit this card replaces the standalone streak card; the busiest-date card retains the longest-streak summary.",
           },
@@ -894,7 +903,7 @@ export function buildWhatsAppStories(
   }
 
   // Reserve the closing poster. The streak already lives in the busiest-date
-  // aggregate, so an eligible opt-in card never grows a rich deck beyond 12.
+  // aggregate, so an eligible word card never grows a rich deck beyond 12.
   if (stories.length >= WHATSAPP_STORY_LIMITS.cards) {
     const standaloneStreak = stories.findIndex(
       (story) => story.id === "active-streak",
@@ -913,7 +922,7 @@ export function buildWhatsAppStories(
       facts: [
         {
           value: whatsappNumber(total.participants),
-          label: "anonymous participant labels",
+          label: "participant labels",
         },
         { value: whatsappNumber(total.activeDays), label: "active dates" },
       ],
@@ -926,7 +935,7 @@ export function buildWhatsAppStories(
           "Recap of accepted participant-message, participant-label and active-date counts from the full source export.",
         threshold: null,
         limitations:
-          "Only cards with enough recorded evidence are included. Anonymous aliases and aggregate counts do not describe relationships, personalities or the complete history of a chat.",
+          "Only cards with enough recorded evidence are included. Exported labels and aggregate counts do not describe relationships, personalities or the complete history of a chat.",
       },
     }),
     kind: "closing",

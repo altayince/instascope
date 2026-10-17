@@ -119,7 +119,7 @@ export const whatsappGuides: Record<string, Article> = {
         paragraphs: [
           "The activity calendar and weekday/hour charts show when included messages were recorded. Senderless system events do not inflate participant message counts. Selecting one participant also excludes system events that cannot be attributed to that label.",
           "A long gap after filtering describes the absence of that label's included messages, not silence across the group. Conversation-relative rhythm requires Everyone; adjacent messages do not establish replies, interest or responsiveness.",
-          "Analysis runs locally, including participant names and word lists. If you want a shareable summary, open Wrapped: default cards use anonymous aliases, disclose ties and cap visible group rankings while retaining whole-population totals. Review the artwork before sharing; even anonymous statistics may reveal context.",
+          "Analysis runs locally, including participant names and word lists. If you want a shareable summary, open Wrapped: cards use exported display names, disclose ties and cap visible group rankings while retaining whole-population totals. Review the artwork before sharing; names, words and statistics may reveal private context.",
         ],
         links: [
           { href: "/whatsapp/wrapped/", label: "Make group Wrapped cards" },
@@ -256,7 +256,7 @@ export const whatsappGuides: Record<string, Article> = {
         heading: "What an empty category does not prove",
         paragraphs: [
           "Zero recognized images does not prove nobody sent a photo: that category's markers may be absent or unsupported in this file. Missing records are not recovered, and links are counted locally without visiting their destinations.",
-          "Your messages, marker text and participant labels remain in browser memory. Default Wrapped cards summarize eligible totals with anonymous labels; saving to Chat Vault retains approved aggregates without attachments or message bodies.",
+          "Your messages, marker text and participant labels remain in browser memory. Wrapped cards summarize eligible totals with exported display names; saving to Chat Vault retains approved aggregates without attachments or message bodies.",
         ],
       },
     ],
@@ -327,7 +327,7 @@ export const whatsappGuides: Record<string, Article> = {
         heading: "Keep private vocabulary out of shared images",
         paragraphs: [
           "Emoji counts stay unavailable when the browser cannot provide the supported segmentation; InstaScope does not replace them with zero. Neither emoji nor word counts establish sentiment.",
-          "Wrapped excludes word-based insights by default. Its separate opt-in can expose a small qualifying word selection in downloaded artwork, so review every card before sharing. The two-message example above is enough for Analyzer word counts, but does not satisfy Wrapped's stronger word-card evidence rules. Chat Vault never stores lexical words or emoji glyphs.",
+          "Wrapped automatically includes a small qualifying word selection as its first card when the evidence rules are met, so review every card before sharing. The two-message example above is enough for Analyzer word counts, but does not satisfy Wrapped's stronger word-card evidence rules. Chat Vault never stores lexical words or emoji glyphs.",
         ],
       },
     ],
@@ -480,7 +480,7 @@ export const whatsappGuides: Record<string, Article> = {
   "create-whatsapp-wrapped": {
     title: "How to Make WhatsApp Wrapped Cards from Your Chat Export",
     description:
-      "Turn a local WhatsApp export into factual portrait cards. Review anonymous summaries, save individual PNGs or download the available deck as a ZIP.",
+      "Turn a local WhatsApp export into factual portrait cards. Review personalized summaries, save individual PNGs or download the available deck as a ZIP.",
     primaryAction: {
       href: "/whatsapp/wrapped/",
       label: "Make your WhatsApp Wrapped",
@@ -529,8 +529,8 @@ export const whatsappGuides: Record<string, Article> = {
       {
         heading: "Review privacy before pressing Share",
         paragraphs: [
-          "Default cards use anonymous participant aliases and aggregate facts instead of names, message bodies, URLs or attachment filenames. Group rankings disclose ties and labels outside the displayed rows. Anonymous does not mean context-free: dates and patterns may still be recognizable to someone who knows the conversation.",
-          "Include word-based insights in Wrapped is off by default. Turning it on can put qualifying conversation words into the artwork, so inspect that card especially carefully. The option does not guarantee a word card when evidence is insufficient.",
+          "Cards use exported participant display names and aggregate facts, without raw message bodies, URLs or attachment filenames. Number-only labels are replaced. Group rankings disclose ties and labels outside the displayed rows. Names, words, dates and patterns may still be recognizable to someone who knows the conversation.",
+          "Qualifying word insights appear automatically as the first card. If evidence is insufficient, the deck starts with the conversation card. Inspect words and names carefully before sharing.",
           "Recorded gaps and next-message timing are not proof of replies, read receipts or relationship quality. Downloading or sharing creates a file outside the app's control; choose its destination deliberately. Clearing or replacing the source cancels a pending full-deck export rather than downloading stale cards.",
         ],
       },
@@ -543,7 +543,7 @@ export const whatsappGuides: Record<string, Article> = {
       },
       {
         href: "/whatsapp/guides/word-and-emoji-analysis/",
-        label: "Understand optional word insights",
+        label: "Understand word insights",
       },
     ],
     related: [
@@ -681,7 +681,7 @@ export const whatsappGuides: Record<string, Article> = {
       {
         heading: "Sharing remains your decision",
         paragraphs: [
-          "Default Wrapped cards use aggregate facts and anonymous aliases. Optional word-based insights can expose conversation vocabulary, and even anonymous dates or counts may be recognizable. Review each card and its sharing destination before sending it.",
+          "Wrapped cards use aggregate facts, exported display names and qualifying derived words. Names, conversation vocabulary, dates and counts may be recognizable. Review each card and its sharing destination before sending it.",
           "Chats include other people's words too. Only analyze files you are entitled to use, and consider their privacy before sharing a summary. The tool makes no personality judgments, reconstructs no deleted content and creates no public per-chat result page. For the site's complete analytics and storage explanation, read the privacy page.",
         ],
         links: [

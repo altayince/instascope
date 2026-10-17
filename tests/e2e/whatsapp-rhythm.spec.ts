@@ -593,6 +593,14 @@ test.describe("WhatsAppScope factual conversation rhythm", () => {
     await expect(
       page.getByRole("region", { name: "WhatsApp Wrapped", exact: true }),
     ).toBeVisible();
+    await expect(page.locator(".wa-story")).toHaveAttribute(
+      "data-story-id",
+      "words",
+    );
+    await page
+      .getByRole("group", { name: "Choose a Wrapped card", exact: true })
+      .getByRole("button", { name: /The conversation/ })
+      .click();
     await expect(page.locator(".wa-story-value > strong")).toHaveText("12");
     await expect(page.locator(".wa-current-chat")).toHaveText(bannerBefore);
     await expect(

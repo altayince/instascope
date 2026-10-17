@@ -7,7 +7,7 @@ export const whatsappProducts = {
     path: "/whatsapp/",
     title: "WhatsApp Chat Analysis, Wrapped and Local Snapshots",
     description:
-      "Analyze your WhatsApp chat export in your browser, explore recorded activity and create anonymous Wrapped cards. No login or chat upload.",
+      "Analyze your WhatsApp chat export in your browser, explore recorded activity and create personalized Wrapped cards. No login or chat upload.",
   },
   analyzer: {
     path: "/whatsapp/chat-analyzer/",
@@ -19,7 +19,7 @@ export const whatsappProducts = {
     path: "/whatsapp/wrapped/",
     title: "WhatsApp Wrapped from Your Chat Export",
     description:
-      "Create factual WhatsApp Wrapped cards on your device. Download anonymous PNG stories or a full deck ZIP from the data your export supplies.",
+      "Create factual WhatsApp Wrapped cards on your device. Download personalized PNG stories or a full deck ZIP from the data your export supplies.",
   },
   vault: {
     path: "/whatsapp/chat-vault/",

@@ -109,10 +109,11 @@ export default function Privacy() {
             may remove the Vault.
           </p>
           <p>
-            WhatsApp Wrapped images are generated on your device with anonymous
-            participant labels. Optional word cards require your choice; review
-            their contents before sharing. Downloads and your device&apos;s
-            share menu are only used when you choose them.
+            WhatsApp Wrapped images are generated on your device with exported
+            display names and qualifying message-derived words. Number-only
+            labels are replaced. Review their contents before sharing. Downloads
+            and your device&apos;s share menu are only used when you choose
+            them.
           </p>
         </>
       )}

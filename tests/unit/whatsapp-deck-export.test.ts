@@ -209,32 +209,14 @@ describe("browser-local WhatsApp full-deck archive", () => {
     expect(render).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, false])(
-    "requires an explicit word-export choice when includeWords is %s",
-    async (includeWords) => {
-      const word: WhatsAppStory = {
-        ...story("words"),
-        kind: "word",
-        data: { words: [{ word: "fictional", count: 3 }], eligibleWords: 20 },
-      };
-      const render = vi.fn(async () => pngBlob());
-      await expect(
-        createWhatsAppDeckArchive([story(), word], render, { includeWords }),
-      ).rejects.toThrow("explicit choice");
-      expect(render).not.toHaveBeenCalled();
-    },
-  );
-
-  it("exports a word card only after the explicit current-session choice", async () => {
+  it("exports an eligible word card without an extra choice", async () => {
     const word: WhatsAppStory = {
       ...story("words"),
       kind: "word",
       data: { words: [{ word: "fictional", count: 3 }], eligibleWords: 20 },
     };
     const render = vi.fn(async () => pngBlob());
-    const result = await createWhatsAppDeckArchive([word], render, {
-      includeWords: true,
-    });
+    const result = await createWhatsAppDeckArchive([word], render);
     expect(render).toHaveBeenCalledExactlyOnceWith(word);
     expect(
       Object.keys(unzipSync(new Uint8Array(await result.blob.arrayBuffer()))),

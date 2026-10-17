@@ -2,7 +2,7 @@ import type { WhatsAppMediaKind } from "./types";
 
 export type WhatsAppStoryTheme = "mint" | "forest" | "cream" | "lime";
 export type WhatsAppStoryEntry = {
-  /** Authored bucket text or an anonymous alias, never an exported sender label. */
+  /** Authored bucket text or a local exported display name; number-only labels are masked. */
   label: string;
   value: number;
   display: string;
@@ -29,7 +29,7 @@ export type WhatsAppStoryBase = {
   };
 };
 
-/** Only bounded, explicitly projected aggregates are allowed in artwork data. */
+/** Only bounded, explicitly projected local share data enters the artwork. */
 export type WhatsAppStory = WhatsAppStoryBase &
   (
     | {

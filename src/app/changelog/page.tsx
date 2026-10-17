@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 156,
+    title: "Polish Wrapped cards and WhatsApp insights",
+    summary:
+      "Qualifying word insights open WhatsApp Wrapped automatically. Share cards use clear platform branding and locally supplied display names, with number-only labels protected and a reminder before sharing. Analyzer highlights top words and larger emoji. The homepage opens directly on its Instagram hero; platform switching stays in the header.",
+  },
+  {
     issue: 154,
     title: "Improve search answers and publish WhatsApp guides",
     summary:

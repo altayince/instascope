@@ -663,7 +663,7 @@ test.describe("WhatsAppScope enabled preview", () => {
     await fits(page);
   });
 
-  test("Wrapped cards are anonymous, keyboard navigable and locally export true portrait PNGs", async ({
+  test("Wrapped cards are personalized, keyboard navigable and locally export true portrait PNGs", async ({
     page,
   }) => {
     await page.addInitScript(() => {
@@ -722,9 +722,12 @@ test.describe("WhatsAppScope enabled preview", () => {
       (window as unknown as { waDrawnText: string[] }).waDrawnText.join("\n"),
     );
     expect(drawn).not.toMatch(
-      /Private participant|Second private label|PRIVATE_MESSAGE_CONTENT|private\.invalid|<script>/,
+      /PRIVATE_MESSAGE_CONTENT|private\.invalid|<script>/,
     );
-    await expect(deck).not.toContainText(privateName);
+    await choices.filter({ hasText: "The contributors" }).click();
+    await expect(deck.locator(".wa-story")).toContainText(privateName);
+    expect(drawn).toContain("My WhatsApp Wrapped");
+    expect(drawn).toContain("Private participant");
     const slide = deck.getByRole("group", { name: /of \d+:/ });
     const shareButton = deck.getByRole("button", {
       name: "Share card",

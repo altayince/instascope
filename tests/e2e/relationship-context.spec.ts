@@ -486,7 +486,10 @@ test("demo origins covers every category and the aggregate Wrapped PNG excludes 
     .click();
   const card = page.locator(".wrapped-card");
   await expect(card).toContainText("of dated mutuals");
-  await expect(card).toContainText("Refollows");
+  await expect(page.locator(".wrapped-actions")).toContainText(
+    "Refollows and missing dates can change the picture",
+  );
+  await expect(card).not.toContainText("Refollows");
   await expect(card).not.toContainText("demo.");
   await expect(card).not.toContainText("blocked");
   const downloadPromise = page.waitForEvent("download");
@@ -502,6 +505,7 @@ test("demo origins covers every category and the aggregate Wrapped PNG excludes 
     ),
   );
   expect(drawn).toContain("dated mutuals");
+  expect(drawn).not.toContain("Refollows");
   expect(drawn).not.toMatch(
     /demo\.|blocked|restricted|close friends|story hidden/i,
   );

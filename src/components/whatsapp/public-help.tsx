@@ -18,7 +18,7 @@ const help: Record<
     heading: "What can a WhatsApp chat export tell you?",
     paragraphs: [
       "Open one exported conversation to explore message counts, recorded activity, participant-label shares and supported media markers. Chat Analyzer can filter by recorded date and participant without changing the source export. The weekday/hour heatmap describes exported messages, not when somebody was online.",
-      "Make anonymous Wrapped cards from the supplied facts, or explicitly save aggregate snapshots in Chat Vault. Your working chat stays in this tab's memory; refreshing or clearing discards it. No WhatsApp login or archive upload is required.",
+      "Make personalized Wrapped cards from the supplied facts, or explicitly save aggregate snapshots in Chat Vault. Your working chat stays in this tab's memory; refreshing or clearing discards it. No WhatsApp login or archive upload is required.",
     ],
     example:
       "The fictional demo above contains 24 messages across 8 active dates, 3 exported labels and 4 recognized media messages. Those counts describe that invented export only; they are not usage figures or claims about a real conversation.",
@@ -66,7 +66,7 @@ const help: Record<
     heading: "Make WhatsApp Wrapped from recorded chat facts",
     paragraphs: [
       "Open a supported chat export or try the fictional demo to create a phone-sized deck from full-export counts and recorded dates. Preview each available card, download an individual PNG or save the deck as a ZIP. Cards use the same local rendering as the preview; no third-party AI or image service receives your chat.",
-      "Participant names are anonymized in standard share cards. Optional message-derived word cards remain off until you enable them: words can reveal private context even without names, so review every card before sharing. Missing evidence is kept unavailable rather than turned into a personality, compatibility or relationship claim.",
+      "Share cards use exported participant display names; number-only labels are replaced. Qualifying word insights are included automatically. Names and words can reveal private context, so review every card before sharing. Missing evidence is kept unavailable rather than turned into a personality, compatibility or relationship claim.",
     ],
     example:
       "A fictional 24-message export with 8 active dates can support count and date cards. It cannot establish who cares more, who read a message or why a conversation changed. A story deck is a summary of supplied records, not WhatsApp's complete account history.",

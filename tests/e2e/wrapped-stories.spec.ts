@@ -71,6 +71,10 @@ test("Wrapped omits date and change stories when records cannot support them", a
   await expect(picker.getByRole("button", { name: "My circle" })).toBeVisible();
   await expect(page.locator(".wrapped-card")).not.toContainText("private.");
   await expect(page.locator(".wrapped-card")).toContainText(
+    "My Instagram Wrapped",
+  );
+  await expect(page.locator(".wrapped-card .wrapped-note")).toHaveCount(0);
+  await expect(page.locator(".wrapped-actions")).toContainText(
     "not live Instagram",
   );
 });
@@ -151,8 +155,7 @@ test("Wrapped browses factual dated and comparison stories and exports private p
           last.bottom <= bounds.bottom - 8 &&
           rect("h2").bottom <= rect(".wrapped-lead").top &&
           rect(".wrapped-lead").bottom <= rect(".wrapped-hero").top &&
-          rect(".wrapped-facts").bottom <= rect(".wrapped-note").top &&
-          rect(".wrapped-note").bottom <= last.top &&
+          rect(".wrapped-facts").bottom <= last.top &&
           [...content].every((part) => part.scrollWidth <= part.clientWidth + 1)
         );
       }),
@@ -177,6 +180,10 @@ test("Wrapped browses factual dated and comparison stories and exports private p
     () => (window as unknown as { drawnTexts: string[] }).drawnTexts,
   );
   expect(drawn.join(" ")).toContain("added followers");
+  expect(drawn).toContain("My Instagram Wrapped");
+  expect(drawn.join(" ")).not.toMatch(
+    /System events excluded|From your (?:supplied )?export/,
+  );
   expect(drawn.join(" ")).not.toMatch(/private\.|pending|blocked|restricted/i);
 });
 
@@ -423,8 +430,7 @@ test("saved Wrapped stories require explicit saved-account confirmation and stay
       const rect = (selector: string) =>
         card.querySelector(selector)!.getBoundingClientRect();
       return (
-        rect(".wrapped-facts").bottom <= rect(".wrapped-note").top &&
-        rect(".wrapped-note").bottom <= rect("small").top &&
+        rect(".wrapped-facts").bottom <= rect("small").top &&
         rect("small").bottom <= card.getBoundingClientRect().bottom - 8 &&
         [
           ...card.querySelectorAll(
@@ -437,7 +443,12 @@ test("saved Wrapped stories require explicit saved-account confirmation and stay
   await picker.getByRole("button", { name: "Still Here", exact: true }).click();
   await expect(preview.locator(".wrapped-hero strong")).toHaveText("66.7%");
   await expect(preview).toContainText("2 of 3 first-snapshot followers");
-  await expect(preview).toContainText("does not prove uninterrupted following");
+  await expect(page.locator(".wrapped-actions")).toContainText(
+    "does not prove uninterrupted following",
+  );
+  await expect(preview).not.toContainText(
+    "does not prove uninterrupted following",
+  );
   await expect(preview).not.toContainText("private.");
   await expect(preview).not.toContainText("foreign.");
   expect(
@@ -445,8 +456,7 @@ test("saved Wrapped stories require explicit saved-account confirmation and stay
       const rect = (selector: string) =>
         card.querySelector(selector)!.getBoundingClientRect();
       return (
-        rect(".wrapped-facts").bottom <= rect(".wrapped-note").top &&
-        rect(".wrapped-note").bottom <= rect("small").top &&
+        rect(".wrapped-facts").bottom <= rect("small").top &&
         rect("small").bottom <= card.getBoundingClientRect().bottom - 8 &&
         [
           ...card.querySelectorAll(

@@ -63,6 +63,7 @@ export function drawWrappedStory(
   ctx.restore();
   ctx.fillStyle = theme.ink;
   ctx.font = "bold 28px Arial";
+  ctx.fillText("My Instagram Wrapped", 80, 96, 920);
   ctx.fillText(
     demo ? "DEMO DATA · FICTIONAL EXAMPLE" : story.label,
     80,
@@ -107,7 +108,6 @@ export function drawWrappedStory(
 
   ctx.fillStyle = theme.ink;
   ctx.font = "27px Arial";
-  lines(ctx, story.note, 80, 1696, 920, 36);
   ctx.font = "bold 28px Arial";
   ctx.fillText("◎ Made with InstaScope", 80, 1850);
   ctx.font = "28px Arial";
