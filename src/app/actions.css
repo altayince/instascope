@@ -21,12 +21,12 @@
   background: var(--accent);
   color: var(--on-accent);
   border-color: var(--accent);
-  box-shadow: 0 3px 16px #c6f36a12;
+  box-shadow: var(--shadow-action);
 }
 .primary:hover {
-  background: #d5fa8f;
-  border-color: #d5fa8f;
-  box-shadow: 0 4px 22px #c6f36a20;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--shadow-action-hover);
 }
 .secondary {
   border-color: var(--line-strong);
@@ -52,7 +52,7 @@
   color: var(--danger);
 }
 .danger:hover {
-  background: #3b2520;
+  background: var(--danger-hover);
   border-color: var(--danger);
 }
 .insight-link {

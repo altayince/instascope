@@ -143,7 +143,7 @@ test("production release exposes WhatsApp without indexing it or changing Instag
 test.describe("WhatsAppScope enabled preview", () => {
   test.skip(!enabled, "WhatsApp requires an explicit dev preview build.");
 
-  test("platform switcher preserves the shared dark palette and changes navigation with native accessible dismissal", async ({
+  test("platform switcher preserves the shared palette and changes navigation with native accessible dismissal", async ({
     page,
     request,
   }) => {

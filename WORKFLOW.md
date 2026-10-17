@@ -33,25 +33,16 @@ change production settings as part of ordinary unreleased feature work.
 WhatsAppScope's reviewed repository release state permits intentional production
 builds; its pages remain noindex and outside the sitemap until separate SEO work.
 Preview/unknown-context protections still apply. Only the owner releases dev to main.
-For dev-targeted WhatsAppScope PRs, also require the existing `whatsapp-tests`
-and `main-visual-parity` jobs. The same jobs are required for an owner-authorized,
-same-repository `feature/INS-<issue>-production-release` PR targeting main, cut
-from reviewed dev with current main integrated without rewriting either branch.
-Agents prepare that PR for owner review; they do not merge or deploy it.
-No production deployment is part of these checks.
-
-Unified released-platform UI refresh PRs named
-`feature/INS-<issue>-platform-ui-refresh` also run `whatsapp-tests` and
-`main-visual-parity` when targeting `main` from this repository. The visual job
-compares independent production and preview builds of the proposed design,
-including the complete shell, with explicit dark-theme, contrast and viewport
-checks on desktop, Pixel and iPhone WebKit. This does not authorize a merge or
-deployment or change the routing for unreleased product work.
-Both visual builds use the same explicit optional-service settings so factual
-deployment-specific privacy copy remains comparable without masking it.
-Released WhatsApp landing fixes named `bugfix/INS-<issue>-whatsapp-landing`
-also run these WhatsApp and visual jobs on same-repository PRs targeting `main`.
-This is test coverage for the released landing, not authorization to deploy it.
+Same-repository PRs targeting `main` or `dev`, and pushes to `dev`, also run
+`whatsapp-tests` and `main-visual-parity`. Shared product changes require both
+platforms' coverage without branch-name exceptions. The visual job compares
+independent production and preview builds in Light and Dark, including the
+complete shell, contrast and viewport checks on desktop, Pixel and iPhone WebKit.
+Both builds use identical optional-service settings so deployment-specific
+privacy copy remains comparable without masking it. These checks do not
+authorize merging, deployment or changing unreleased work's branch routing.
+Owner-managed release PRs still integrate reviewed dev with current main without
+rewriting either branch; agents prepare them for review and do not deploy.
 
 The ownership workflow reads private Project metadata using `INS_PROJECT_TOKEN`. This repository secret needs repo and Project read access. Never print or commit the credential. The job must never check out PR code or run scripts from it.
 

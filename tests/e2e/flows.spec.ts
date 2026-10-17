@@ -115,9 +115,17 @@ test("Cleaner preserves selection across search and exports a review list", asyn
   await expect(
     page.getByRole("checkbox", { name: "Select one.way", exact: true }),
   ).toBeChecked();
-  await page.getByRole("button", { name: /Mutuals 2/ }).click();
+  const mutuals = page.getByRole("button", { name: /Mutuals 2/ });
+  await mutuals.click();
+  await expect(mutuals).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("1 selected", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /One-way follows 2/ }).click();
+  const oneWay = page.getByRole("button", { name: /One-way follows 2/ });
+  // Finish scrolling to the tab before the normal pointer click on mobile.
+  await oneWay.evaluate((node) =>
+    node.scrollIntoView({ behavior: "instant", block: "center" }),
+  );
+  await oneWay.click();
+  await expect(oneWay).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("checkbox", { name: "Select one.way", exact: true }),
   ).toBeChecked();

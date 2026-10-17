@@ -44,16 +44,10 @@ jobs:
           path: test-results/
   whatsapp-tests:
     if: >-
-      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
-      (github.event.pull_request.base.ref == 'main' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       startsWith(github.event.pull_request.head.ref, 'bugfix/INS-') &&
-       endsWith(github.event.pull_request.head.ref, '-whatsapp-landing')) ||
-      (github.event.pull_request.base.ref == 'main' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
-       (endsWith(github.event.pull_request.head.ref, '-production-release') ||
-        endsWith(github.event.pull_request.head.ref, '-platform-ui-refresh')))
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev') ||
+      (github.event_name == 'pull_request' &&
+       contains(fromJSON('["main","dev"]'), github.event.pull_request.base.ref) &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,16 +71,10 @@ jobs:
           path: test-results/
   main-visual-parity:
     if: >-
-      github.event.pull_request.base.ref == 'dev' || github.ref == 'refs/heads/dev' ||
-      (github.event.pull_request.base.ref == 'main' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       startsWith(github.event.pull_request.head.ref, 'bugfix/INS-') &&
-       endsWith(github.event.pull_request.head.ref, '-whatsapp-landing')) ||
-      (github.event.pull_request.base.ref == 'main' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       startsWith(github.event.pull_request.head.ref, 'feature/INS-') &&
-       (endsWith(github.event.pull_request.head.ref, '-production-release') ||
-        endsWith(github.event.pull_request.head.ref, '-platform-ui-refresh')))
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev') ||
+      (github.event_name == 'pull_request' &&
+       contains(fromJSON('["main","dev"]'), github.event.pull_request.base.ref) &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

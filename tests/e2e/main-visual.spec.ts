@@ -5,7 +5,10 @@ import sharp from "sharp";
 // Independent production and preview builds of the proposed design.
 const mainUrl = process.env.MAIN_VISUAL_REFERENCE_URL!;
 
-async function assertDarkPlatform(page: Page) {
+const currentTheme = () =>
+  test.info().project.metadata.theme as "light" | "dark";
+
+async function assertPlatformTheme(page: Page) {
   const theme = await page.evaluate(() => {
     const style = getComputedStyle(document.body);
     const rgb = (value: string) =>
@@ -21,8 +24,13 @@ async function assertDarkPlatform(page: Page) {
         })
         .reduce((sum, n, i) => sum + n * [0.2126, 0.7152, 0.0722][i], 0);
     const background = luminance(style.backgroundColor);
-    const contrast = (color: string) =>
-      (luminance(color) + 0.05) / (background + 0.05);
+    const contrast = (color: string) => {
+      const foreground = luminance(color);
+      return (
+        (Math.max(foreground, background) + 0.05) /
+        (Math.min(foreground, background) + 0.05)
+      );
+    };
     const muted = getComputedStyle(document.querySelector("main p")!).color;
     return {
       background,
@@ -31,13 +39,25 @@ async function assertDarkPlatform(page: Page) {
       scheme: style.colorScheme,
     };
   });
-  expect(theme.background, "near-black page foundation").toBeLessThan(0.015);
+  if (currentTheme() === "dark")
+    expect(theme.background, "near-black page foundation").toBeLessThan(0.015);
+  else
+    expect(theme.background, "original warm paper foundation").toBeGreaterThan(
+      0.9,
+    );
   expect(theme.contrast, "readable primary text").toBeGreaterThanOrEqual(7);
   expect(
     theme.mutedContrast,
     "readable supporting text",
   ).toBeGreaterThanOrEqual(4.5);
-  expect(theme.scheme).toBe("dark");
+  expect(theme.scheme).toBe(currentTheme());
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-theme",
+    currentTheme(),
+  );
+  await expect(
+    page.getByRole("switch", { name: "Dark mode", exact: true }),
+  ).toHaveAttribute("aria-checked", String(currentTheme() === "dark"));
   await expect(page.locator(".shell-identity-row > .brand")).toHaveText(
     "◎InstaScope",
   );
@@ -86,12 +106,25 @@ async function artifact(
 }
 
 async function ready(page: Page) {
+  const themeControl = page.getByRole("switch", {
+    name: "Dark mode",
+    exact: true,
+  });
+  await expect(themeControl).toBeEnabled();
+  await expect(themeControl).toHaveAttribute(
+    "aria-checked",
+    String(currentTheme() === "dark"),
+  );
   // WebKit can defer style resolution in a background tab until it paints.
   // Force that paint before inspecting styles, without masking any content.
-  await page.screenshot({ scale: "css", animations: "disabled", caret: "hide" });
+  await page.screenshot({
+    scale: "css",
+    animations: "disabled",
+    caret: "hide",
+  });
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(9, 11, 10)",
+    currentTheme() === "dark" ? "rgb(9, 11, 10)" : "rgb(250, 249, 245)",
   );
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -224,7 +257,7 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
     appearance(main),
     appearance(dev),
   ]);
-  await Promise.all([assertDarkPlatform(main), assertDarkPlatform(dev)]);
+  await Promise.all([assertPlatformTheme(main), assertPlatformTheme(dev)]);
   const capture = (page: Page) =>
     page.screenshot({
       fullPage: true,
@@ -268,9 +301,9 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
   expect(changedPixels, "all production and preview pixels").toBe(0);
 }
 
-test.describe("unified dark production and preview design", () => {
+test.describe("unified Light and Dark production and preview design", () => {
   for (const entry of cases)
-    test(`${entry.path} ${entry.state} preserves the same dark design in production and preview`, async ({
+    test(`${entry.path} ${entry.state} preserves the selected design in production and preview`, async ({
       context,
       page,
       baseURL,
@@ -365,7 +398,7 @@ test.describe("unified dark production and preview design", () => {
       ).toBe(404);
   });
 
-  test("WhatsApp shares dark controls, surfaces and charts with Instagram", async ({
+  test("WhatsApp shares selected-theme controls, surfaces and charts with Instagram", async ({
     page,
     context,
     baseURL,
@@ -442,10 +475,10 @@ test.describe("unified dark production and preview design", () => {
     }
     await reference.close();
     await ready(page);
-    await assertDarkPlatform(page);
+    await assertPlatformTheme(page);
     await artifact(
       info,
-      "whatsapp-dark-controls",
+      `whatsapp-${currentTheme()}-controls`,
       await page.screenshot({
         fullPage: true,
         scale: "css",
@@ -468,20 +501,20 @@ test.describe("unified dark production and preview design", () => {
       [
         ".wa-chart-track i",
         ".vault-followers-point",
-        "rgb(139, 216, 178)",
-        "rgb(198, 243, 106)",
+        currentTheme() === "dark" ? "rgb(139, 216, 178)" : "rgb(48, 91, 64)",
+        currentTheme() === "dark" ? "rgb(198, 243, 106)" : "rgb(38, 59, 48)",
       ],
       [
         ".wa-participant-track i",
         ".vault-followers-point",
-        "rgb(139, 216, 178)",
-        "rgb(198, 243, 106)",
+        currentTheme() === "dark" ? "rgb(139, 216, 178)" : "rgb(48, 91, 64)",
+        currentTheme() === "dark" ? "rgb(198, 243, 106)" : "rgb(38, 59, 48)",
       ],
       [
         ".wa-participant-row:nth-child(2) .wa-participant-track i",
         ".vault-following-point",
-        "rgb(232, 197, 140)",
-        "rgb(232, 197, 140)",
+        currentTheme() === "dark" ? "rgb(232, 197, 140)" : "rgb(162, 105, 50)",
+        currentTheme() === "dark" ? "rgb(232, 197, 140)" : "rgb(162, 105, 50)",
       ],
     ]) {
       expect(
@@ -502,7 +535,7 @@ test.describe("unified dark production and preview design", () => {
     await ready(page);
     await artifact(
       info,
-      "whatsapp-dark-charts",
+      `whatsapp-${currentTheme()}-charts`,
       await page.screenshot({
         fullPage: true,
         scale: "css",
@@ -556,7 +589,7 @@ test.describe("unified dark production and preview design", () => {
     await ready(page);
     await artifact(
       info,
-      "whatsapp-dark-wrapped",
+      `whatsapp-${currentTheme()}-wrapped`,
       await page.screenshot({
         fullPage: true,
         scale: "css",

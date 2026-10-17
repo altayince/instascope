@@ -8,6 +8,12 @@ export const metadata: Metadata = pageMetadata(
 );
 const changes = [
   {
+    issue: 152,
+    title: "Restore Light and offer a shared Dark mode",
+    summary:
+      "The original warm light palette is the default again. Choose Light or Dark from the shared header; the appearance preference stays in your browser and follows you between Instagram and WhatsApp. Tool data and downloaded Wrapped artwork stay independent of the theme. Public-photo controls now wait for their browser handlers so early typing cannot be lost.",
+  },
+  {
     issue: 150,
     title: "Make WhatsApp landing steps useful",
     summary:

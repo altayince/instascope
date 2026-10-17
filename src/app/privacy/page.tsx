@@ -116,6 +116,13 @@ export default function Privacy() {
           </p>
         </>
       )}
+      <h2>Appearance stays local.</h2>
+      <p>
+        Your Light or Dark appearance preference is saved locally in this
+        browser when storage is available. It is shared between the Instagram
+        and WhatsApp areas and is not sent to analytics or linked to your
+        exports.
+      </p>
       <h2>No Instagram credentials.</h2>
       <p>
         We do not ask for a password or session cookie. No Instagram account
