@@ -261,10 +261,12 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
     appearance(dev),
   ]);
   await Promise.all([assertPlatformTheme(main), assertPlatformTheme(dev)]);
+  // Fractional mobile DPRs can round CSS-scale screenshot resampling differently
+  // between identical pages. Compare native pixels without that resize stage.
   const capture = (page: Page) =>
     page.screenshot({
       fullPage: true,
-      scale: "css",
+      scale: "device",
       animations: "disabled",
       caret: "hide",
     });
