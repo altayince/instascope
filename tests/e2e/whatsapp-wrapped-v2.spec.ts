@@ -924,13 +924,19 @@ test.describe("WhatsApp Wrapped V2", () => {
     page,
   }) => {
     await page.goto("/whatsapp/wrapped/");
+    const demoButton = page.getByRole("button", {
+      name: "Try the fictional demo",
+      exact: true,
+    });
+    // Static HTML can reach networkidle before React hydrates in WebKit.
+    // Wait for the enabled client control, then let shell prefetch and the
+    // shared providers finish before measuring this local-only operation.
+    await expect(demoButton).toBeEnabled();
     await page.waitForLoadState("networkidle");
     const before = await metrics(page);
     const requests: string[] = [];
     page.on("request", (request) => requests.push(request.url()));
-    await page
-      .getByRole("button", { name: "Try the fictional demo", exact: true })
-      .click();
+    await demoButton.click();
     await ready(page);
     await expect(slide(page)).toContainText(
       "Demo data \u00b7 Fictional example",

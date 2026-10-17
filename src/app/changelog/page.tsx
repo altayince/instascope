@@ -13,7 +13,7 @@ const changes = [
           issue: 159,
           title: "FB-01: JSON and HTML import with Facebook Friends Explorer",
           summary:
-            "Development preview adds local Facebook JSON and HTML ZIP import with separate current friend, received, rejected and removed records. Search, date sorting, year groups and coverage diagnostics preserve duplicate names and unknown dates. HTML stays inert; no archive data is uploaded or saved. Facebook remains unreleased and outside production SEO.",
+            "Development preview adds local Facebook JSON and HTML ZIP import with separate current friend, received, rejected and removed records. Search, date sorting, year groups and coverage diagnostics preserve duplicate names and unknown dates. Closed platform menus leave no hidden layout, and Wrapped privacy checks wait for browser initialization. HTML stays inert; no archive data is uploaded or saved. Facebook remains unreleased and outside production SEO.",
         },
       ]
     : []),
