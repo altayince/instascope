@@ -1,5 +1,5 @@
-export type PlatformId = "instagram" | "whatsapp";
-export type PlatformMarkId = "orbit" | "chat";
+export type PlatformId = "instagram" | "whatsapp" | "facebook";
+export type PlatformMarkId = "orbit" | "chat" | "friends";
 
 type PlatformChrome =
   | { kind: "instagram" }
@@ -51,12 +51,32 @@ export const PLATFORM_REGISTRY: readonly PlatformDefinition[] = [
       },
     },
   },
+  {
+    id: "facebook",
+    name: "Facebook",
+    productName: "InstaScope",
+    basePath: "/facebook/",
+    description: "Explore your recorded connections",
+    mark: "friends",
+    chrome: {
+      kind: "standard",
+      navigation: [{ href: "/facebook/", label: "Friends Explorer" }],
+      footer: {
+        tagline: "Your connections, in your own time.",
+        disclaimer: "Independent tool. Not affiliated with Facebook or Meta.",
+      },
+    },
+  },
 ];
 
-export function getAvailablePlatforms(whatsappEnabled: boolean) {
+export function getAvailablePlatforms(
+  whatsappEnabled: boolean,
+  facebookEnabled = false,
+) {
   const enabledPlatforms: Record<PlatformId, boolean> = {
     instagram: true,
     whatsapp: whatsappEnabled,
+    facebook: facebookEnabled,
   };
   return PLATFORM_REGISTRY.filter((platform) => enabledPlatforms[platform.id]);
 }
@@ -64,9 +84,10 @@ export function getAvailablePlatforms(whatsappEnabled: boolean) {
 export function getActivePlatform(
   pathname: string,
   whatsappEnabled: boolean,
+  facebookEnabled = false,
 ): PlatformDefinition {
   return (
-    getAvailablePlatforms(whatsappEnabled).find(
+    getAvailablePlatforms(whatsappEnabled, facebookEnabled).find(
       (platform) =>
         platform.basePath !== "/" &&
         (pathname === platform.basePath.slice(0, -1) ||

@@ -161,6 +161,15 @@ test.describe("WhatsAppScope enabled preview", () => {
     const selector = page.locator(".social-switcher");
     const summary = selector.locator("summary");
     await expect(summary).toHaveAccessibleName(/currently Instagram/);
+    // A closed menu must not retain layout for preview-only platform options.
+    await expect
+      .poll(() =>
+        selector.locator(".social-switcher-panel").evaluate((node) => {
+          const { width, height } = node.getBoundingClientRect();
+          return { width, height };
+        }),
+      )
+      .toEqual({ width: 0, height: 0 });
     await summary.focus();
     await page.keyboard.press("Enter");
     await expect(selector).toHaveAttribute("open", "");

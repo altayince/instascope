@@ -10,6 +10,7 @@ import {
 } from "@/lib/platforms";
 
 const platformMarks: Record<PlatformMarkId, ReactNode> = {
+  friends: "f",
   orbit: "◎",
   chat: (
     <svg viewBox="0 0 32 32" fill="none" focusable="false">
@@ -97,7 +98,10 @@ export function SocialSwitcher({ active }: { active: PlatformDefinition }) {
       </summary>
       <div className="social-switcher-panel">
         <p className="social-switcher-label">Explore InstaScope</p>
-        {getAvailablePlatforms(true).map((platform) => (
+        {getAvailablePlatforms(
+          process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true",
+          process.env.NEXT_PUBLIC_FACEBOOK_ENABLED === "true",
+        ).map((platform) => (
           <Link
             href={platform.basePath}
             key={platform.id}

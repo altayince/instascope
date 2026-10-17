@@ -19,6 +19,7 @@ export default defineConfig({
     "**/whatsapp-landing.spec.ts",
     "**/whatsapp-search.spec.ts",
     "**/themes.spec.ts",
+    "**/facebook.spec.ts",
   ],
   outputDir: "test-results/whatsapp",
   projects: [

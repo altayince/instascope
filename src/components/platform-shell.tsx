@@ -10,6 +10,7 @@ import { WhatsAppProvider } from "./whatsapp/provider";
 import "./platform-shell.css";
 
 const whatsappEnabled = process.env.NEXT_PUBLIC_WHATSAPP_ENABLED === "true";
+const facebookEnabled = process.env.NEXT_PUBLIC_FACEBOOK_ENABLED === "true";
 
 function PlatformNavigation({
   platform,
@@ -99,7 +100,7 @@ function PlatformFooter() {
 
 export function PlatformShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const active = getActivePlatform(pathname, whatsappEnabled);
+  const active = getActivePlatform(pathname, whatsappEnabled, facebookEnabled);
   const shell = (
     <>
       <a className="skip-link" href="#main">
@@ -113,7 +114,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
             </span>
             InstaScope
           </Link>
-          {whatsappEnabled ? (
+          {whatsappEnabled || facebookEnabled ? (
             <SocialSwitcher active={active} />
           ) : (
             <span className="platform-trigger">Instagram</span>

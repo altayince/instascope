@@ -67,6 +67,7 @@ export function relevantEntries(
   bytes: Uint8Array,
   directory: ZipDirectory,
   stats?: ZipImportStats,
+  accepts: (name: string) => unknown = detectKind,
 ): ZipEntry[] {
   if (bytes.length !== directory.size) throw invalid();
   const view = viewOf(bytes),
@@ -108,7 +109,7 @@ export function relevantEntries(
       name.replaceAll("\\", "/").endsWith("/") ||
       (attributes & 0x10) !== 0 ||
       ((attributes >>> 16) & 0xf000) === 0x4000;
-    if (!isDirectory && detectKind(name)) {
+    if (!isDirectory && accepts(name)) {
       if ((entry.flags & 0x2041) !== 0 || ![0, 8].includes(entry.method))
         throw unsupported();
       const normalizedPath = name.replaceAll("\\", "/").toLowerCase();
@@ -250,6 +251,7 @@ export async function extractZipBlob(
   file: Blob,
   budget: ImportBudget,
   stats?: ZipImportStats,
+  accepts?: (name: string) => unknown,
 ) {
   const read = async (start: number, end: number) =>
     new Uint8Array(await file.slice(start, end).arrayBuffer());
@@ -261,6 +263,7 @@ export async function extractZipBlob(
     await read(directory.offset, directory.offset + directory.size),
     directory,
     stats,
+    accepts,
   );
   const files: { name: string; bytes: Uint8Array }[] = [];
   // Sequential reads keep peak memory bounded independently of archive size.

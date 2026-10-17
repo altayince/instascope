@@ -225,6 +225,9 @@ async function appearance(page: Page) {
     ];
     return Array.from(document.querySelectorAll("body, body *"))
       .filter((node) => !node.matches("script, style"))
+      // Preview adds one unreleased menu option; its gate is tested separately.
+      // All visible pixels and the rest of the shell still require exact parity.
+      .filter((node) => !node.closest('.social-switcher-panel [data-platform="facebook"]'))
       .map((node) => {
         const box = node.getBoundingClientRect();
         return {
@@ -258,10 +261,15 @@ async function compare(main: Page, dev: Page, info: TestInfo) {
     appearance(dev),
   ]);
   await Promise.all([assertPlatformTheme(main), assertPlatformTheme(dev)]);
-  const capture = (page: Page) =>
+  // Fractional DPR resampling can round identical pages differently. Use native
+  // pixels there; integer DPRs keep CSS scale so long WebKit pages stay within
+  // its 32,767-pixel screenshot dimension limit. Pixel equality stays exact.
+  const capture = async (page: Page) =>
     page.screenshot({
       fullPage: true,
-      scale: "css",
+      scale: await page.evaluate(() => Number.isInteger(devicePixelRatio))
+        ? "css"
+        : "device",
       animations: "disabled",
       caret: "hide",
     });

@@ -65,6 +65,7 @@ jobs:
       - run: npm run test:e2e -- --config playwright.whatsapp.config.ts
         env:
           EXPECT_WHATSAPP: 'true'
+          EXPECT_FACEBOOK: 'true'
           EXPECT_INDEXABLE: 'false'
       - uses: actions/upload-artifact@v4
         if: failure()

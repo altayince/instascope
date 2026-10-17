@@ -132,6 +132,9 @@
   background: var(--surface);
   box-shadow: var(--shadow-menu);
 }
+.social-switcher:not([open]) > .social-switcher-panel {
+  display: none;
+}
 .social-switcher-label {
   margin: 8px 10px 12px;
   font-size: 11px;

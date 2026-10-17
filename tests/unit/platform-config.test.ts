@@ -28,6 +28,7 @@ it("records the intentional release and keeps unknown platforms unreleased", () 
   expect(PLATFORM_RELEASES).toEqual({
     instagram: "released",
     whatsapp: "released",
+    facebook: "unreleased",
   });
   expect(platformReleased("instagram")).toBe(true);
   expect(platformReleased("whatsapp")).toBe(true);
