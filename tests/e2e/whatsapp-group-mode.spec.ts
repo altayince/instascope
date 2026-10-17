@@ -198,7 +198,7 @@ test.describe("WhatsAppScope deliberate group flow", () => {
       const card = deck.locator('[data-story-id="participant-counts"]');
       await expect(card).toHaveAttribute("data-story-mode", "group");
       await expect(card).toHaveAttribute("data-story-kind", "ranking");
-      await expect(card).not.toContainText(groupPrivateMarker);
+      await expect(card).toContainText(groupPrivateMarker);
       await expect(
         deck.getByRole("button", { name: "Download PNG", exact: true }),
       ).toBeEnabled();
@@ -207,7 +207,7 @@ test.describe("WhatsAppScope deliberate group flow", () => {
           name: "Include word-based insights in Wrapped",
           exact: true,
         }),
-      ).not.toBeChecked();
+      ).toHaveCount(0);
       await fits(page);
       if (participants === 24)
         await card.screenshot({

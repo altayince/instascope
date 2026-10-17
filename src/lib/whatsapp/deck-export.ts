@@ -32,7 +32,6 @@ export async function createWhatsAppDeckArchive(
   renderPng: (story: WhatsAppStory) => Promise<Blob>,
   options: {
     demo?: boolean;
-    includeWords?: boolean;
     signal?: AbortSignal;
     onProgress?: (completed: number, total: number) => void;
   } = {},
@@ -52,10 +51,6 @@ export async function createWhatsAppDeckArchive(
     )
       throw new Error(
         "This deck cannot be exported. Download individual cards instead.",
-      );
-    if (story.kind === "word" && options.includeWords !== true)
-      throw new Error(
-        "Word-based cards require an explicit choice before export.",
       );
     ids.add(story.id);
   }

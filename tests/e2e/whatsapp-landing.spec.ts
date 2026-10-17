@@ -99,6 +99,8 @@ test("WhatsApp direct entry, refresh and platform switching retain default Light
     "instagram",
   );
   await lightAndFits(page);
+  await expect(page.locator(".platform-discovery")).toHaveCount(0);
+  await expect(page.locator(".hero")).toBeVisible();
   await selector.locator("summary").click();
   await selector.getByRole("link", { name: /^WhatsApp/ }).click();
   await expect(page).toHaveURL(/\/whatsapp\/$/);

@@ -37,7 +37,7 @@ function EntryText({ entries }: { entries: readonly WhatsAppStoryEntry[] }) {
   );
 }
 
-/** Accessible equivalents use only the same anonymous model as the artwork. */
+/** Accessible equivalents use only the same local share model as the artwork. */
 function StoryGraphicText({ story }: { story: WhatsAppStory }) {
   switch (story.kind) {
     case "hero":
@@ -100,6 +100,13 @@ function StoryGraphicText({ story }: { story: WhatsAppStory }) {
         <>
           <EntryText entries={story.data.buckets} />
           <EntryText entries={story.data.entries} />
+          {story.data.hiddenParticipants > 0 && (
+            <p>
+              {story.data.entries.length} of{" "}
+              {story.data.entries.length + story.data.hiddenParticipants} names
+              shown; {story.data.hiddenParticipants} more.
+            </p>
+          )}
           <p>
             {whatsappNumber(story.data.rapidCount)} rapid transitions;{" "}
             {percent(story.data.rapidShare)} of{" "}
@@ -167,8 +174,7 @@ function StoryGraphicText({ story }: { story: WhatsAppStory }) {
           {whatsappNumber(story.data.cardCount)} cards ·{" "}
           {whatsappNumber(story.data.messages)} messages ·{" "}
           {whatsappNumber(story.data.activeDates)} active dates ·{" "}
-          {whatsappNumber(story.data.participants)} anonymous participant
-          labels.
+          {whatsappNumber(story.data.participants)} participant labels.
         </p>
       );
   }
@@ -196,12 +202,13 @@ export function WhatsAppWrapped({
   dataset: WhatsAppDataset;
   analysis: WhatsAppAnalysis;
 }) {
-  const [includeWords, setIncludeWords] = useState(false);
   const stories = useMemo(
-    () => buildWhatsAppStories(analysis, dataset, { includeWords }),
-    [analysis, dataset, includeWords],
+    () => buildWhatsAppStories(analysis, dataset),
+    [analysis, dataset],
   );
-  const [selectedId, setSelectedId] = useState("conversation");
+  const [selectedId, setSelectedId] = useState(
+    () => stories[0]?.id ?? "conversation",
+  );
   const [feedback, setFeedback] = useState("");
   const [sharing, setSharing] = useState(false);
   const [deckProgress, setDeckProgress] = useState<{
@@ -248,8 +255,6 @@ export function WhatsAppWrapped({
       const canvas = canvasRef.current;
       if (!canvas) return;
       try {
-        if (story.kind === "word" && !includeWords)
-          throw new Error("Words not enabled");
         drawWhatsAppStory(canvas, story, demo);
         setPaintedStory(story);
         const encoded = canvas.toDataURL("image/png").split(",")[1];
@@ -276,7 +281,7 @@ export function WhatsAppWrapped({
     return () => {
       cancelled = true;
     };
-  }, [story, demo, includeWords]);
+  }, [story, demo]);
 
   function select(next: number) {
     if (actionBusy.current) return;
@@ -286,12 +291,7 @@ export function WhatsAppWrapped({
   }
 
   async function exportCard(native: boolean) {
-    if (
-      !file ||
-      actionBusy.current ||
-      (story?.kind === "word" && !includeWords)
-    )
-      return;
+    if (!file || actionBusy.current) return;
     let canShare = false;
     try {
       canShare =
@@ -352,7 +352,6 @@ export function WhatsAppWrapped({
         },
         {
           demo,
-          includeWords,
           signal: controller.signal,
           onProgress: (completed, total) => {
             if (mounted.current && !controller.signal.aborted)
@@ -454,10 +453,8 @@ export function WhatsAppWrapped({
             className={`wa-story-text ${painted ? "is-readable-only" : "is-fallback"}`}
           >
             <div className="wa-story-brand">
-              <strong>InstaScope / Wrapped</strong>
-              <span>
-                {demo ? "Fictional demo data" : "From your supplied export"}
-              </span>
+              <strong>My WhatsApp Wrapped</strong>
+              {demo && <span>Demo data · Fictional example</span>}
             </div>
             <div className="wa-story-heading">
               <span className="wa-eyebrow">{story.label}</span>
@@ -477,7 +474,6 @@ export function WhatsAppWrapped({
               ))}
             </div>
             <StoryGraphicText story={story} />
-            <p className="wa-story-note">{story.note}</p>
             <p>Made with InstaScope · Processed on your device</p>
           </div>
         </div>
@@ -518,45 +514,6 @@ export function WhatsAppWrapped({
           A deck of recorded facts, made on this device. Save one card or keep
           the whole set as portrait PNGs.
         </p>
-        <div className="wa-share-safety">
-          <span aria-hidden="true">◉</span>
-          <div>
-            <strong>Personal labels stay anonymous.</strong>
-            <p>
-              Cards use Participant 1, Participant 2 and so on. Raw messages,
-              URLs, filenames and phone numbers stay out of the artwork.
-            </p>
-          </div>
-        </div>
-        <div className="wa-word-choice">
-          <label>
-            <input
-              type="checkbox"
-              checked={includeWords}
-              disabled={busy}
-              aria-describedby="wa-word-choice-note"
-              onChange={(event) => {
-                if (actionBusy.current) return;
-                const enabled = event.currentTarget.checked;
-                setIncludeWords(enabled);
-                setSelectedId(enabled ? "words" : "conversation");
-                setFeedback("");
-              }}
-            />
-            <span>Include word-based insights in Wrapped</span>
-          </label>
-          <p className="wa-hint" id="wa-word-choice-note">
-            Off by default. These aggregates are generated locally from message
-            text. An exported PNG may reveal derived words. This choice is kept
-            only in this view and resets with a new export.
-          </p>
-          {includeWords && !stories.some((item) => item.kind === "word") && (
-            <p className="wa-hint">
-              No words meet the evidence and privacy rules for a word-based
-              card.
-            </p>
-          )}
-        </div>
         <div
           className="wa-story-picker"
           role="group"
@@ -579,12 +536,17 @@ export function WhatsAppWrapped({
           <p>
             <strong>{story.calculation.classification}</strong>
           </p>
+          <p>{story.note}</p>
           <p>{story.calculation.definition}</p>
           {story.calculation.threshold && (
             <p>Evidence rule: {story.calculation.threshold}</p>
           )}
           <p>{story.calculation.limitations}</p>
         </details>
+        <p className="wa-hint wa-share-safety">
+          Names and message-derived words may appear in exported images. Review
+          each card before sharing.
+        </p>
         <div className="wa-export-actions">
           <ActionButton
             variant="primary"

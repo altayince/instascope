@@ -408,6 +408,63 @@ function ContentMethodology() {
   );
 }
 
+export function WhatsAppTopInsights({
+  result,
+}: {
+  result: WhatsAppContentAnalysis;
+}) {
+  const { text, emoji } = result;
+  return (
+    <section
+      className="wa-panel wa-message-content wa-top-insights"
+      aria-labelledby="wa-top-words-title"
+    >
+      <div className="wa-top-insight-grid">
+        <div>
+          <div className="wa-message-content-two-columns">
+            <div>
+              <h3 id="wa-top-words-title">Most used words</h3>
+              <WordList
+                words={text.words}
+                label="Top words and occurrence counts"
+              />
+            </div>
+            <WordCloud words={text.words} />
+          </div>
+        </div>
+        <div className="wa-top-emoji">
+          <div>
+            <h3>Top emoji</h3>
+            {emoji.available ? (
+              <>
+                <p className="wa-hint">
+                  {count(emoji.total)} supported occurrences. Up to 20 emoji,
+                  ordered by count; equal counts are ties.
+                </p>
+                {emoji.items.length ? (
+                  <CountList
+                    items={emoji.items.slice(0, LEADERBOARD_SIZE)}
+                    label="Top supported emoji and occurrence counts"
+                  />
+                ) : (
+                  <p className="wa-hint">
+                    No supported emoji in the selected records.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="wa-hint">
+                Unavailable. Supported emoji grapheme extraction is not
+                available in this browser, including for an empty selection.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function WhatsAppMessageContent({
   result,
   participantSelected = false,
@@ -592,32 +649,6 @@ export function WhatsAppMessageContent({
             </p>
             <CountList items={media.categories} label="Media marker counts" />
           </div>
-          <div>
-            <h5>Top emoji</h5>
-            {emoji.available ? (
-              <>
-                <p className="wa-hint">
-                  {count(emoji.total)} supported occurrences. Up to 20 emoji,
-                  ordered by count; equal counts are ties.
-                </p>
-                {emoji.items.length ? (
-                  <CountList
-                    items={emoji.items.slice(0, LEADERBOARD_SIZE)}
-                    label="Top supported emoji and occurrence counts"
-                  />
-                ) : (
-                  <p className="wa-hint">
-                    No supported emoji in the selected records.
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="wa-hint">
-                Unavailable. Supported emoji grapheme extraction is not
-                available in this browser, including for an empty selection.
-              </p>
-            )}
-          </div>
         </div>
         <ParticipantRows participants={media.participants} kind="media & emoji">
           {(participant) => {
@@ -671,16 +702,6 @@ export function WhatsAppMessageContent({
           Turkish, German and English stopword set. URLs, email addresses and
           structural markers are removed. No language is inferred.
         </p>
-        <div className="wa-message-content-two-columns">
-          <div>
-            <h5>Top words</h5>
-            <WordList
-              words={text.words}
-              label="Top words and occurrence counts"
-            />
-          </div>
-          <WordCloud words={text.words} />
-        </div>
         <ParticipantRows participants={text.participants} kind="words">
           {(participant) => (
             <>

@@ -41,6 +41,8 @@ const content = (page: Page) =>
   page.getByRole("region", { name: "Message Patterns & Content", exact: true });
 const patterns = (page: Page) =>
   content(page).getByTestId("wa-content-patterns");
+const top = (page: Page) =>
+  page.getByRole("region", { name: "Most used words", exact: true });
 const media = (page: Page) => content(page).getByTestId("wa-content-media");
 const words = (page: Page) => content(page).getByTestId("wa-content-words");
 const globalFacts = (page: Page) =>
@@ -145,9 +147,9 @@ async function fits(page: Page) {
 }
 
 async function cloudValues(page: Page, entries: [string, number][]) {
-  await disclose(page, words(page), "Read word cloud values");
+  await disclose(page, top(page), "Read word cloud values");
   await counts(
-    words(page).getByTestId("wa-content-word-cloud-values"),
+    top(page).getByTestId("wa-content-word-cloud-values"),
     "Word cloud words and counts",
     entries,
   );
@@ -161,6 +163,28 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
   }) => {
     await page.goto("/whatsapp/chat-analyzer/");
     await acceptChat(page);
+    await expect(top(page)).toBeVisible();
+    expect(
+      await top(page).evaluate((element) => {
+        const filters = document.querySelector(
+          '[aria-label="Analysis filters"]',
+        )!;
+        return Boolean(
+          filters.compareDocumentPosition(element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+      }),
+    ).toBe(true);
+    const emoji = top(page)
+      .getByRole("list", { name: "Top supported emoji and occurrence counts" })
+      .locator("span")
+      .first();
+    expect(
+      await emoji.evaluate((element) =>
+        parseFloat(getComputedStyle(element).fontSize),
+      ),
+    ).toBeGreaterThanOrEqual(40);
+    await fits(page);
     for (const [label, value] of [
       ["Total runs", "5"],
       ["Median run length", "1"],
@@ -205,17 +229,17 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       ["Documents", 0],
       ["Unspecified", 0],
     ]);
-    await counts(media(page), "Top supported emoji and occurrence counts", [
+    await counts(top(page), "Top supported emoji and occurrence counts", [
       ["😀", 3],
     ]);
-    await counts(words(page), "Top words and occurrence counts", [
+    await counts(top(page), "Top words and occurrence counts", [
       ["apple", 4],
       ["banana", 3],
       ["pear", 3],
     ]);
     await expect(words(page)).toContainText("10 eligible words.");
     await expect(
-      words(page).getByTestId("wa-content-word-cloud"),
+      top(page).getByTestId("wa-content-word-cloud"),
     ).toHaveAttribute("aria-hidden", "true");
     await cloudValues(page, [
       ["apple", 4],
@@ -285,10 +309,10 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       ["Documents", 0],
       ["Unspecified", 0],
     ]);
-    await expect(media(page)).toContainText(
+    await expect(top(page)).toContainText(
       "No supported emoji in the selected records.",
     );
-    await counts(words(page), "Top words and occurrence counts", [["pear", 3]]);
+    await counts(top(page), "Top words and occurrence counts", [["pear", 3]]);
     await cloudValues(page, [["pear", 3]]);
     await selectParticipant(page, "Synthetic A");
     for (const [label, value] of [
@@ -304,14 +328,12 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       "Runs describe only the selected label's matching subsequence",
     );
     await expect(
-      words(page).getByRole("list", {
+      top(page).getByRole("list", {
         name: "Top words and occurrence counts",
         exact: true,
       }),
     ).toHaveCount(0);
-    await expect(words(page).getByTestId("wa-content-word-cloud")).toHaveCount(
-      0,
-    );
+    await expect(top(page).getByTestId("wa-content-word-cloud")).toHaveCount(0);
     await disclose(page, words(page), "Read participant words");
     const a = await participant(page, words(page), "Synthetic A");
     await expect(a.getByTestId("wa-content-comparison")).toContainText(
@@ -332,7 +354,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     await expect(content(page)).toContainText(
       "No participant messages match these filters.",
     );
-    await expect(words(page)).toContainText(
+    await expect(top(page)).toContainText(
       "No eligible top words for a word cloud.",
     );
     await fits(page);
@@ -345,12 +367,12 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       "Maximum messages in a rolling 10-minute window",
       "4",
     );
-    await counts(words(page), "Top words and occurrence counts", [
+    await counts(top(page), "Top words and occurrence counts", [
       ["apple", 4],
       ["banana", 3],
       ["pear", 3],
     ]);
-    await counts(media(page), "Top supported emoji and occurrence counts", [
+    await counts(top(page), "Top supported emoji and occurrence counts", [
       ["😀", 3],
     ]);
     await expect(filters(page).getByRole("status")).toHaveText(
@@ -379,11 +401,11 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       .selectOption("2026");
     await fact(globalFacts(page), "Total runs", "2");
     await fact(globalFacts(page), "Total ? occurrences", "2");
-    await counts(words(page), "Top words and occurrence counts", [
+    await counts(top(page), "Top words and occurrence counts", [
       ["berry", 2],
       ["plum", 2],
     ]);
-    await expect(media(page)).toContainText(
+    await expect(top(page)).toContainText(
       "No supported emoji in the selected records.",
     );
     await filters(page)
@@ -395,7 +417,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     await fact(globalFacts(page), "Total runs", "1");
     await fact(globalFacts(page), "Total ? occurrences", "0");
     await fact(globalFacts(page), "Eligible text messages", "1");
-    await counts(words(page), "Top words and occurrence counts", [["plum", 2]]);
+    await counts(top(page), "Top words and occurrence counts", [["plum", 2]]);
     await cloudValues(page, [["plum", 2]]);
     await fits(page);
   });
@@ -411,7 +433,7 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
       "Maximum messages in a rolling 10-minute window",
       "4",
     );
-    await counts(words(page), "Top words and occurrence counts", [
+    await counts(top(page), "Top words and occurrence counts", [
       ["apricot", 40],
       [longWord, 20],
       ["banana", 20],
@@ -572,22 +594,22 @@ test.describe("WhatsAppScope local Message Patterns & Content", () => {
     });
     await page.goto("/whatsapp/chat-analyzer/");
     await acceptChat(page);
-    await expect(media(page)).toContainText(
+    await expect(top(page)).toContainText(
       "Unavailable. Supported emoji grapheme extraction is not available in this browser",
     );
     await expect(
-      media(page).getByRole("list", {
+      top(page).getByRole("list", {
         name: "Top supported emoji and occurrence counts",
         exact: true,
       }),
     ).toHaveCount(0);
-    await counts(words(page), "Top words and occurrence counts", [
+    await counts(top(page), "Top words and occurrence counts", [
       ["apple", 4],
       ["banana", 3],
       ["pear", 3],
     ]);
     await range(page, "2026-06-20", "2026-06-20");
-    await expect(media(page)).toContainText(
+    await expect(top(page)).toContainText(
       "Unavailable. Supported emoji grapheme extraction is not available in this browser",
     );
     await expect(media(page)).not.toContainText(

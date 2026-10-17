@@ -335,12 +335,12 @@ Wrapped always describes the full accepted export, independent of temporary
 Analyzer filters. It consumes existing activity, rhythm and content analysis;
 parser, Doctor and metric definitions are unchanged. Pair mode means exactly
 two exported participant labels; three or more uses bounded group rankings.
-Aliases follow accepted participant order, not inferred identities.
+Cards use exported display names in accepted participant order, not verified identities. Number-only labels use neutral Contact labels.
 
 The evidence-rich default deck has up to 12 cards: opening, message split,
 busiest recorded date, recorded hour distribution, active-date streak, sessions,
 session starters, long-gap next senders, next-message rhythm, message patterns,
-media/emoji and closing. Group rankings show at most four anonymous labels plus
+media/emoji and closing. Group rankings show at most four display names plus
 a remaining-label count. Equal maxima are explicitly tied, including leaders
 outside the displayed rows. One-label and sparse exports get fewer cards rather
 than invented comparisons. Empty input gets no deck.
@@ -358,22 +358,19 @@ thresholds, not statistical significance. Each selected card has a native
 definition, evidence rule and limits. Recorded-clock metrics never imply a
 timezone, replies, presence, intent or relationship quality.
 
-**Include word-based insights in Wrapped** is off by default. Without opt-in,
-the story model and canvas receive no message-derived lexical tokens. Opt-in
-allows one card from the existing local text analysis: at least six eligible
-text messages, 20 eligible words, and two distinct qualifying words occurring
-at least three times each. It shows at most six words and excludes participant-
-label tokens as an extra precaution; derived words can still be sensitive.
-The view warns that the exported image may expose them. The toggle is not
-stored and resets on a newly accepted export. At the 12-card cap, the optional
-word card replaces the standalone streak card; the busiest-date summary still
-includes the longest streak.
+Word insights are always enabled and open the deck when the existing evidence
+rules qualify: at least six eligible text messages, 20 eligible words and two
+distinct words occurring at least three times each. At most six words are shown,
+excluding participant-label tokens as an extra precaution. Otherwise the deck
+opens with the conversation card. At the 12-card cap the word card replaces the
+standalone streak card; the busiest-date summary retains the longest streak.
 
-Default story data and artwork include only factual aggregates, date-only
-summaries and anonymous aliases: no participant names, raw messages, URLs,
-filenames, phone numbers or coordinates. No private context records from the
-underlying analysis are passed to the canvas. Optional words are the explicit
-exception. Preview and PNG use the same 1080×1920 renderer with an accessible
+Artwork can contain exported display names and derived words, alongside factual
+aggregates and date-only summaries. Number-only labels are replaced. Raw message
+bodies, URLs, filenames and coordinates are not projected into the artwork.
+Names and words stay local; one reminder beside export controls asks users to
+review before sharing. Parser notes remain in the application methodology,
+outside the artwork. Preview and PNG use the same 1080×1920 renderer with an accessible
 text equivalent and a readable fallback if canvas is unavailable. Swipe,
 arrows, Home/End, slide announcements and the existing InstaScope story palettes
 are preserved. Share uses the prepared local PNG with the device share sheet
@@ -516,7 +513,7 @@ off-page labels. Rounded displayed shares may not add to exactly 100%.
 Wrapped count rankings retain their existing four-label cap, full-population
 totals and maximum ties. Next-message timing cards now also disclose qualifying
 labels outside their four displayed rows, in both accessible text and PNG.
-Aliases remain anonymous; timing is recorded adjacency, never proof of replies.
+Cards use local display names with number-only labels protected; timing is recorded adjacency, never proof of replies.
 Individual PNG preparation retains the eager draw/toDataURL/File path; the
 separate full-deck ZIP encoder still produces Blobs asynchronously.
 

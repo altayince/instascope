@@ -21,15 +21,15 @@ import type { WhatsAppDataset } from "../../src/lib/whatsapp/types";
 // All labels, bodies, dates and links below are invented for these tests.
 const fixture = (...lines: string[]) =>
   parseWhatsApp(lines.join("\n"), "ymd-24h");
-const build = (dataset: WhatsAppDataset, includeWords = false) =>
-  buildWhatsAppStories(analyzeWhatsApp(dataset), dataset, { includeWords });
+const build = (dataset: WhatsAppDataset) =>
+  buildWhatsAppStories(analyzeWhatsApp(dataset), dataset);
 const ids = (stories: WhatsAppStory[]) => stories.map((story) => story.id);
 const richIds = [
+  "words",
   "conversation",
   "participant-counts",
   "busiest-day",
   "busiest-hour",
-  "active-streak",
   "sessions",
   "session-starters",
   "silence-breakers",
@@ -108,8 +108,8 @@ describe("WhatsApp Wrapped V2 deck selection", () => {
     ]) {
       const split = card(stories, id, "split");
       expect(split.data.entries.map((entry) => entry.label)).toEqual([
-        "Participant 1",
-        "Participant 2",
+        "Fictional Sender 2",
+        "Fictional Sender 1",
       ]);
       expect(split.data.hiddenParticipants).toBe(0);
       expect(
@@ -186,7 +186,7 @@ describe("WhatsApp Wrapped V2 deck selection", () => {
   });
 
   it("exposes explicit definitions, gates and limitations for every selected card", () => {
-    for (const story of build(rich(), true)) {
+    for (const story of build(rich())) {
       expect(story.calculation.classification).toMatch(/^(Exact|Derived)$/);
       expect(story.calculation.definition.length).toBeGreaterThan(25);
       expect(story.calculation.limitations.length).toBeGreaterThan(25);
@@ -211,11 +211,9 @@ describe("WhatsApp Wrapped V2 deck selection", () => {
         (message) => message.timestamp.date === "2025-01-02",
       ),
     };
-    expect(
-      buildWhatsAppStories(analyzeWhatsApp(filtered), source, {
-        includeWords: true,
-      }),
-    ).toEqual(build(source, true));
+    expect(buildWhatsAppStories(analyzeWhatsApp(filtered), source)).toEqual(
+      build(source),
+    );
   });
 
   it("keeps complete-source cards independent of participant-filtered Analyzer results", () => {
@@ -242,20 +240,19 @@ describe("WhatsApp Wrapped V2 deck selection", () => {
     expect(buildWhatsAppStories(supplied, source)).toEqual(build(source));
   });
 
-  it("does not mutate frozen source data, analysis or options", () => {
+  it("does not mutate frozen source data or analysis", () => {
     const source = freeze(rich(6));
     const analysis = freeze(analyzeWhatsApp(source));
-    const options = freeze({ includeWords: true });
-    const before = JSON.stringify({ source, analysis, options });
-    const first = buildWhatsAppStories(analysis, source, options);
-    expect(buildWhatsAppStories(analysis, source, options)).toEqual(first);
-    expect(JSON.stringify({ source, analysis, options })).toBe(before);
+    const before = JSON.stringify({ source, analysis });
+    const first = buildWhatsAppStories(analysis, source);
+    expect(buildWhatsAppStories(analysis, source)).toEqual(first);
+    expect(JSON.stringify({ source, analysis })).toBe(before);
   });
 });
 
 describe("WhatsApp Wrapped counts and ties", () => {
   it.each([3, 8, 24])(
-    "keeps all %i group labels in totals, ties and timing while bounding anonymous rows",
+    "keeps all %i group labels in totals, ties and timing while bounding displayed names",
     (participants) => {
       const messages = participants * 6;
       const source = sequence(
@@ -277,7 +274,7 @@ describe("WhatsApp Wrapped counts and ties", () => {
       const ranking = card(stories, "participant-counts", "ranking");
       expect(ranking.data.entries).toEqual(
         Array.from({ length: visible }, (_, index) => ({
-          label: `Participant ${index + 1}`,
+          label: `PRIVATE_GROUP_LABEL_${index}`,
           value: 6,
           display: "6",
           share: 1 / participants,
@@ -298,7 +295,7 @@ describe("WhatsApp Wrapped counts and ties", () => {
       expect(timing.data.entries).toHaveLength(visible);
       // All but the first label have six incoming transitions. Their tied
       // display order follows the accepted export, not a fastest-sender rank.
-      expect(timing.data.entries[0].label).toBe("Participant 2");
+      expect(timing.data.entries[0].label).toBe("PRIVATE_GROUP_LABEL_1");
       if (participants > visible) {
         expect(timing.note).toBe(
           `${visible} of ${participants} qualifying labels shown; ${participants - visible} not displayed. Adjacent messages do not prove replies.`,
@@ -308,13 +305,13 @@ describe("WhatsApp Wrapped counts and ties", () => {
       }
       expect(timing.calculation.limitations).toContain("not a speed ranking");
       expect(JSON.stringify(stories)).not.toMatch(
-        /PRIVATE_GROUP_LABEL|Synthetic message|winner|reply time|response time/i,
+        /Synthetic message|winner|reply time|response time/i,
       );
       for (const id of ["session-starters", "silence-breakers"]) {
         const starts = card(stories, id, "ranking");
         expect(starts.data.entries).toHaveLength(visible);
         expect(starts.data.hiddenParticipants).toBe(participants - visible);
-        expect(starts.data.entries[0].label).toBe("Participant 1");
+        expect(starts.data.entries[0].label).toBe("PRIVATE_GROUP_LABEL_0");
         expect(starts.data.total).toBe(id === "session-starters" ? 6 : 5);
         expect(starts.data.entries[0].share).toBe(1);
       }
@@ -340,17 +337,17 @@ describe("WhatsApp Wrapped counts and ties", () => {
     expect(ranking.data.leaderTieCount).toBe(12);
     expect(ranking.data.hiddenParticipants).toBe(8);
     expect(ranking.data.entries.map((entry) => entry.label)).toEqual([
-      "Participant 1",
-      "Participant 2",
-      "Participant 3",
-      "Participant 4",
+      "Fictional Sender 0",
+      "Fictional Sender 1",
+      "Fictional Sender 2",
+      "Fictional Sender 3",
     ]);
     expect(ranking.data.entries.every((entry) => entry.share === 1 / 12)).toBe(
       true,
     );
   });
 
-  it("preserves anonymous aliases in accepted export order before ranking", () => {
+  it("preserves exported display names in accepted export order before ranking", () => {
     const source = sequence(
       [60, 60, 60, 60],
       [
@@ -363,13 +360,13 @@ describe("WhatsApp Wrapped counts and ties", () => {
     );
     const split = card(build(source), "participant-counts", "split");
     expect(split.lead).toBe(
-      "Participant 2 has the highest exported message count.",
+      "Aaa Fictional has the highest exported message count.",
     );
     expect(split.data.entries).toEqual([
-      { label: "Participant 1", value: 2, display: "2", share: 0.4 },
-      { label: "Participant 2", value: 3, display: "3", share: 0.6 },
+      { label: "Zzz Fictional", value: 2, display: "2", share: 0.4 },
+      { label: "Aaa Fictional", value: 3, display: "3", share: 0.6 },
     ]);
-    expect(JSON.stringify(split)).not.toMatch(/Zzz|Aaa/);
+    expect(JSON.stringify(split)).not.toMatch(/Participant [12]/);
   });
 
   it("describes all tied participant maxima in the fictional demo", () => {
@@ -558,8 +555,8 @@ describe("WhatsApp Wrapped consumes Analyzer V2 rhythm and patterns", () => {
       "rhythm",
     );
     expect(supported.data.entries).toEqual([
-      { label: "Participant 1", value: 60, display: "1 min" },
-      { label: "Participant 2", value: 60, display: "1 min" },
+      { label: "Fictional Zeta", value: 60, display: "1 min" },
+      { label: "Fictional Alpha", value: 60, display: "1 min" },
     ]);
   });
 
@@ -727,30 +724,23 @@ describe("WhatsApp Wrapped media and emoji", () => {
   });
 });
 
-describe("WhatsApp Wrapped word consent and privacy", () => {
-  it("never invokes text analysis or puts lexical words in the default deck", () => {
-    const analyzeText = vi
-      .spyOn(textEngine, "analyzeWhatsAppText")
-      .mockImplementation(() => {
-        throw new Error("Text analysis requires explicit opt-in");
-      });
+describe("WhatsApp Wrapped word evidence and local privacy", () => {
+  it("always applies the existing word analysis and starts with an eligible word card", () => {
     const source = rich();
-    const analysis = analyzeWhatsApp(source);
-    const implicit = buildWhatsAppStories(analysis, source);
-    expect(
-      buildWhatsAppStories(analysis, source, { includeWords: false }),
-    ).toEqual(implicit);
-    expect(analyzeText).not.toHaveBeenCalled();
-    expect(ids(implicit)).not.toContain("words");
-    expect(JSON.stringify(implicit)).not.toMatch(
-      /orchard|cobalt|lantern|pebble|willow|zenith|pastel|honey/,
+    const spy = vi.spyOn(textEngine, "analyzeWhatsAppText");
+    const stories = build(source);
+    expect(spy).toHaveBeenCalledExactlyOnceWith(
+      source.messages,
+      source.participants,
+      { comparisonAllowed: false },
     );
+    expect(stories[0].id).toBe("words");
   });
 
-  it("projects only six bounded existing top words after explicit opt-in", () => {
+  it("projects only six bounded existing top words by default", () => {
     const source = rich();
     const analyzeText = vi.spyOn(textEngine, "analyzeWhatsAppText");
-    const stories = build(source, true);
+    const stories = build(source);
     const words = card(stories, "words", "word");
     expect(analyzeText).toHaveBeenCalledExactlyOnceWith(
       source.messages,
@@ -775,13 +765,13 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
     expect(card(stories, "closing", "closing").data.cardCount).toBe(12);
   });
 
-  it("keeps a standalone streak when an opted-in shorter deck has room", () => {
+  it("keeps a standalone streak when a shorter deck has room", () => {
     const source = sequence(
       [60, 60, 86300, 60, 60],
       undefined,
       Array(6).fill("orchard cobalt lantern pebble"),
     );
-    const stories = build(source, true);
+    const stories = build(source);
     expect(stories.length).toBeLessThan(12);
     expect(ids(stories)).toContain("active-streak");
     expect(ids(stories)).toContain("words");
@@ -808,13 +798,10 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
         ...Array(4).fill("orchard orchard orchard"),
       ],
     },
-  ])("skips opted-in words with $reason", ({ bodies }) => {
+  ])("skips words with $reason", ({ bodies }) => {
     expect(
       ids(
-        build(
-          sequence(Array(bodies.length - 1).fill(60), undefined, bodies),
-          true,
-        ),
+        build(sequence(Array(bodies.length - 1).fill(60), undefined, bodies)),
       ),
     ).not.toContain("words");
   });
@@ -829,7 +816,7 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
       "orchard orchard",
     ];
     const words = card(
-      build(sequence(Array(5).fill(60), undefined, bodies), true),
+      build(sequence(Array(5).fill(60), undefined, bodies)),
       "words",
       "word",
     );
@@ -840,28 +827,26 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
     ]);
   });
 
-  it("excludes original participant-label tokens even when consent is enabled", () => {
+  it("excludes original participant-label tokens from word cards", () => {
     const source = sequence(
       Array(5).fill(60),
       Array(6).fill("İPEK ÉLODIE"),
       Array(6).fill("İpek élodie orchard cobalt lantern pebble"),
     );
-    const words = card(build(source, true), "words", "word");
+    const words = card(build(source), "words", "word");
     expect(words.data.words.map((word) => word.word)).toEqual([
       "cobalt",
       "lantern",
       "orchard",
       "pebble",
     ]);
-    expect(JSON.stringify(build(source, true))).not.toMatch(
-      /İPEK|ÉLODIE|ipek|élodie/,
-    );
+    expect(JSON.stringify(words)).not.toMatch(/İPEK|ÉLODIE|ipek|élodie/);
   });
 
   it("uses existing token bounds, URL/email removal and stopword filtering", () => {
     const body = `orchard cobalt ${"x".repeat(41)} a the und ve https://private.invalid/hiddenurlword mailsecret@private.invalid`;
     const source = sequence(Array(9).fill(60), undefined, Array(10).fill(body));
-    const words = card(build(source, true), "words", "word");
+    const words = card(build(source), "words", "word");
     expect(words.data.words).toEqual([
       { word: "cobalt", count: 10 },
       { word: "orchard", count: 10 },
@@ -871,16 +856,12 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
     );
   });
 
-  it("does not retain opt-in across independent calls", () => {
-    const source = rich();
-    expect(ids(build(source, true))).toContain("words");
-    expect(ids(build(source))).not.toContain("words");
-    expect(ids(buildWhatsAppStories(analyzeWhatsApp(source), source))).toEqual(
-      richIds,
-    );
+  it("does not carry words into an independent export with insufficient evidence", () => {
+    expect(build(rich())[0].id).toBe("words");
+    expect(build(sequence([60]))[0].id).toBe("conversation");
   });
 
-  it("keeps private names, IDs, bodies, URLs, filenames, phones and coordinates out of default models", () => {
+  it("projects local names while excluding IDs, bodies, URLs, filenames, phones and coordinates", () => {
     const source = rich(6);
     source.participants.forEach((participant, index) => {
       const previous = participant.id;
@@ -901,15 +882,15 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
     const stories = build(source);
     const serialized = JSON.stringify(stories);
     for (const privateValue of [
-      "PRIVATE_",
+      "PRIVATE_PARTICIPANT_ID",
+      "PRIVATE_RAW_MESSAGE",
+      "PRIVATE_SYSTEM_EVENT",
       "privatearchive",
       "+49 123",
       "52.520008",
       "13.404954",
       "private.invalid",
       "hidden-path",
-      "orchard",
-      "cobalt",
     ]) {
       expect(serialized).not.toContain(privateValue);
     }
@@ -919,6 +900,23 @@ describe("WhatsApp Wrapped word consent and privacy", () => {
       expect(serialized).not.toContain(participant.id);
     expect(stories.length).toBeGreaterThanOrEqual(10);
   });
+
+  it.each(["+99 000 000000", "(000) 123-456", "\u0661\u0662\u0663\u0664"])(
+    "protects number-only label %s without changing counts",
+    (label) => {
+      const source = sequence(
+        [60, 60, 60],
+        [label, "Studio 123", label, "Studio 123"],
+      );
+      const split = card(build(source), "participant-counts", "split");
+      expect(split.data.entries.map((item) => item.label)).toEqual([
+        "Contact 1",
+        "Studio 123",
+      ]);
+      expect(split.data.total).toBe(4);
+      expect(JSON.stringify(build(source))).not.toContain(label);
+    },
+  );
 
   it("preserves shared Analyzer number and UTC-date formatting conventions", () => {
     expect(whatsappNumber(1234.5678)).toBe("1,234.568");

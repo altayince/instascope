@@ -175,16 +175,21 @@ function smallEntry(
   paragraph(
     ctx,
     entry.label,
-    { x: box.x + 20, y: box.y + 14, width: box.width - 40, height: 36 },
+    { x: box.x + 20, y: box.y + 14, width: box.width - 40, height: 52 },
     28,
-    22,
+    16,
   );
   ctx.fillStyle = theme.accent;
   value(
     ctx,
     entry.display,
-    { x: box.x + 20, y: box.y + 55, width: box.width - 40, height: 52 },
-    40,
+    {
+      x: box.x + 20,
+      y: box.y + 70,
+      width: box.width - 40,
+      height: Math.min(40, box.height - 70),
+    },
+    32,
   );
 }
 
@@ -291,9 +296,9 @@ function drawSplit(
     paragraph(
       ctx,
       entry.label,
-      { x: x + 30, y: 775, width: 375, height: 125 },
+      { x: x + 30, y: 775, width: 375, height: 145 },
       49,
-      30,
+      18,
       true,
     );
     ctx.fillStyle = theme.accent;
@@ -339,9 +344,9 @@ function drawRanking(
     paragraph(
       ctx,
       entry.label,
-      { x: 80, y, width: 485, height: 54 },
+      { x: 80, y, width: 485, height: 64 },
       37,
-      24,
+      18,
       true,
     );
     ctx.fillStyle = theme.accent;
@@ -541,6 +546,16 @@ function drawRhythm(
       height: 112,
     });
   });
+  if (story.data.hiddenParticipants > 0) {
+    ctx.fillStyle = theme.ink;
+    paragraph(
+      ctx,
+      `${story.data.entries.length} of ${story.data.entries.length + story.data.hiddenParticipants} names shown; ${story.data.hiddenParticipants} more.`,
+      { x: 80, y: 1470, width: 920, height: 28 },
+      22,
+      20,
+    );
+  }
 }
 
 function drawPatterns(
@@ -790,7 +805,7 @@ function drawClosing(
   });
 }
 
-/** The live preview and PNG export use this same local aggregate-only renderer. */
+/** The live preview and PNG export use this same local share renderer. */
 export function drawWhatsAppStory(
   canvas: HTMLCanvasElement,
   story: WhatsAppStory,
@@ -824,18 +839,19 @@ export function drawWhatsAppStory(
   ctx.fillStyle = theme.ink;
   paragraph(
     ctx,
-    "INSTASCOPE / WRAPPED",
+    "My WhatsApp Wrapped",
     { x: 80, y: 87, width: 920, height: 42 },
     27,
     27,
     true,
   );
-  paragraph(
-    ctx,
-    demo ? "FICTIONAL DEMO DATA" : "FROM YOUR SUPPLIED EXPORT",
-    { x: 80, y: 139, width: 920, height: 36 },
-    24,
-  );
+  if (demo)
+    paragraph(
+      ctx,
+      "DEMO DATA \u00b7 FICTIONAL EXAMPLE",
+      { x: 80, y: 139, width: 920, height: 36 },
+      24,
+    );
   paragraph(
     ctx,
     story.label,
@@ -902,13 +918,6 @@ export function drawWhatsAppStory(
     paragraph(ctx, fact.label, { x, y: 1604, width: 435, height: 66 }, 27, 22);
   });
   ctx.fillStyle = theme.ink;
-  paragraph(
-    ctx,
-    story.note,
-    { x: 80, y: 1695, width: 920, height: 72 },
-    26,
-    22,
-  );
   paragraph(
     ctx,
     "Made with InstaScope",

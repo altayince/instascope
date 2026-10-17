@@ -22,7 +22,7 @@ import {
 import { WhatsAppAnalysisFilters } from "./analysis-filters";
 import { WhatsAppActivityHeatmap } from "./activity-heatmap";
 import { WhatsAppRhythm } from "./rhythm";
-import { WhatsAppMessageContent } from "./message-content";
+import { WhatsAppMessageContent, WhatsAppTopInsights } from "./message-content";
 
 const CHART_PAGE_SIZE = 24;
 const monthFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -354,6 +354,7 @@ function WhatsAppAnalyzerResults({
   const displayedSpan = `${whatsappNumber(Math.floor(span / 86400))} d ${Math.floor((span % 86400) / 3600)} h ${Math.floor((span % 3600) / 60)} min${dataset.metadata.timestampPrecision !== "minute" ? ` ${span % 60} s` : ""}`;
   return (
     <>
+      <WhatsAppTopInsights result={result.content} />
       <section
         className="wa-filtered-overview"
         aria-label="Filtered chat overview"

@@ -384,7 +384,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
   it.each([3, 8, 24])(
-    "renders %i-label group rankings and timing remainders with complete anonymous text",
+    "renders %i-label group rankings and timing remainders with personalized names and complete counts",
     (participants) => {
       let clock = Date.UTC(2026, 0, 1, 9);
       const lines = Array.from({ length: participants * 6 }, (_, index) => {
@@ -404,7 +404,7 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
         expect(rendered.canvas.width).toBe(1080);
         expect(rendered.canvas.height).toBe(1920);
         const text = rendered.texts.map((draw) => draw.text).join(" ");
-        expect(text).not.toMatch(/PRIVATE_GROUP_LABEL|PRIVATE_CONTENT|winner/i);
+        expect(text).not.toMatch(/PRIVATE_CONTENT|winner/i);
         if (story.kind === "ranking" && participants > 4) {
           expect(text).toContain(
             `Top 4 shown; ${participants - 4} additional labels not displayed.`,
@@ -414,12 +414,44 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
           );
         }
         if (story.kind === "rhythm" && participants > 4) {
-          expect(text).toContain(story.note);
+          expect(text).not.toContain(story.note);
           expect(text).toContain(
-            `4 of ${participants} qualifying labels shown; ${participants - 4} not displayed.`,
+            `4 of ${participants} names shown; ${participants - 4} more.`,
           );
         }
       }
+    },
+  );
+
+  it.each([2, 8])(
+    "wraps long exported display names in %i-participant artwork without clipping",
+    (participants) => {
+      const labels = Array.from(
+        { length: participants },
+        (_, index) => `Fictional ${index} ${"LongName".repeat(30)}`,
+      );
+      const source = parseWhatsApp(
+        Array.from(
+          { length: participants * 6 },
+          (_, index) =>
+            `2026-06-14, 09:${String(index).padStart(2, "0")} - ${labels[index % participants]}: orchard meadow`,
+        ).join("\n"),
+        "ymd-24h",
+      );
+      const story = buildWhatsAppStories(analyzeWhatsApp(source), source).find(
+        (item) => item.id === "participant-counts",
+      )!;
+      const rendered = recordingCanvas();
+      drawWhatsAppStory(rendered.canvas, story, false);
+      assertReadableBounds(rendered);
+      const names = rendered.texts.filter((draw) =>
+        /Fictional|LongName/.test(draw.text),
+      );
+      expect(names.length).toBeGreaterThanOrEqual(Math.min(4, participants));
+      expect(names.every((draw) => draw.width <= 485)).toBe(true);
+      expect(rendered.texts.map((draw) => draw.text).join(" ")).not.toMatch(
+        /Participant \d/,
+      );
     },
   );
 
@@ -462,7 +494,9 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
       expect(second.operations).toEqual(first.operations);
       expect(first.texts.every((draw) => draw.kerning === "none")).toBe(true);
       expect(
-        first.texts.some((draw) => draw.text === "FICTIONAL DEMO DATA"),
+        first.texts.some(
+          (draw) => draw.text === "DEMO DATA \u00b7 FICTIONAL EXAMPLE",
+        ),
       ).toBe(true);
     }
   });
@@ -558,7 +592,7 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
     }
   });
 
-  it("keeps private source names, content, links and unselected words out of canvas operations", () => {
+  it("shows local display names while excluding raw content, links and unselected words from canvas operations", () => {
     const dataset = createWhatsAppDemo();
     dataset.participants[0].displayName = "PRIVATE_CANVAS_NAME";
     dataset.messages[0].content =
@@ -575,14 +609,17 @@ describe("WhatsApp Wrapped shared preview and PNG canvas", () => {
     }
     const serialized = JSON.stringify(calls);
     for (const privateValue of [
-      "PRIVATE_CANVAS_NAME",
       "PRIVATE_CANVAS_CONTENT",
       "PRIVATE_LEXICAL_SENTINEL",
       "private.example",
       "https://",
     ])
       expect(serialized).not.toContain(privateValue);
-    expect(serialized).toContain("Participant 1");
+    expect(serialized).toContain("PRIVATE_CANVAS_NAME");
+    expect(serialized).toContain("My WhatsApp Wrapped");
+    expect(serialized).not.toMatch(
+      /SYSTEM EVENTS EXCLUDED|FROM YOUR SUPPLIED EXPORT|INSTASCOPE \/ WRAPPED/i,
+    );
   });
 
   it("renders emoji unavailability explicitly without inventing zero occurrences", () => {

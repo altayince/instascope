@@ -9,7 +9,7 @@ const privateLabel = `Synthetic private sender ${"LongLabel".repeat(24)}`;
 const secondLabel = "Another synthetic private sender";
 const privateBody = "SYNTHETIC_BODY_MUST_STAY_LOCAL";
 const forbidden =
-  /Synthetic private sender|Another synthetic private sender|LongLabel|SYNTHETIC_BODY_MUST_STAY_LOCAL|synthetic-private\.invalid|secret-photo\.jpg|\+491234567890|52\.5200|13\.4050/;
+  /SYNTHETIC_BODY_MUST_STAY_LOCAL|synthetic-private\.invalid|secret-photo\.jpg|\+491234567890|52\.5200|13\.4050/;
 
 // Fictional evidence only: nine dense sessions, qualifying long gaps, equal
 // participant counts, three consecutive dates, media, emoji and repeated words.
@@ -247,7 +247,9 @@ async function downloadPng(page: Page, action: Locator = downloadButton(page)) {
   const received = page.waitForEvent("download");
   await action.click();
   const result = await received;
-  expect(result.suggestedFilename()).toMatch(/^instascope-whatsapp-[a-z0-9-]+\.png$/);
+  expect(result.suggestedFilename()).toMatch(
+    /^instascope-whatsapp-[a-z0-9-]+\.png$/,
+  );
   const bytes = await readFile((await result.path())!);
   assertPng(bytes);
   return bytes;
@@ -280,12 +282,12 @@ test.describe("WhatsApp Wrapped V2", () => {
     await acceptChat(page);
     await expect(choices(page)).toHaveCount(12);
     await expect(slide(page)).toHaveAttribute("data-story-mode", "pair");
-    await expect(slide(page).locator(".wa-story-value > strong")).toHaveText(
-      "54",
+    await expect(slide(page)).toHaveAttribute("data-story-id", "words");
+    await expect(slide(page)).toContainText("My WhatsApp Wrapped");
+    await expect(slide(page)).toContainText("orchard");
+    await expect(deck(page).getByLabel(wordLabel, { exact: true })).toHaveCount(
+      0,
     );
-    await expect(
-      deck(page).getByLabel(wordLabel, { exact: true }),
-    ).not.toBeChecked();
     await expect(deck(page).getByRole("status")).toHaveCount(1);
     await ready(page);
     expect(
@@ -345,7 +347,9 @@ test.describe("WhatsApp Wrapped V2", () => {
       if (id === "message-patterns")
         await expect(methodology).toContainText(/inclusive rolling 10-minute/);
       await expect(slide(page).locator(".wa-story-text")).not.toBeEmpty();
-      await expect(slide(page)).not.toContainText(/reply time|orchard|meadow/i);
+      await expect(slide(page)).not.toContainText(
+        /reply time|System events excluded|From your supplied export/i,
+      );
       await expect(deck(page)).not.toContainText(forbidden);
       const bytes = await previewBytes(page);
       assertPng(bytes);
@@ -359,11 +363,11 @@ test.describe("WhatsApp Wrapped V2", () => {
       await fits(page);
     }
     expect(ids).toEqual([
+      "words",
       "conversation",
       "participant-counts",
       "busiest-day",
       "busiest-hour",
-      "active-streak",
       "sessions",
       "session-starters",
       "silence-breakers",
@@ -374,6 +378,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     ]);
     expect(kinds).toEqual(
       new Set([
+        "word",
         "hero",
         "split",
         "timeline",
@@ -385,9 +390,7 @@ test.describe("WhatsApp Wrapped V2", () => {
       ]),
     );
     expect((await metrics(page)).drawn.join("\n")).not.toMatch(forbidden);
-    expect((await metrics(page)).drawn.join("\n")).not.toMatch(
-      /orchard|meadow/i,
-    );
+    expect((await metrics(page)).drawn.join("\n")).toMatch(/orchard|meadow/i);
     await slide(page).screenshot({
       path: testInfo.outputPath("synthetic-closing.png"),
       animations: "disabled",
@@ -418,6 +421,29 @@ test.describe("WhatsApp Wrapped V2", () => {
     ).toHaveCount(12);
   });
 
+  test("number-only participant labels stay protected in accessible previews and downloaded artwork", async ({
+    page,
+  }) => {
+    await page.goto("/whatsapp/wrapped/");
+    await acceptChat(
+      page,
+      richChat().replaceAll(privateLabel, "+99 000 000000"),
+    );
+    await choices(page).filter({ hasText: "The contributors" }).click();
+    await ready(page);
+    await expect(slide(page)).toContainText("Contact 1");
+    await expect(slide(page)).toContainText(secondLabel);
+    await expect(slide(page)).not.toContainText("+99 000 000000");
+    expect((await metrics(page)).drawn.join(" ")).toContain("Contact 1");
+    expect((await metrics(page)).drawn.join(" ")).not.toContain(
+      "+99 000 000000",
+    );
+    await assertArtworkMatches(
+      await downloadPng(page),
+      await previewBytes(page),
+    );
+  });
+
   test("group rankings bound the displayed participants, retain ties and fit long source labels", async ({
     page,
   }, testInfo) => {
@@ -430,11 +456,11 @@ test.describe("WhatsApp Wrapped V2", () => {
     await expect(slide(page)).toContainText(
       "Top 4 shown; 6 additional labels not displayed.",
     );
-    await expect(slide(page)).not.toContainText(/Synthetic group|LongLabel/);
-    const aliases =
-      (await slide(page).textContent())!.match(/Participant \d+/g) ?? [];
-    expect(new Set(aliases).size).toBeLessThanOrEqual(4);
-    expect(new Set(aliases).size).toBeGreaterThanOrEqual(3);
+    await expect(slide(page)).toContainText("Synthetic group 0");
+    const rows = slide(page).locator(".wa-story-text > ul > li");
+    await expect(rows).toHaveCount(4);
+    for (const row of await rows.all())
+      await expect(row).toContainText(/Synthetic group \d+ LongLabel/);
     await assertArtworkMatches(
       await downloadPng(page),
       await previewBytes(page),
@@ -452,7 +478,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     await fits(page);
   });
 
-  test("3, 8 and 24-label groups preserve anonymous ties, disclose timing truncation and export matching PNGs and a group deck", async ({
+  test("3, 8 and 24-label groups preserve named ties, disclose timing truncation and export matching PNGs and a group deck", async ({
     page,
   }) => {
     await page.goto("/whatsapp/wrapped/");
@@ -490,7 +516,7 @@ test.describe("WhatsApp Wrapped V2", () => {
       await ready(page);
       await expect(slide(page)).toHaveAttribute("data-story-kind", "rhythm");
       if (participants > 4) {
-        const remainder = `4 of ${participants} qualifying labels shown; ${participants - 4} not displayed.`;
+        const remainder = `4 of ${participants} names shown; ${participants - 4} more.`;
         await expect(slide(page)).toContainText(remainder);
         expect((await metrics(page)).drawn.join(" ")).toContain(remainder);
       }
@@ -501,7 +527,7 @@ test.describe("WhatsApp Wrapped V2", () => {
       if (participants === 24)
         groupPreviews.set("next-message", await previewBytes(page));
       await expect(slide(page)).not.toContainText(
-        /Synthetic group|LongLabel|winner|reply time|response time/i,
+        /winner|reply time|response time/i,
       );
       await fits(page);
     }
@@ -509,7 +535,9 @@ test.describe("WhatsApp Wrapped V2", () => {
     const received = page.waitForEvent("download");
     await fullExportButton(page).click();
     const result = await received;
-    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe(
+      "instascope-whatsapp-wrapped-deck.zip",
+    );
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toHaveLength(cards);
     for (const [name, bytes] of Object.entries(entries)) {
@@ -519,9 +547,8 @@ test.describe("WhatsApp Wrapped V2", () => {
         await assertArtworkMatches(Buffer.from(bytes), preview, name);
     }
     await expect(fullExportButton(page)).toBeEnabled();
-    expect((await metrics(page)).drawn.join(" ")).not.toMatch(
-      /Synthetic group|LongLabel|orchard|meadow/i,
-    );
+    expect((await metrics(page)).drawn.join(" ")).toMatch(/Synthetic group/);
+    expect((await metrics(page)).drawn.join(" ")).toMatch(/orchard|meadow/);
   });
 
   test("sparse and one-participant exports skip unsupported comparisons without inventing evidence", async ({
@@ -580,7 +607,9 @@ test.describe("WhatsApp Wrapped V2", () => {
       const received = page.waitForEvent("download");
       await downloadButton(page).click();
       const downloaded = await received;
-      expect(downloaded.suggestedFilename()).toBe(`instascope-whatsapp-${id}.png`);
+      expect(downloaded.suggestedFilename()).toBe(
+        `instascope-whatsapp-${id}.png`,
+      );
       const actual = await readFile((await downloaded.path())!);
       assertPng(actual);
       await assertArtworkMatches(actual, expected);
@@ -597,32 +626,30 @@ test.describe("WhatsApp Wrapped V2", () => {
       return actual;
     }
 
-    const opening = await downloadCurrent("conversation");
+    const opening = await downloadCurrent("words");
     // Native clicks in one browser task leave earlier prepared state present
     // while multiple selected-card updates are requested. Only the final card
     // may supply the downloadable File; no sleeps or encoding callbacks help it.
     await picker(page).evaluate((element) => {
       const buttons = element.querySelectorAll<HTMLButtonElement>("button");
-      buttons[1].click();
       buttons[2].click();
       buttons[3].click();
+      buttons[4].click();
     });
     const hour = await downloadCurrent("busiest-hour");
     expect(hour.equals(opening)).toBe(false);
     await picker(page).evaluate((element) => {
       const buttons = element.querySelectorAll<HTMLButtonElement>("button");
       buttons[0].click();
+      buttons[3].click();
       buttons[2].click();
-      buttons[1].click();
     });
     const participants = await downloadCurrent("participant-counts");
     expect(participants.equals(opening)).toBe(false);
     expect(participants.equals(hour)).toBe(false);
     await expect(slide(page)).not.toContainText(forbidden);
     expect((await metrics(page)).drawn.join("\n")).not.toMatch(forbidden);
-    expect((await metrics(page)).drawn.join("\n")).not.toMatch(
-      /orchard|meadow/i,
-    );
+    expect((await metrics(page)).drawn.join("\n")).toMatch(/orchard|meadow/i);
     await fits(page);
   });
 
@@ -672,9 +699,9 @@ test.describe("WhatsApp Wrapped V2", () => {
     await expect(status(page)).toHaveAttribute("data-deck-progress", "0");
     await expect(fullExportButton(page)).toBeDisabled();
     await expect(downloadButton(page)).toBeDisabled();
-    await expect(
-      deck(page).getByLabel(wordLabel, { exact: true }),
-    ).toBeDisabled();
+    await expect(deck(page).getByLabel(wordLabel, { exact: true })).toHaveCount(
+      0,
+    );
     await expect(choices(page).first()).toBeDisabled();
     // Native disabled controls must ignore attempts to start duplicate work.
     await fullExportButton(page).evaluate((button: HTMLButtonElement) => {
@@ -684,7 +711,9 @@ test.describe("WhatsApp Wrapped V2", () => {
     await encodingHeld(page);
     await releaseEncoding(page);
     const result = await received;
-    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe(
+      "instascope-whatsapp-wrapped-deck.zip",
+    );
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toHaveLength(12);
     expect(
@@ -718,7 +747,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(before.events).toEqual([{ event: "document_entry_observed" }]);
     expect(after.events).toEqual(before.events);
     expect(after.drawn.join("\n")).not.toMatch(forbidden);
-    expect(after.drawn.join("\n")).not.toMatch(/orchard|meadow/i);
+    expect(after.drawn.join("\n")).toMatch(/orchard|meadow/i);
     expect(page.url()).toBe("http://127.0.0.1:3000/whatsapp/wrapped/");
   });
 
@@ -815,7 +844,9 @@ test.describe("WhatsApp Wrapped V2", () => {
     const received = page.waitForEvent("download");
     await fullExportButton(page).click();
     const result = await received;
-    expect(result.suggestedFilename()).toBe("instascope-whatsapp-wrapped-deck.zip");
+    expect(result.suggestedFilename()).toBe(
+      "instascope-whatsapp-wrapped-deck.zip",
+    );
     const entries = unzipSync(await readFile((await result.path())!));
     expect(Object.keys(entries)).toEqual([
       "01-conversation.png",
@@ -889,7 +920,7 @@ test.describe("WhatsApp Wrapped V2", () => {
     await expect(status(page)).toContainText("Your PNG was downloaded");
   });
 
-  test("fictional demo exports visibly labelled anonymous PNGs and a generic local deck ZIP", async ({
+  test("fictional demo exports visibly labelled personalized PNGs and a generic local deck ZIP", async ({
     page,
   }) => {
     await page.goto("/whatsapp/wrapped/");
@@ -901,15 +932,17 @@ test.describe("WhatsApp Wrapped V2", () => {
       .getByRole("button", { name: "Try the fictional demo", exact: true })
       .click();
     await ready(page);
-    await expect(slide(page)).toContainText("Fictional demo data");
-    await expect(
-      deck(page).getByLabel(wordLabel, { exact: true }),
-    ).not.toBeChecked();
-    await expect(picker(page)).not.toContainText(/word/i);
+    await expect(slide(page)).toContainText(
+      "Demo data \u00b7 Fictional example",
+    );
+    await expect(deck(page).getByLabel(wordLabel, { exact: true })).toHaveCount(
+      0,
+    );
+    await expect(slide(page)).toHaveAttribute("data-story-id", "words");
     const receivedPng = page.waitForEvent("download");
     await downloadButton(page).click();
     const png = await receivedPng;
-    expect(png.suggestedFilename()).toBe("instascope-whatsapp-demo-conversation.png");
+    expect(png.suggestedFilename()).toBe("instascope-whatsapp-demo-words.png");
     await assertArtworkMatches(
       await readFile((await png.path())!),
       await previewBytes(page),
@@ -925,10 +958,10 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(Object.keys(entries)).toHaveLength(count);
     for (const bytes of Object.values(entries)) assertPng(bytes);
     const after = await metrics(page);
-    expect(after.drawn.join("\n")).toMatch(/fictional demo data/i);
-    expect(after.drawn.join("\n")).not.toMatch(
-      /Mira|Rowan|Jules|example\.org|winter project/i,
+    expect(after.drawn.join("\n")).toMatch(
+      /DEMO DATA \u00b7 FICTIONAL EXAMPLE/i,
     );
+    expect(after.drawn.join("\n")).not.toMatch(/example\.org|winter project/i);
     expect(after.parseRequests).toBe(before.parseRequests);
     expect(after.storageWrites).toEqual(before.storageWrites);
     expect(after.databaseOpens).toBe(before.databaseOpens);
@@ -976,33 +1009,23 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(downloads[0]).toMatch(/\.png$/);
   });
 
-  test("word insights enter artwork only after opt-in and revocation or accepted replacement clears prepared words", async ({
+  test("qualifying words open first automatically, stay local and disappear with a sparse replacement", async ({
     page,
   }) => {
     await page.goto("/whatsapp/wrapped/");
     await acceptChat(page);
     await ready(page);
-    const checkbox = deck(page).getByLabel(wordLabel, { exact: true });
+    await expect(deck(page).getByLabel(wordLabel, { exact: true })).toHaveCount(
+      0,
+    );
+    await expect(slide(page)).toHaveAttribute("data-story-kind", "word");
+    await expect(slide(page)).toContainText(/orchard|meadow/i);
+    await expect(deck(page).locator(".wa-share-safety")).toHaveText(
+      "Names and message-derived words may appear in exported images. Review each card before sharing.",
+    );
     const before = await metrics(page);
     const requests: string[] = [];
     page.on("request", (request) => requests.push(request.url()));
-    await expect(checkbox).not.toBeChecked();
-    await expect(picker(page)).not.toContainText(/word/i);
-    expect((await metrics(page)).drawn.join("\n")).not.toMatch(
-      /orchard|meadow/i,
-    );
-    await checkbox.check();
-    await expect(deck(page)).toContainText(/generated locally|locally/i);
-    await expect(deck(page)).toContainText(/message text/i);
-    await expect(deck(page)).toContainText(/PNG.*words|words.*PNG/i);
-    const wordChoice = choices(page).filter({ hasText: /word/i });
-    await expect(wordChoice).toHaveCount(1);
-    expect(await choices(page).count()).toBeLessThanOrEqual(12);
-    await wordChoice.click();
-    await ready(page);
-    await expect(slide(page)).toHaveAttribute("data-story-kind", "word");
-    await expect(slide(page)).toContainText(/orchard|meadow/i);
-    expect((await metrics(page)).drawn.join("\n")).toMatch(/orchard|meadow/i);
     await assertArtworkMatches(
       await downloadPng(page),
       await previewBytes(page),
@@ -1010,19 +1033,13 @@ test.describe("WhatsApp Wrapped V2", () => {
     const methodology = deck(page).locator(".wa-story-calculation");
     await methodology.locator("summary").click();
     await expect(methodology).toContainText(/Unicode|stopword/);
-    await page.evaluate(() => {
-      (window as unknown as WrappedWindow).wrappedMetrics.drawn = [];
-    });
-    await checkbox.uncheck();
+    await choices(page).filter({ hasText: "The contributors" }).click();
     await ready(page);
-    await expect(picker(page)).not.toContainText(/word/i);
-    await expect(slide(page)).not.toContainText(/orchard|meadow/i);
+    await expect(slide(page)).toContainText(privateLabel);
+    await expect(slide(page)).toContainText(secondLabel);
     await assertArtworkMatches(
       await downloadPng(page),
       await previewBytes(page),
-    );
-    expect((await metrics(page)).drawn.join("\n")).not.toMatch(
-      /orchard|meadow/i,
     );
     const after = await metrics(page);
     expect(after.parseRequests).toBe(before.parseRequests);
@@ -1032,12 +1049,16 @@ test.describe("WhatsApp Wrapped V2", () => {
     expect(before.events).toEqual([{ event: "document_entry_observed" }]);
     expect(after.events).toEqual(before.events);
     expect(requests).toEqual([]);
-    await checkbox.check();
-    await wordChoice.click();
-    await ready(page);
+    expect(page.url()).not.toMatch(/Synthetic|orchard|meadow/);
+    const publicHtml = await (
+      await page.request.get("/whatsapp/wrapped/")
+    ).text();
+    expect(publicHtml).not.toContain(privateLabel);
+    expect(publicHtml).not.toContain(secondLabel);
+    expect(publicHtml).not.toContain("orchard");
     await acceptChat(page, sparseChat);
-    await expect(checkbox).not.toBeChecked();
     await expect(choices(page)).toHaveCount(2);
+    await expect(slide(page)).toHaveAttribute("data-story-id", "conversation");
     await expect(slide(page)).not.toContainText(/orchard|meadow/i);
     await ready(page);
     await assertArtworkMatches(
@@ -1067,12 +1088,12 @@ test.describe("WhatsApp Wrapped V2", () => {
             );
           };
       }, failure);
-      await choices(page).nth(1).click();
+      await choices(page).filter({ hasText: "The contributors" }).click();
       await expect(status(page)).toContainText(/unavailable|could not|cannot/i);
       await expect(slide(page).locator(".wa-story-text")).not.toBeEmpty();
       if (failure === "context")
         await expect(slide(page).locator(".wa-story-text")).toBeVisible();
-      await expect(slide(page)).toContainText("Participant 1");
+      await expect(slide(page)).toContainText(privateLabel);
       await expect(downloadButton(page)).toBeDisabled();
       await expect(page.locator(".wa-current-chat")).toContainText(
         "54 messages",

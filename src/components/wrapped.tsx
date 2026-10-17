@@ -249,6 +249,8 @@ function WrappedDeck({
             <i />
           </div>
           <span className="eyebrow">
+            My Instagram Wrapped
+            <br />
             {isDemo && (
               <span>
                 DEMO DATA · FICTIONAL EXAMPLE
@@ -287,7 +289,6 @@ function WrappedDeck({
               </div>
             ))}
           </div>
-          <p className="wrapped-note">{story.note}</p>
           <small>
             ◎ Made with InstaScope <span>instascope.me</span>
           </small>
@@ -316,6 +317,7 @@ function WrappedDeck({
         </p>
       </div>
       <div className="wrapped-actions">
+        <p className="wrapped-hint">{story.note}</p>
         <span className="eyebrow">YOUR CIRCLE HAS STORIES</span>
         <h2>This one belongs on your Story.</h2>
         <p>

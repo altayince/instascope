@@ -42,7 +42,7 @@ for download contents and date rules.
 [WhatsAppScope](docs/WHATSAPPSCOPE.md) is developed from `dev` and reviewed in a
 PR targeting `dev`. `npm run dev:family` or `npm run build:dev` explicitly enables
 the local preview: shared platform switcher, green chat workspace, local TXT/ZIP
-analysis and anonymous Wrapped cards. Supported formats are deliberately limited
+analysis and personalized Wrapped cards. Supported formats are deliberately limited
 and require an explicit date/clock selection. Default and production builds keep
 WhatsApp routes and the switcher unavailable. Do not deploy this preview artifact.
 
